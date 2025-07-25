@@ -91,7 +91,7 @@
 </template>
 
 <script setup>
-import { currentDate } from '@/util/functions.js'
+import { dateFormatDB, currentDate } from '@/util/functions.js'
 import { ref, reactive, watch, computed } from 'vue'
 import CitasService from '@/services/CitasService'
 
@@ -145,14 +145,14 @@ const handleFileSelect = (event) => {
   }
 }
 
-const submitComplaint = () => {
-  console.log('Formulario enviado:', {
-    ...form,
-    archivo: selectedFile.value,
-  })
-
+async function submitComplaint() {
+  console.log(form)
+  const newForm = { ...form }
+  newForm.id_alumno = 5
+  newForm.id_usuario = 5
+  newForm.fecha = dateFormatDB(currentDate())
+  await CitasService.crearCita(newForm)
   dialog.value = false
-
   alert('Actividad enviada exitosamente')
 }
 </script>

@@ -144,6 +144,7 @@ watch(
       form.resumen = val.resumen || ''
       form.tipo = val.tipo || ''
       form.titulo = val.titulo || ''
+      form.stock = val.stock || ''
     }
   },
   { immediate: true },

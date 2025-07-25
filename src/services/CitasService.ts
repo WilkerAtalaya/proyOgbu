@@ -6,13 +6,15 @@ export class CitasService {
   private urlObtenerSolicitadasPorUsuario: string
   private urlObtenerPendientes: string
   private urlObtenerCulminadas: string
-  private urlConsultar: String
+  private urlConsultar: string
+  private urlCrear: string
 
   constructor() {
     this.urlObtenerSolicitadasPorUsuario = `${environment.baseUrlApi}${environment.endPoint.citas.obtenerSolicitadasPorUsuario}`
     this.urlObtenerPendientes = `${environment.baseUrlApi}${environment.endPoint.citas.obtenerPendientes}`
     this.urlObtenerCulminadas = `${environment.baseUrlApi}${environment.endPoint.citas.obtenerCulminadas}`
     this.urlConsultar = `${environment.baseUrlApi}${environment.endPoint.citas.consultar}`
+    this.urlCrear = `${environment.baseUrlApi}${environment.endPoint.citas.crear}`
   }
 
   async obtenerCitasSolicitadasPorUsuario(usuarioId: number): Promise<CitaAlumno[]> {
@@ -44,6 +46,12 @@ export class CitasService {
   async obtenerCitaPorId(id: number): Promise<CitaAdmin> {
     return axios
       .get<CitaAdmin>(`${this.urlConsultar}/${id}`)
+      .then(res => res.data);
+  }
+
+   async crearCita(body: Partial<CitaAdmin>): Promise<CitaAdmin> {
+    return axios
+      .post<CitaAdmin>(this.urlCrear, body)
       .then(res => res.data);
   }
 }

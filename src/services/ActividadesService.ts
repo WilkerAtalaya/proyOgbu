@@ -58,7 +58,6 @@ export class ActividadesService {
   }
 
   async crearActividad(body: Partial<Actividad>): Promise<Actividad> {
-    console.log(2)
     return axios
       .post<Actividad>(this.urlCrearActividad, body, {
         headers: {

@@ -40,7 +40,8 @@ export const environment = {
       obtenerSolicitadasPorUsuario: '/citas/alumno',
       obtenerPendientes: '/citas/pendientes',
       obtenerCulminadas: '/citas/culminadas',
-      consultar: '/citas'
+      consultar: '/citas',
+      crear: '/citas',
     },
     asistencia: {
       obtenerFechasMarcadasPorUsuario: '/asistencia/fechas',
