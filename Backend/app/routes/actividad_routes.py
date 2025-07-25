@@ -74,6 +74,8 @@ def ver_aprobadas():
             'id': a.id_actividad,
             'titulo': a.titulo,
             'tipo': a.tipo,
+            'descripcion': a.descripcion,
+            'archivo': a.archivo,
             'stock': a.stock,
             'fecha_actividad': a.fecha_actividad.strftime('%d/%m/%Y'),
             'cupos_restantes': cupos
