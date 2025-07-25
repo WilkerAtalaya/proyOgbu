@@ -24,3 +24,4 @@ def listar():
             "id_usuario": r.id_usuario
         } for r in reconocimientos
     ])
+

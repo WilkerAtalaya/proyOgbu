@@ -6,13 +6,23 @@ actividad_bp = Blueprint('actividad', __name__)
 
 @actividad_bp.route('/actividades', methods=['POST'])
 def registrar_actividad_alumno():
-    nueva = crear_actividad_con_archivo(aprobado_por_admin=False)
-    return jsonify({'mensaje': 'Solicitud registrada', 'id': nueva.id_actividad}), 201
+    resultado = crear_actividad_con_archivo(aprobado_por_admin=False)
+    
+    if isinstance(resultado, tuple):
+        return resultado
+
+    return jsonify({'mensaje': 'Solicitud registrada', 'id': resultado.id_actividad}), 201
+
 
 @actividad_bp.route('/actividades/admin', methods=['POST'])
 def registrar_actividad_admin():
-    nueva = crear_actividad_con_archivo(aprobado_por_admin=True)
-    return jsonify({'mensaje': 'Actividad creada y aprobada', 'id': nueva.id_actividad}), 201
+    resultado = crear_actividad_con_archivo(aprobado_por_admin=True)
+    
+    if isinstance(resultado, tuple):
+        return resultado
+
+    return jsonify({'mensaje': 'Actividad creada y aprobada', 'id': resultado.id_actividad}), 201
+
 
 
 @actividad_bp.route('/actividades/usuario/<int:id_usuario>', methods=['GET'])
@@ -64,6 +74,8 @@ def ver_aprobadas():
             'id': a.id_actividad,
             'titulo': a.titulo,
             'tipo': a.tipo,
+            'descripcion': a.descripcion,
+            'archivo': a.archivo,
             'stock': a.stock,
             'fecha_actividad': a.fecha_actividad.strftime('%d/%m/%Y'),
             'cupos_restantes': cupos
