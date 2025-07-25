@@ -1,0 +1,65 @@
+@import './base.css';
+
+#app {
+  margin: 0 auto;
+  font-weight: normal;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+/* card-sidemenu */
+.n-menu .n-menu-item-content-header {
+  color: white !important;
+}
+.n-menu .n-menu-item-content.n-menu-item-content--selected {
+  border-radius: 20px;
+  background: #dcc1c1;
+  color: #163053 !important;
+}
+.n-menu .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header {
+  background-color: none !important;
+  color: #163053 !important;
+}
+.n-menu .n-menu-item-content.n-menu-item-content--selected:hover::before {
+  background-color: transparent !important;
+}
+.n-menu .n-menu-item-content.n-menu-item-content--selected::before {
+  background-color: transparent;
+}
+.n-menu .n-menu-item-content:hover::before {
+  background-color: #16305336 !important;
+}
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+.v-table{
+  background-color: transparent !important;
+  border: 1px solid #D9D9D9 !important;
+  border-collapse: collapse !important; /* (opcional) para que los bordes no se dupliquen */
+  overflow: hidden;
+}
+
+.v-table thead {
+  border-radius: 20px !important;
+  background-color: white !important;
+  color: #163053;
+  font-weight: bold;
+}
+.data-table{
+  background-color: transparent !important;
+  border: 1px solid #D9D9D9 !important;
+  border-collapse: collapse !important; /* (opcional) para que los bordes no se dupliquen */
+  overflow: hidden;
+  padding-bottom: 10px;
+}
+.data-table .n-data-table .n-data-table-td{
+  background-color: red !important;
+}
