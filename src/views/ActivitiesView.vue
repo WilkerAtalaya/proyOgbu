@@ -6,8 +6,11 @@
     </v-tabs>
     <v-tabs-window v-model="tab">
       <v-tabs-window-item :value="1">
-        <div v-if="isAdmin" class="text-right">
-          <v-btn variant="outlined" class="mb-6" @click="openModalNuevo">Nueva Actividad</v-btn>
+        <div  class="text-right">
+          <v-btn variant="outlined" class="mb-6" @click="openModalNuevo">
+            <span v-if="isAdmin"> Nueva Actividad </span>
+            <span v-else>Solicitar Actividad</span>
+          </v-btn>
         </div>
         <v-container fluid>
           <div v-for="(actividad, index) in actividades" :key="index" class="actividad-card">

@@ -26,8 +26,8 @@
     <div class="header-cc">
       <i class="fa-solid fa-award"></i>
       <p>Reconocimientos</p>
-      <div v-if="isAdmin" style="margin-bottom: 16px">
-        <n-button type="primary" @click="mostrarModal = true">Crear Reconocimiento</n-button>
+      <div v-if="isAdmin" class="text-right pl-6">
+        <n-button style="background-color: #b28700; color:aliceblue" type="primary" @click="mostrarModal = true">Crear</n-button>
       </div>
     </div>
     <n-list>
@@ -42,14 +42,15 @@
       </n-list-item>
     </n-list>
   </n-card>
-  <n-modal v-model:show="mostrarModal" title="Nuevo Reconocimiento">
+  <n-modal v-model:show="mostrarModal" title="Nuevo Reconocimiento" style="background-color: white; border-radius: 15px;">
     <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px">
       <n-input
+      style="height: 91px;"
         v-model:value="nuevoReconocimiento.descripcion"
         placeholder="Descripción del reconocimiento"
         type="textarea"
       />
-      <n-button type="primary" @click="enviarReconocimiento">Enviar</n-button>
+      <n-button style="background-color: #b28700; color:aliceblue" type="primary" @click="enviarReconocimiento">Enviar</n-button>
     </div>
   </n-modal>
 </template>

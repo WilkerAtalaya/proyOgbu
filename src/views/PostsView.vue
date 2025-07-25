@@ -1,10 +1,11 @@
 <template>
-  <div v-if="isAdmin" style="margin-bottom: 16px">
-    <n-button type="primary" @click="mostrarModal = true">Crear publicación</n-button>
+  <div v-if="isAdmin" style="margin-bottom: 16px;" class="text-right pr-4">
+    <n-button style="background-color: #b28700; color:aliceblue" type="primary" @click="mostrarModal = true">Crear publicación</n-button>
   </div>
-  <n-modal v-model:show="mostrarModal" title="Nueva Publicación">
+  <n-modal style="background-color: white; border-radius: 15px;" v-model:show="mostrarModal" title="Nueva Publicación">
     <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px">
       <n-input
+        style="height: 95px; width: 150px !important;"
         v-model:value="nuevaPublicacion.descripcion"
         placeholder="Descripción de la publicación"
         type="textarea"
@@ -17,7 +18,7 @@
       >
         <n-button>Subir Imagen</n-button>
       </n-upload>
-      <n-button type="primary" @click="enviarPublicacion">Enviar</n-button>
+      <n-button style="background-color: #b28700; color:aliceblue" type="primary" @click="enviarPublicacion">Enviar</n-button>
     </div>
   </n-modal>
   <div class="posts-container">
