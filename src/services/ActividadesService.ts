@@ -7,7 +7,8 @@ export class ActividadesService {
   private urlObtenerAprobadas: string
   private urlObtenerTodas: string
   private urlObtenerPorId: string
-  private urlCrear: string
+  private urlCrearActividad: string
+  private urlCrearSolicitud: string
   private urlActualizar: string
   private urlEliminar: string
 
@@ -16,7 +17,8 @@ export class ActividadesService {
     this.urlObtenerTodas = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerTodas}`
     this.urlObtenerAprobadas = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerAprobadas}`
     this.urlObtenerPorId = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerPorId}`
-    this.urlCrear = `${environment.baseUrlApi}${environment.endPoint.actividades.crear}`
+    this.urlCrearActividad = `${environment.baseUrlApi}${environment.endPoint.actividades.crearActividad}`
+    this.urlCrearSolicitud = `${environment.baseUrlApi}${environment.endPoint.actividades.crearSolicitud}`
     this.urlActualizar = `${environment.baseUrlApi}${environment.endPoint.actividades.actualizar}`
     this.urlEliminar = `${environment.baseUrlApi}${environment.endPoint.actividades.eliminar}`
   }
@@ -45,9 +47,20 @@ export class ActividadesService {
   //       .then(res => res.data);
   //   }
 
-  async crearActividad(body: Partial<Actividad>): Promise<Actividad> {
+  async crearSolicitud(body: Partial<Actividad>): Promise<Actividad> {
     return axios
-      .post<Actividad>(this.urlCrear, body, {
+      .post<Actividad>(this.urlCrearSolicitud, body, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((res) => res.data)
+  }
+
+  async crearActividad(body: Partial<Actividad>): Promise<Actividad> {
+    console.log(2)
+    return axios
+      .post<Actividad>(this.urlCrearActividad, body, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

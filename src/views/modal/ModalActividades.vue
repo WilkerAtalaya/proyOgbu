@@ -168,7 +168,12 @@ async function submitComplaint() {
   formData.append('fecha_actividad', new Date().toISOString().slice(0, 10))
   formData.append('id_usuario', user.value.id)
   formData.append('stock', Number(form.stock))
-  await ActividadesService.crearActividad(formData)
+  if (isAdmin) {
+    await ActividadesService.crearActividad(formData)
+  } else {
+    await ActividadesService.crearSolicitud(formData)
+  }
+  
   emit('agregarActividad', {
     tipo: form.tipo,
     titulo: form.titulo,

@@ -26,7 +26,7 @@
             </div>
             <div class="tipo">{{ actividad.tipo.toUpperCase() }}</div>
             <div class="accion">
-              <n-button  style="background-color:#ffc107;" type="warning"  @click="openModalNuevo('form')">Acceder al formulario</n-button>
+              <n-button  style="background-color:#ffc107;" type="warning"  @click="openModalNuevo('form', actividad)">Acceder al formulario</n-button>
             </div>
           </div>
         </v-container>
@@ -93,8 +93,9 @@
       </v-tabs-window-item>
     </v-tabs-window>
   </v-card>
-  <ModalActividades :type="modalType" v-model="showModal" :item="selectedItem" :user="user" :mode="isView" @agregar-actividad="agregarActividad" />
-   <ModalMisSolicitudes v-model="showModalSolicitudes" :item="selectedItem" :user="user" :mode="isView" />
+  {{ selectedItem }}
+  <ModalActividades :type="modalType" v-model="showModal" :item="selectedItem" :user="user"  @agregar-actividad="agregarActividad" />
+   <ModalMisSolicitudes v-model="showModalSolicitudes" :item="selectedItem" :user="user" />
 </template>
 <script setup>
 import { NButton } from 'naive-ui'
@@ -188,9 +189,19 @@ function agregarActividad(actividad) {
 }
 
 
-function openModalNuevo( type = 'actividad') {
+function openModalNuevo( type = 'actividad', actividad = null) {
   const user = LoginService.getCurrentUser()
-  selectedItem.value = {
+  if (actividad) {
+    selectedItem.value = {
+      tipo: actividad.tipo,
+      titulo: actividad.titulo,
+      descripcion: actividad.descripcion,
+      fecha_actividad: actividad.fecha_actividad,
+      stock: actividad.stock,
+      attend: false
+    }
+  } else {
+    selectedItem.value = {
     numero: '',
     asunto: '',
     motivo: '',
@@ -198,6 +209,7 @@ function openModalNuevo( type = 'actividad') {
     estado: '',
     descripcion: '',
     attend : false
+  }
   }
   modalType.value = type
   showModal.value = true
@@ -227,6 +239,7 @@ async function loadSolicitudesPorUsuario() {
       resumen: a.descripcion,
       descripcion: a.descripcion,
       tipo: a.tipo,
+      stock: a.stock,
     }))
   } catch (error) {
     console.error(error)
@@ -244,6 +257,7 @@ async function loadSolicitudes() {
       resumen: a.descripcion,
       descripcion: a.descripcion,
       tipo: a.tipo,
+      stock: a.stock,
     }))
   } catch (error) {
     console.error(error)
@@ -259,6 +273,7 @@ async function loadActividadesAprobadas() {
       descripcion: a.descripcion,
       titulo: a.titulo,
       tipo: a.tipo.toUpperCase(),
+      stock: a.stock,
     }))
   } catch (error) {
     console.error(error)
