@@ -15,14 +15,14 @@
       <v-form @submit.prevent="submitComplaint">
         <div class="mb-4">
           <label class="text-body-2 font-weight-medium mb-2 d-block"> Fecha </label>
-          <v-select
+          <VueDatePicker
             v-model="form.fecha"
-            :items="dateOptions"
-            variant="outlined"
-            density="comfortable"
-            hide-details
-            class="custom-select"
-        ></v-select>
+            locale="es"
+            format="dd/MM/yyyy"
+            :ui="{ input: 'custom-input' }"
+            :enable-time-picker="false"
+            placeholder="Selecciona la fecha"
+          />
         </div>
         <div class="mb-4">
           <label class="text-body-2 font-weight-medium mb-2 d-block"> Horario </label>
@@ -94,6 +94,8 @@
 import { dateFormatDB, currentDate } from '@/util/functions.js'
 import { ref, reactive, watch, computed } from 'vue'
 import CitasService from '@/services/CitasService'
+import VueDatePicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -150,7 +152,18 @@ async function submitComplaint() {
   const newForm = { ...form }
   newForm.id_alumno = 5
   newForm.id_usuario = 5
-  newForm.fecha = dateFormatDB(currentDate())
+  if (form.fecha) {
+    let fechaStr = form.fecha
+    if (form.fecha instanceof Date) {
+      const dia = form.fecha.getDate().toString().padStart(2, '0')
+      const mes = (form.fecha.getMonth() + 1).toString().padStart(2, '0')
+      const anio = form.fecha.getFullYear()
+      fechaStr = `${dia}/${mes}/${anio}`
+    }
+    newForm.fecha = dateFormatDB(fechaStr)
+  } else {
+    newForm.fecha = dateFormatDB(currentDate())
+  }
   await CitasService.crearCita(newForm)
   dialog.value = false
   alert('Actividad enviada exitosamente')
@@ -176,5 +189,10 @@ async function submitComplaint() {
 .upload-area:hover {
   border-color: #e91e63;
   background-color: #fce4ec;
+}
+
+:deep(.dp__theme_light) {
+  --dp-primary-color: #e91e63;
+  --dp-primary-text-color: #fff;
 }
 </style>
