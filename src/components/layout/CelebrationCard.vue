@@ -42,17 +42,11 @@
       </n-list-item>
     </n-list>
   </n-card>
-  <n-modal v-model:show="mostrarModal" title="Nuevo Reconocimiento" style="background-color: white; border-radius: 15px;">
-    <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px">
-      <n-input
-      style="height: 91px;"
-        v-model:value="nuevoReconocimiento.descripcion"
-        placeholder="Descripción del reconocimiento"
-        type="textarea"
-      />
-      <n-button style="background-color: #b28700; color:aliceblue" type="primary" @click="enviarReconocimiento">Enviar</n-button>
-    </div>
-  </n-modal>
+  <ModalReconocimiento
+    v-model="mostrarModal"
+    :mode="false"
+    @agregarReconocimiento="agregarReconocimiento"
+  />
 </template>
 
 <script setup>
@@ -62,6 +56,7 @@ import { useRouter, useRoute } from 'vue-router'
 import ReconocimientosService from '@/services/ReconocimientosService'
 import LoginService from '@/services/LoginService'
 import { onMounted, ref } from 'vue'
+import ModalReconocimiento from './ModalReconocimiento.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -69,9 +64,6 @@ const reconocimientoItems = ref([])
 const cumpleanosItems = ref([])
 const isAdmin = LoginService.isAdmin()
 const mostrarModal = ref(false)
-const nuevoReconocimiento = ref({
-  descripcion: '',
-})
 
 async function loadReconocimientos() {
   try {
@@ -109,22 +101,8 @@ onMounted(async () => {
   await loadCumpleanos()
 })
 
-async function enviarReconocimiento() {
-  const user = LoginService.getCurrentUser()
-  const body = {
-    descripcion: nuevoReconocimiento.value.descripcion,
-    fecha: new Date().toISOString().split('T')[0],
-    id_usuario: user.id,
-    id_alumno: 5
-  }
-  await ReconocimientosService.crearReconocimiento(body)
-  reconocimientoItems.value.unshift({
-    id_usuario: user.id,
-    descripcion: body.descripcion,
-    fecha: body.fecha,
-  })
-  nuevoReconocimiento.value = { descripcion: '', fecha: new Date().toISOString().split('T')[0] }
-  mostrarModal.value = false
+function agregarReconocimiento(rec) {
+  reconocimientoItems.value.unshift(rec)
 }
 </script>
 
