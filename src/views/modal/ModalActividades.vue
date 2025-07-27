@@ -15,13 +15,14 @@
       <v-form @submit.prevent="submitComplaint()">
         <div class="mb-4">
           <label class="text-body-2 font-weight-medium mb-2 d-block"> Tipo </label>
-          <v-text-field
+          <v-select
             v-model="form.tipo"
+            :items="tipoOptions"
             variant="outlined"
             density="comfortable"
             hide-details
             class="custom-input"
-          ></v-text-field>
+          ></v-select>
         </div>
         <div class="mb-4">
           <label class="text-body-2 font-weight-medium mb-2 d-block"> Título </label>
@@ -131,6 +132,8 @@ const form = reactive({
   descripcion: '',
   stock: '',
 })
+
+const tipoOptions = ['Viaje', 'Taller', 'Visita']
 
 watch(
   () => props.item,
