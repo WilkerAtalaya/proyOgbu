@@ -108,6 +108,9 @@ async function submitPublicacion() {
     imagen: response.imagen_url || '',
     fecha_publicacion: new Date()
   })
+  
+  form.descripcion = ''
+  selectedFile.value = null
   dialog.value = false
   alert('Publicación enviada exitosamente')
 }

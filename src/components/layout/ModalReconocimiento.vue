@@ -71,6 +71,8 @@ async function submitReconocimiento() {
     descripcion: body.descripcion,
     fecha: body.fecha,
   })
+  
+  form.descripcion = ''
   dialog.value = false
   alert('Reconocimiento enviado exitosamente')
 }
