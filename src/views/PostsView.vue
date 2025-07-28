@@ -1,26 +1,12 @@
 <template>
   <div v-if="isAdmin" style="margin-bottom: 16px;" class="text-right pr-4">
-    <n-button style="background-color: #b28700; color:aliceblue" type="primary" @click="mostrarModal = true">Crear publicación</n-button>
+    <button style="background-color: #b28700; color:aliceblue; border-radius: 8px; padding: 8px 20px; border: none; font-weight: 500; cursor: pointer" @click="mostrarModal = true">Crear publicación</button>
   </div>
-  <n-modal style="background-color: white; border-radius: 15px;" v-model:show="mostrarModal" title="Nueva Publicación">
-    <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px">
-      <n-input
-        style="height: 95px; width: 150px !important;"
-        v-model:value="nuevaPublicacion.descripcion"
-        placeholder="Descripción de la publicación"
-        type="textarea"
-      />
-      <n-upload
-        :max="1"
-        :custom-request="subirImagen"
-        :show-file-list="false"
-        accept="image/*"
-      >
-        <n-button>Subir Imagen</n-button>
-      </n-upload>
-      <n-button style="background-color: #b28700; color:aliceblue" type="primary" @click="enviarPublicacion">Enviar</n-button>
-    </div>
-  </n-modal>
+  <ModalPublicacion
+    v-model="mostrarModal"
+    :mode="false"
+    @agregarPublicacion="agregarPublicacion"
+  />
   <div class="posts-container">
     <div class="post-card" v-for="post in posts" :key="post.id">
       <div class="post-date">{{ dateFormatV1(post.fecha_publicacion) }}</div>
@@ -35,19 +21,19 @@ import AnunciosService from '@/services/AnunciosService'
 import { dateFormatV1 } from '@/util/functions.js'
 import { ref } from 'vue'
 import LoginService from '@/services/LoginService'
+import ModalPublicacion from './modal/ModalPublicacion.vue'
+
 const isAdmin = LoginService.isAdmin()
+
 export default {
   name: 'PostsView',
+  components: { ModalPublicacion },
   data() {
     return {
       isAdmin,
       posts: [],
       dateFormatV1,
-      mostrarModal: ref(false),
-      nuevaPublicacion: ref({
-        descripcion: '',
-        imagen: ''
-      })
+      mostrarModal: false,
     }
   },
   methods: {
@@ -58,22 +44,9 @@ export default {
         console.error('Error al obtener anuncios:', error)
       }
     },
-    async enviarPublicacion() {
-      const user = LoginService.getCurrentUser()
-      const formData = new FormData()
-      formData.append('id_usuario', user.id.toString())
-      formData.append('descripcion', this.nuevaPublicacion.descripcion)
-      formData.append('imagen', this.nuevaPublicacion.imagen)
-      await AnunciosService.crearAnuncio(formData)
-      this.posts.unshift({ 
-        id_usuario: user.id,
-        descripcion: this.nuevaPublicacion.descripcion,
-        imagen: this.nuevaPublicacion.imagen,
-        fecha_publicacion: new Date()
-      })
-      this.nuevaPublicacion = { descripcion: '', imagen: '' }
-      this.mostrarModal = false
-    }
+    agregarPublicacion(pub) {
+      this.posts.unshift(pub)
+    },
   },
   mounted() {
     this.loadPublicaciones()
