@@ -9,7 +9,7 @@
       "
       elevation="4"
     >
-      <h2 class="text-h4 font-weight-bold mb-6" style="color: #b8860b">Reporte de Asistencia</h2>
+      <h3 class="mb-4 text-title">Reporte de Asistencia</h3>
 
       <v-row class="mb-6">
         <v-col cols="12" sm="6">
@@ -38,41 +38,12 @@
         </v-col>
       </v-row>
 
-      <v-card class="pa-0" style="border-radius: 12px; background-color: #f5f5f5" elevation="2">
-        <v-row class="ma-0 pa-4" style="background-color: #e0e0e0; border-radius: 12px 12px 0 0">
-          <v-col cols="6" class="pa-2">
-            <h4 class="text-h6 font-weight-bold text-grey-darken-2">Fecha</h4>
-          </v-col>
-          <v-col cols="6" class="pa-2 text-center">
-            <h4 class="text-h6 font-weight-bold text-grey-darken-2">Asistencia</h4>
-          </v-col>
-        </v-row>
-
-        <div v-for="(record, index) in asistenciasMarcadas" :key="index">
-          <v-row
-            class="ma-0 pa-4 align-center"
-            :class="{ 'bg-grey-lighten-4': index % 2 === 0 }"
-            style="border-bottom: 1px solid #e0e0e0"
-          >
-            <v-col cols="6" class="pa-2">
-              <span class="text-body-1 font-weight-medium text-grey-darken-2">
-                {{ dateFormatV2(record.fecha) }}
-              </span>
-            </v-col>
-            <v-col cols="6" class="pa-2 text-center">
-              <v-btn
-                color="warning"
-                size="small"
-                style="border-radius: 16px; text-transform: none; font-weight: 500"
-                min-width="100px"
-                @click="handleStatusClick(record)"
-              >
-                {{ 'Ver detalles' }}
-              </v-btn>
-            </v-col>
-          </v-row>
-        </div>
-      </v-card>
+      <n-data-table
+        class="data-table"
+        :columns="columns"
+        :data="asistenciasMarcadas"
+        :pagination="pagination"
+      />
     </v-card>
 
     <v-dialog v-model="reportDialog" max-width="500px">
@@ -99,7 +70,8 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, h, resolveComponent } from 'vue'
+import { NDataTable, NButton } from 'naive-ui'
 import AsistenciaService from '@/services/AsistenciaService'
 import LoginService from '@/services/LoginService'
 import { dateFormatV1, dateFormatV2, dateFormatV3 } from '@/util/functions.js'
@@ -126,6 +98,35 @@ const months = [
   { name: 'Noviembre', value: 'noviembre' },
   { name: 'Diciembre', value: 'diciembre' },
 ]
+
+const columns = [
+  { 
+    title: 'Fecha', 
+    key: 'fecha',
+    render(row) {
+      return dateFormatV2(row.fecha)
+    }
+  },
+  {
+    title: 'Asistencia',
+    key: 'asistencia',
+    width: 150,
+    render(row) {
+      const NButton = resolveComponent('n-button')
+      return h(
+        NButton,
+        {
+          type: 'warning',
+          size: 'small',
+          onClick: () => handleStatusClick(row)
+        },
+        { default: () => 'Ver detalles' }
+      )
+    }
+  }
+]
+
+const pagination = ref({ pageSize: 7 })
 
 onMounted(async () => {
   await Promise.all[loadAsistenciasMarcadasPorUsuario()]
@@ -181,5 +182,43 @@ async function loadAsistenciasMarcadasPorUsuario() {
 .custom-select :deep(.v-field__input) {
   color: #424242;
   font-weight: 500;
+}
+
+.text-title{
+  color: rgb(163, 120, 1);
+  font-size: 28px !important;
+  font-size: larger;
+  text-transform: none;
+  font-family: 'Righteous', cursive;
+}
+
+::v-deep(.n-data-table-table) {
+  border-radius: 20px !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: white;
+}
+::v-deep(.n-data-table) {
+  border-radius: 20px !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: white;
+}
+
+::v-deep(.n-data-table-th) {
+  background-color: #D9D9D9;
+  color: black;
+  font-weight: bold !important;
+}
+
+::v-deep(.n-data-table-td) {
+  background-color: transparent !important;
+  padding: 8px;
+}
+
+::v-deep(.n-data-table-th__title){
+  color: #163053 !important;
 }
 </style>
