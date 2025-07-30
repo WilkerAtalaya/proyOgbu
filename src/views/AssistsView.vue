@@ -46,20 +46,10 @@
       />
     </v-card>
 
-    <v-dialog v-model="reportDialog" max-width="500px">
-      <v-card class="pa-4">
-        <v-card-title class="text-h5 font-weight-bold"> Reporte Detallado </v-card-title>
-        <v-card-text v-for="(item, index) in selectedRecord" :key="index">
-          <p><strong>Fecha:</strong> {{ dateFormatV2(item.fecha) }}</p>
-          <p><strong>Hora marcada:</strong> {{ dateFormatV3(item.hora_marcado) }}</p>
-          <p><strong>Alumno:</strong> {{ item.nombre_alumno }}</p>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" @click="close()"> Cerrar </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <ModalAsistencia 
+      v-model="reportDialog" 
+      :asistencias="selectedRecord" 
+    />
 
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
       {{ snackbar.message }}
@@ -75,6 +65,7 @@ import { NDataTable, NButton } from 'naive-ui'
 import AsistenciaService from '@/services/AsistenciaService'
 import LoginService from '@/services/LoginService'
 import { dateFormatV1, dateFormatV2, dateFormatV3 } from '@/util/functions.js'
+import ModalAsistencia from './modal/ModalAsistencia.vue'
 
 const selectedYear = ref('2024')
 const selectedMonth = ref('marzo')
@@ -149,11 +140,6 @@ const updateAttendanceData = () => {
   snackbar.color = 'info'
   snackbar.show = true
   console.log('Actualizando datos para:', selectedYear.value, selectedMonth.value)
-}
-
-const close = () => {
-  reportDialog.value = false
-  selectedRecord.value = []
 }
 
 async function loadAsistenciasMarcadasPorUsuario() {
