@@ -388,7 +388,7 @@ export default defineComponent({
 
 <style scoped>
 .citas-container {
-  background-color: rgba(197, 199, 176, 0.95);
+  background-color: #BBBDA7;
   width: 95%;
   padding: 20px;
   border-radius: 15px;

@@ -1,9 +1,12 @@
 <template>
-  <div class="about"><h1>Mis reportes</h1></div>
-  <div style="background-color: rgba(197, 199, 176, 0.95); width: 95%; padding: 20px; border-radius: 20px;">
-    <div class="text-right">
-      <v-btn variant="outlined" class="mb-6" @click="openModalNuevo">Nueva Queja</v-btn>
-    </div>
+  <div style="background-color: #BBBDA7; width: 95%; padding: 20px; border-radius: 20px;">
+    <v-tabs v-model="tab" align-tabs="start" color="#A37801">
+      <h3 class="mb-4 text-title">Mis reportes</h3>
+       <v-spacer></v-spacer>
+      <v-btn variant="outlined" class="mb-6" @click="openModalNuevo">
+        <span>Nueva Queja </span>
+      </v-btn>
+    </v-tabs>
     <v-data-table :items="filteredData"  :items-per-page="5">
       <template #headers>
         <tr>
@@ -129,5 +132,12 @@ function chooseQuejas() {
 .n-data-table,
 .n-data-table-tbody {
   background-color: transparent;
+}
+.text-title{
+  color: rgb(163, 120, 1);
+  font-size: 28px !important;
+  font-size: larger;
+  text-transform: none;
+  font-family: 'Righteous', cursive;
 }
 </style>

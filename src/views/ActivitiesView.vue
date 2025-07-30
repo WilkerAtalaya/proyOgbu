@@ -1,17 +1,16 @@
 <template>
   <v-card class="contenido">
     <v-tabs v-model="tab" align-tabs="start" color="#A37801">
-      <v-tab :value="1" class="custom-tab">Actividades</v-tab>
-      <v-tab :value="2" class="custom-tab">Mis Solicitudes</v-tab>
+      <v-tab :value="1" class="custom-tab"><h3 class="mb-4 text-title">Actividades</h3></v-tab>
+      <v-tab :value="2" class="custom-tab"><h3  class="mb-4 text-title">Mis Solicitudes</h3></v-tab>
+       <v-spacer></v-spacer>
+      <v-btn variant="outlined" class="mb-6" @click="openModalNuevo">
+            <span v-if="isAdmin"> Nueva Actividad </span>
+            <span v-else>Solicitar</span>
+          </v-btn>
     </v-tabs>
     <v-tabs-window v-model="tab">
       <v-tabs-window-item :value="1">
-        <div  class="text-right">
-          <v-btn variant="outlined" class="mb-6" @click="openModalNuevo">
-            <span v-if="isAdmin"> Nueva Actividad </span>
-            <span v-else>Solicitar Actividad</span>
-          </v-btn>
-        </div>
         <v-container fluid>
           <div v-for="(actividad, index) in actividades" :key="index" class="actividad-card">
             <div class="info">
@@ -328,7 +327,7 @@ async function loadActividadesAprobadas() {
 
 .contenido {
   flex: 1;
-  background: rgba(197, 199, 176, 0.95);
+  background: #BBBDA7;
   padding: 20px;
   border-radius: 20px;
   margin-left: auto;
@@ -421,5 +420,11 @@ async function loadActividadesAprobadas() {
 
 .custom-table :deep(tbody tr:last-child td) {
   border-bottom: none;
+}
+.text-title{
+  font-size: 28px !important;
+  font-size: larger;
+  text-transform: none;
+  font-family: 'Righteous', cursive;
 }
 </style>

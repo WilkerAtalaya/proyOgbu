@@ -4,16 +4,16 @@
       <v-col cols="12" md="6">
         <v-card
           class="pa-4"
-          style="border-radius: 16px; background-color: rgba(197, 199, 176, 0.95)"
+          style="border-radius: 16px; background-color: #BBBDA7"
         >
           <v-tabs v-model="activeTab" class="mb-4">
             <v-tab value="solicitud" class="custom-tab">
-              <span :class="{ 'active-tab-text': activeTab === 'solicitud' }">
-                SOLICITUD DE VIVIENDA
-              </span>
+              <h3 :class="{ 'active-tab-text': activeTab === 'solicitud' }">
+                Solicitud de vivienda
+              </h3>
             </v-tab>
             <v-tab value="area-comun" class="custom-tab">
-              <span :class="{ 'active-tab-text': activeTab === 'area-comun' }"> ÁREA COMÚN </span>
+              <h3 :class="{ 'active-tab-text': activeTab === 'area-comun' }">Área común</h3>
             </v-tab>
           </v-tabs>
 
@@ -73,7 +73,7 @@
                       color="#FFC107"
                       size="large"
                       style="
-                        border-radius: 20px;
+                        border-radius: 13px;
                         text-transform: none;
                         font-weight: 600;
                         color: #000;
@@ -87,12 +87,61 @@
               </div>
             </v-tabs-window-item>
             <v-tabs-window-item value="area-comun">
-              <div class="text-center pa-8">
-                <v-icon size="64" color="grey-lighten-1" class="mb-4"> mdi-home-group </v-icon>
-                <p class="text-h6 text-grey-darken-1">Área Común</p>
-                <p class="text-body-2 text-grey">
-                  Funcionalidad para áreas comunes próximamente disponible.
+               <div class="mb-4">
+                <p class="text-body-2 mb-4 text-grey-darken-2">
+                  Registre el lugar, fecha y horario que quieres reservar:
                 </p>
+                <v-form @submit.prevent="submitRequest">
+                  <div class="mb-3">
+                    <label class="text-body-2 font-weight-medium mb-2 d-block">Lugar</label>
+                    <v-select
+                      v-model="form.lugar"
+                      :items="siteOptions"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details
+                      class="custom-select"
+                    ></v-select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="text-body-2 font-weight-medium mb-2 d-block">Fecha</label>
+                    <v-select
+                      v-model="form.hasta"
+                      :items="dateOptions"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details
+                      class="custom-select"
+                    ></v-select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="text-body-2 font-weight-medium mb-2 d-block">Horario</label>
+                    <v-select
+                      v-model="form.horario"
+                      :items="scheduleOptions"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details
+                      class="custom-select"
+                    ></v-select>
+                  </div>
+                  <div class="d-flex justify-start">
+                    <v-btn
+                      type="submit"
+                      color="#FFC107"
+                      size="large"
+                      style="
+                        border-radius: 13px;
+                        text-transform: none;
+                        font-weight: 600;
+                        color: #000;
+                      "
+                      min-width="100px"
+                    >
+                      Enviar
+                    </v-btn>
+                  </div>
+                </v-form>
               </div>
             </v-tabs-window-item>
           </v-tabs-window>
@@ -101,7 +150,7 @@
       <v-col cols="12" md="6">
         <v-card
           class="pa-4"
-          style="border-radius: 16px; background-color: rgba(197, 199, 176, 0.95)"
+          style="border-radius: 16px; background-color: #BBBDA7"
         >
           <h3 class="mb-4 text-white text-title">Reservas</h3>
           <div v-if="solicitudes.length === 0" class="text-center pa-8">
@@ -115,11 +164,11 @@
               :key="permiso.id"
               class="mb-3 pa-3"
               variant="outlined"
-              style="border: 1px solid #B8BAA3; border-radius: 12px"
+              style="border: 1px solid #B8BAA3; border-radius: 12px;  background-color: #EAEBDF;"
             >
               <div class="d-flex justify-space-between align-center">
                 <div>
-                  <p class="text-body-1 font-weight-medium mb-1" style="color: white;">
+                  <p class="text-body-1 font-weight-medium mb-1" style="color: #636363;">
                     {{ dateFormatV2(permiso.fecha_salida) }} al
                     {{ dateFormatV2(permiso.fecha_regreso) }}
                   </p>
@@ -151,13 +200,15 @@
               :key="areaComun.id"
               class="mb-3 pa-3"
               variant="outlined"
-              style="border-radius: 12px"
+              style="border: 1px solid #B8BAA3; border-radius: 12px;  background-color: #EAEBDF;"
             >
               <div class="d-flex justify-space-between align-center">
                 <div>
                   <p class="text-body-1 font-weight-medium mb-1">
-                    {{ dateFormatV2(areaComun.fecha) }}
-                    {{ areaComun.horario }}
+                   <span style="color:#636363">Lugar: </span>{{areaComun.lugar}}
+                  </p>
+                  <p class="text-body-1 font-weight-medium mb-1">
+                    {{ dateFormatV2(areaComun.fecha) }} - {{ areaComun.horario }}
                   </p>
                   <div class="d-flex flex-column gap-1">
                     <v-chip
@@ -218,6 +269,20 @@ const dateOptions = [
   '15/04/2025',
   '17/04/2025',
   '24/04/2025',
+]
+const siteOptions = [
+  'Hall',
+  'patio',
+  'Lavandería',
+  'Sala de cómputo'
+]
+const scheduleOptions = [
+  '9:00 a 10:00',
+  '10:00 a 11:00 ',
+  '11:00 a 12:00',
+  '12:00 a 13:00',
+  '14:00 a 15:00',
+  '15:00 a 16:00'
 ]
 
 onMounted(async () => {

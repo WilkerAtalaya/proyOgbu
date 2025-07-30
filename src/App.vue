@@ -2,16 +2,16 @@
   <div id="app">
     <!-- Layout para páginas que requieren autenticación -->
     <template v-if="showLayout">
-      <n-layout has-sider style="height: 100vh">
+      <n-layout  class="base-layout" has-sider style="height: 100vh">
         <!-- Sidebar izquierdo -->
-        <n-layout-sider bordered width="15%" content-style="padding: 10px 20px;">
+        <n-layout-sider style="background-color: white !important;" bordered width="15%" content-style="padding: 10px 20px;">
           <UserCard style="margin-bottom: 20px" :user="user" />
           <SidebarMenu />
           <ButtonAction style="margin-top: 20px" label="Cerrar Sesión" @click="handleLogout" />
         </n-layout-sider>
 
         <!-- Contenido principal con fondo -->
-        <n-layout-content class="base-layout" style="padding: 20px; flex: 1">
+        <n-layout-content style="padding: 20px; flex: 1">
           <router-view />
         </n-layout-content>
 
@@ -22,7 +22,7 @@
           <n-layout-header style="padding: 10px; margin-top: 20px">
             <n-button @click="showModal = true">Abrir Modal</n-button>
             <n-modal v-model:show="showModal">
-              <div style="padding: 1em">¡Hola desde Naive UI!</div>
+              <div style="padding: 1em">¡Bienvenido!</div>
             </n-modal>
           </n-layout-header>
         </n-layout-sider>

@@ -64,7 +64,7 @@ export default {
   gap: 20px;
 }
 .post-card {
-  background-color: #eaf0e6;
+  background-color: #BBBDA7;
   border-radius: 15px;
   padding: 15px;
   max-width: 600px;
@@ -77,6 +77,11 @@ export default {
   margin-bottom: 8px;
 }
 .post-text {
+   background-color: #EAEBDF;
+  border-radius: 15px;
+  padding: 15px;
+  max-width: 600px;
+  width: 100%;
   font-size: 1rem;
   color: #333;
   margin-bottom: 10px;
