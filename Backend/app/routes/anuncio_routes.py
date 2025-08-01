@@ -15,8 +15,7 @@ def listar_anuncios():
         {
             'id': a.id_publicacion,
             'descripcion': a.descripcion,
-            'imagen': a.imagen,
-            #'imagen': f"{request.host_url}uploads/anuncios/{a.imagen}" if a.imagen else None,
+            'imagen': f"{request.host_url}uploads/anuncios/{a.imagen}" if a.imagen else None,
             'fecha_publicacion': a.fecha_publicacion.isoformat()
         } for a in anuncios
     ])
