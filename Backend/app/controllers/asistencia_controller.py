@@ -48,3 +48,8 @@ def obtener_reporte_admin(fecha_str):
             'hora': r.hora_marcado.strftime('%H:%M:%S')
         })
     return jsonify(resultado)
+
+def obtener_fechas_asistencia_general():
+    registros = RegistroAsistencia.query.with_entities(RegistroAsistencia.fecha).distinct().order_by(RegistroAsistencia.fecha.desc()).all()
+    fechas = [r.fecha.isoformat() for r in registros]
+    return jsonify(fechas)
