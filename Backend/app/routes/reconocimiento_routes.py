@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.reconocimiento_controller import crear_reconocimiento, obtener_reconocimientos
+from app.controllers.reconocimiento_controller import crear_reconocimiento, obtener_reconocimientos, buscar_alumnos_por_nombre
 
 reconocimiento_bp = Blueprint("reconocimiento", __name__)
 
@@ -24,4 +24,17 @@ def listar():
             "id_usuario": r.id_usuario
         } for r in reconocimientos
     ])
+
+@reconocimiento_bp.route("/alumnos/buscar", methods=["GET"])
+def buscar_alumnos():
+    termino = request.args.get("q", "")
+    if not termino:
+        return jsonify([])
+
+    alumnos = buscar_alumnos_por_nombre(termino)
+    resultados = [
+        {"id": alumno.id_usuario, "nombre": alumno.nombre, "correo": alumno.correo}
+        for alumno in alumnos
+    ]
+    return jsonify(resultados)
 
