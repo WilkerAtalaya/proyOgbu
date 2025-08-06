@@ -6,11 +6,17 @@ reconocimiento_bp = Blueprint("reconocimiento", __name__)
 @reconocimiento_bp.route("/reconocimientos", methods=["POST"])
 def crear():
     data = request.json
-    reconocimiento = crear_reconocimiento(data)
+    try:
+        reconocimiento, nombre_alumno = crear_reconocimiento(data)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
     return jsonify({
         "id": reconocimiento.id_reconocimiento,
+        "nombre_alumno": nombre_alumno,
         "mensaje": "Reconocimiento creado correctamente"
     }), 201
+
 
 @reconocimiento_bp.route("/reconocimientos", methods=["GET"])
 def listar():
@@ -19,10 +25,11 @@ def listar():
         {
             "id": r.id_reconocimiento,
             "id_alumno": r.id_alumno,
+            "nombre_alumno": u.nombre,
             "descripcion": r.descripcion,
             "fecha": r.fecha_reconocimiento.strftime('%Y-%m-%d'),
             "id_usuario": r.id_usuario
-        } for r in reconocimientos
+        } for r, u in reconocimientos
     ])
 
 @reconocimiento_bp.route("/alumnos/buscar", methods=["GET"])
