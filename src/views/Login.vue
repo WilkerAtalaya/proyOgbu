@@ -1,113 +1,70 @@
 <template>
   <div class="login-container">
-    <!-- Imagen de fondo -->
-    <div class="background-image"></div>
-
-    <!-- Overlay para mejorar legibilidad -->
-    <div class="overlay"></div>
-
-    <!-- Contenido del login -->
-    <div class="login-content">
-      <v-container fluid class="fill-height">
-        <v-row justify="center" align="center" class="fill-height">
-          <v-col cols="12" sm="8" md="6" lg="4" xl="3">
-            <div class="text-center mb-8">
-              <h1 class="login-title mb-4">Bienvenido</h1>
-            </div>
-
-            <v-form @submit.prevent="handleLogin" class="glass-form">
-              <!-- Campo Username -->
-              <v-text-field
-                v-model="form.username"
-                label="Username"
-                variant="outlined"
-                class="glass-input mb-4"
-                :rules="[rules.required]"
-                hide-details="auto"
-              ></v-text-field>
-
-              <!-- Campo Password -->
-              <v-text-field
-                v-model="form.password"
-                :type="showPassword ? 'text' : 'password'"
-                label="Password"
-                variant="outlined"
-                class="glass-input mb-6"
-                :rules="[rules.required]"
-                hide-details="auto"
-              >
-                <template v-slot:append-inner>
-                  <v-btn
-                    icon
-                    variant="text"
-                    size="small"
-                    @click="showPassword = !showPassword"
-                    class="password-toggle"
-                  >
-                    <v-icon :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"></v-icon>
-                  </v-btn>
-                </template>
-              </v-text-field>
-
-              <!-- Botón Sign In -->
-              <v-btn type="submit" block size="large" class="sign-in-btn mb-4" :loading="loading">
-                SIGN IN
-              </v-btn>
-
-              <!-- Remember Me y Forgot Password -->
-              <v-row class="mb-6" align="center">
-                <v-col cols="6">
-                  <v-checkbox
-                    v-model="form.rememberMe"
-                    label="Remember Me"
-                    class="remember-checkbox"
-                    hide-details
-                  ></v-checkbox>
-                </v-col>
-                <v-col cols="6" class="text-right">
-                  <v-btn variant="text" class="forgot-password-btn" @click="handleForgotPassword">
-                    Forgot Password
-                  </v-btn>
-                </v-col>
-              </v-row>
-
-              <!-- Divider -->
-              <div class="social-divider mb-4">
-                <span class="divider-text">— Or Sign In With —</span>
-              </div>
-
-              <!-- Botones de redes sociales -->
-              <v-row class="social-buttons">
-                <v-col cols="6">
-                  <v-btn
-                    block
-                    variant="elevated"
-                    class="social-btn facebook-btn"
-                    @click="handleSocialLogin('facebook')"
-                  >
-                    <v-icon left class="me-2">mdi-facebook</v-icon>
-                    Facebook
-                  </v-btn>
-                </v-col>
-                <v-col cols="6">
-                  <v-btn
-                    block
-                    variant="elevated"
-                    class="social-btn twitter-btn"
-                    @click="handleSocialLogin('twitter')"
-                  >
-                    <v-icon left class="me-2">mdi-twitter</v-icon>
-                    Twitter
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </v-form>
-          </v-col>
-        </v-row>
-      </v-container>
+    <div class="background-image">
+      <img 
+        src="../assets/residencia-universitaria.png" 
+        alt="Residencia Universitaria"
+        class="building-image"
+      />
+      <div class="overlay"></div>
     </div>
 
-    <!-- Snackbar para notificaciones -->
+    <div class="login-panel">
+      <div class="login-form">
+        <h2 class="login-title">Iniciar Sesión</h2>
+        
+        <form @submit.prevent="handleLogin">
+          <div class="input-group">
+            <input
+              v-model="form.username"
+              type="text"
+              placeholder="Usuario"
+              class="login-input"
+              :class="{ 'error': usernameError }"
+              @blur="markUsernameTouched"
+              required
+            />
+            <div v-if="usernameError" class="error-message">{{ usernameError }}</div>
+          </div>
+          
+          <div class="input-group">
+            <div class="password-input-container">
+              <input
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="Contraseña"
+                class="login-input"
+                :class="{ 'error': passwordError }"
+                @blur="markPasswordTouched"
+                required
+              />
+              <button 
+                type="button" 
+                @click="showPassword = !showPassword"
+                class="password-toggle-btn"
+              >
+                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+              </button>
+            </div>
+            <div v-if="passwordError" class="error-message">{{ passwordError }}</div>
+          </div>
+          
+          <button type="submit" class="login-button" :disabled="loading">
+            <span v-if="loading" class="spinner"></span>
+            {{ loading ? 'Ingresando...' : 'Ingresar' }}
+          </button>
+        </form>
+      </div>
+      
+      <div class="gbu-logo">
+        <img 
+          src="/src/assets/OGBU-logo.png" 
+          alt="OGBU Logo"
+          class="logo-image"
+        />
+      </div>
+    </div>
+
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="4000" location="top">
       {{ snackbar.message }}
       <template v-slot:actions>
@@ -119,34 +76,51 @@
 
 <script setup>
 import LoginService from '@/services/LoginService'
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const showPassword = ref(false)
 const loading = ref(false)
 
-// Formulario
+const touched = reactive({
+  username: false,
+  password: false,
+})
+
 const form = reactive({
   username: '',
   password: '',
-  rememberMe: false,
 })
 
-// Reglas de validación
-const rules = {
-  required: (value) => !!value || 'Este campo es requerido',
+const usernameError = computed(() => {
+  if (!touched.username) return ''
+  return form.username ? '' : 'Este campo es requerido'
+})
+
+const passwordError = computed(() => {
+  if (!touched.password) return ''
+  return form.password ? '' : 'Este campo es requerido'
+})
+
+const markUsernameTouched = () => {
+  touched.username = true
 }
 
-// Estado del snackbar
+const markPasswordTouched = () => {
+  touched.password = true
+}
+
 const snackbar = reactive({
   show: false,
   message: '',
   color: 'success',
 })
 
-// Función para manejar login
 const handleLogin = async () => {
+  touched.username = true
+  touched.password = true
+  
   if (!form.username || !form.password) {
     snackbar.message = 'Por favor completa todos los campos'
     snackbar.color = 'error'
@@ -157,7 +131,6 @@ const handleLogin = async () => {
   loading.value = true
 
   try {
-    // Llamar al servicio de autenticación
     const result = await LoginService.login({
       correo: form.username,
       contraseña: form.password,
@@ -167,7 +140,6 @@ const handleLogin = async () => {
       snackbar.color = 'success'
       snackbar.show = true
 
-      // Redirigir al dashboard después del login exitoso
       setTimeout(() => {
         router.push('/anuncios')
       }, 1000)
@@ -191,168 +163,247 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-container {
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
 }
 
 .background-image {
-  position: absolute;
-  top: 0;
-  left: 0;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.building-image {
   width: 100%;
   height: 100%;
-  background-image: url('src/assets/background-1.png'); 
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 1;
+  object-fit: cover;
+  object-position: 20% 0%;
 }
 
 .overlay {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.3);
-  z-index: 2;
 }
 
-.login-content {
+
+.login-panel {
+  width: 540px;
+  background: #B8BAA3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  z-index: 3;
-  min-height: 100vh;
+}
+
+.login-form {
+  padding: 40px 60px;
+  width: 100%;
+  position: relative;
 }
 
 .login-title {
-  font-size: 2.5rem;
-  font-weight: 300;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.login-subtitle {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.glass-form {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.glass-input :deep(.v-field) {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.glass-input :deep(.v-field--focused) {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-}
-
-.glass-input :deep(.v-field__input) {
-  color: white;
-}
-
-.glass-input :deep(.v-label) {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.glass-input :deep(.v-field__outline) {
-  display: none;
-}
-
-.password-toggle {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.sign-in-btn {
-  background: linear-gradient(135deg, #ff9a8b, #fecfef, #fecfef);
-  color: #333;
-  font-weight: 600;
-  border-radius: 25px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 4px 15px rgba(255, 154, 139, 0.4);
-  transition: all 0.3s ease;
-}
-
-.sign-in-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 154, 139, 0.6);
-}
-
-.remember-checkbox :deep(.v-label) {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9rem;
-}
-
-.remember-checkbox :deep(.v-selection-control__input) {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.forgot-password-btn {
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: underline;
-  text-transform: none;
-  font-size: 0.9rem;
-}
-
-.social-divider {
   text-align: center;
+  color: #F2F2F2;
+  -webkit-filter: drop-shadow(0px 4px 4px 0px #000);
+  filter: drop-shadow(0px 4px 4px 0px #000);
+  text-shadow: 0px 4px 4px #000;
+  margin-bottom: 30px;
+  font-size: 40px;
+  font-weight: 400;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.password-input-container {
   position: relative;
 }
 
-.divider-text {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0 1rem;
-  border-radius: 15px;
-  backdrop-filter: blur(5px);
+.login-input {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+  background: white;
 }
 
-.social-btn {
-  border-radius: 12px;
-  text-transform: none;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.95);
+.login-input:focus {
+  outline: none;
+  border-color: #ddd;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.login-input.error {
+  border-color: #dc3545;
+}
+
+.login-input::placeholder {
+  color: #999;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  padding: 5px;
+  border-radius: 4px;
+  transition: color 0.3s ease;
+}
+
+.password-toggle-btn:hover {
   color: #333;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
 }
 
-.social-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+.error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 5px;
 }
 
-.facebook-btn:hover {
-  background: rgba(66, 103, 178, 0.1);
+.login-button {
+  width: 100%;
+  padding: 15px;
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
-.twitter-btn:hover {
-  background: rgba(29, 161, 242, 0.1);
+.login-button:hover:not(:disabled) {
+  background: #555;
 }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  .glass-form {
-    margin: 1rem;
-    padding: 1.5rem;
+.login-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.gbu-logo {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.logo-image {
+  width: 230px;
+  height: auto;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .login-container {
+    position: relative;
+    flex-direction: column;
   }
-
+  
+  .background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 1;
+  }
+  
+  .login-panel {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    height: 100vh;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  .login-form {
+    background: #B8BAA3;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    padding: 40px 30px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    margin-bottom: 100px;
+  }
+  
   .login-title {
-    font-size: 2rem;
+    font-size: 32px;
+  }
+  
+  .gbu-logo {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+  }
+  
+  .logo-image {
+    width: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-form {
+    padding: 30px 20px;
+    margin: 20px;
+    margin-bottom: 120px;
+  }
+  
+  .login-title {
+    font-size: 28px;
+  }
+  
+  .gbu-logo {
+    bottom: 20px;
+  }
+  
+  .logo-image {
+    width: 160px;
   }
 }
 </style>
