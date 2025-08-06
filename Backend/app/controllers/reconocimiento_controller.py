@@ -5,17 +5,14 @@ from app import db
 from app.models.reconocimiento import Reconocimiento
 
 def crear_reconocimiento(data):
-    nombre_alumno = data.get("nombre_alumno")
-    alumno = Usuario.query.filter(
-        func.lower(Usuario.nombre) == func.lower(nombre_alumno),
-        Usuario.rol == "alumno"
-    ).first()
+    id_alumno = data.get("id_alumno")
 
-    if not alumno:
-        raise ValueError("Alumno no encontrado")
+    alumno = Usuario.query.get(id_alumno)
+    if not alumno or alumno.rol != "alumno":
+        raise ValueError("Alumno no válido")
 
     nuevo = Reconocimiento(
-        id_alumno=alumno.id_usuario,
+        id_alumno=id_alumno,
         descripcion=data.get("descripcion"),
         fecha_reconocimiento=datetime.now(),
         id_usuario=data.get("id_usuario")
@@ -23,6 +20,7 @@ def crear_reconocimiento(data):
     db.session.add(nuevo)
     db.session.commit()
     return nuevo, alumno.nombre
+
 
 
 def obtener_reconocimientos():
