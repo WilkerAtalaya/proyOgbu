@@ -1,8 +1,8 @@
 <template>
-  <v-dialog v-model="dialog" max-width="500px" persistent>
-    <v-card class="pa-4" style="border-radius: 16px">
+  <v-dialog v-model="dialog" max-width="600px" persistent>
+    <v-card style="border-radius: 16px; padding: 32px 45px 36px;">
       <v-card-title class="d-flex justify-space-between align-center pa-0 mb-4">
-        <h2 class="text-h5 font-weight-bold" style="color: #e91e63">Nuevo Reconocimiento</h2>
+        <h2 style="color: #A80038; text-align: center; flex: 1; font-size: 35px; font-weight: 400; font-family: 'Righteous', cursive;">Realizar un Reconocimiento</h2>
         <button
           @click="dialog = false"
           style="background: none; border: none; cursor: pointer"
@@ -13,6 +13,30 @@
       </v-card-title>
 
       <v-form @submit.prevent="submitReconocimiento">
+        <div class="mb-4">
+          <label class="text-body-2 font-weight-medium mb-2 d-block"> Alumno </label>
+          <v-autocomplete
+            v-model="form.alumnoSeleccionado"
+            :items="alumnos"
+            item-title="nombre"
+            item-value="id"
+            variant="outlined"
+            hide-details
+            class="custom-input"
+            :disabled="mode"
+            :loading="cargandoAlumnos"
+            :search="terminoBusqueda"
+            @update:search="buscarAlumnos"
+            placeholder="Buscar alumno por nombre..."
+            return-object
+            clearable
+          >
+            <template v-slot:item="{ props, item }">
+              <v-list-item v-bind="props" :title="item.raw.nombre" :subtitle="item.raw.correo"></v-list-item>
+            </template>
+          </v-autocomplete>
+        </div>
+
         <div class="mb-4">
           <label class="text-body-2 font-weight-medium mb-2 d-block"> Descripción </label>
           <v-textarea
@@ -28,12 +52,12 @@
         <div v-if="!mode" class="d-flex justify-center">
           <v-btn
             type="submit"
-            color="#e91e63"
+            color="#F2B200"
             size="large"
-            style="border-radius: 20px; text-transform: none; font-weight: 500"
+            style="border-radius: 15px; text-transform: none; font-weight: 400; font-size: 18px; padding: 12px 24px;"
             min-width="120px"
           >
-            Enviar
+            Publicar
           </v-btn>
         </div>
       </v-form>
@@ -42,11 +66,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import LoginService from '@/services/LoginService'
 import ReconocimientosService from '@/services/ReconocimientosService'
 
-const form = reactive({ descripcion: '' })
+const form = reactive({ 
+  descripcion: '', 
+  alumnoSeleccionado: null 
+})
+
+const alumnos = ref([])
+const cargandoAlumnos = ref(false)
+const terminoBusqueda = ref('')
+let timeoutBusqueda = null
+
 const props = defineProps({
   modelValue: Boolean,
   mode: Boolean,
@@ -57,24 +90,66 @@ const dialog = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
+const buscarAlumnos = (termino) => {
+  terminoBusqueda.value = termino
+  
+  if (timeoutBusqueda) {
+    clearTimeout(timeoutBusqueda)
+  }
+  
+  if (!termino || termino.length < 2) {
+    alumnos.value = []
+    return
+  }
+  
+  timeoutBusqueda = setTimeout(async () => {
+    try {
+      cargandoAlumnos.value = true
+      const resultados = await ReconocimientosService.buscarAlumnos(termino)
+      alumnos.value = resultados
+    } catch (error) {
+      console.error('Error al buscar alumnos:', error)
+      alumnos.value = []
+    } finally {
+      cargandoAlumnos.value = false
+    }
+  }, 500)
+}
+
 async function submitReconocimiento() {
+  if (!form.alumnoSeleccionado) {
+    alert('Por favor selecciona un alumno')
+    return
+  }
+  
   const user = LoginService.getCurrentUser()
   const body = {
     descripcion: form.descripcion,
     fecha: new Date().toISOString().split('T')[0],
     id_usuario: user.id,
-    id_alumno: 5
+    id_alumno: form.alumnoSeleccionado.id
   }
-  const response = await ReconocimientosService.crearReconocimiento(body)
-  emit('agregarReconocimiento', {
-    id_usuario: user.id,
-    descripcion: body.descripcion,
-    fecha: body.fecha,
-  })
   
-  form.descripcion = ''
-  dialog.value = false
-  alert('Reconocimiento enviado exitosamente')
+  try {
+    const response = await ReconocimientosService.crearReconocimiento(body)
+    emit('agregarReconocimiento', {
+      id_usuario: user.id,
+      descripcion: body.descripcion,
+      fecha: body.fecha,
+      nombre_alumno: form.alumnoSeleccionado.nombre
+    })
+    
+    form.descripcion = ''
+    form.alumnoSeleccionado = null
+    alumnos.value = []
+    terminoBusqueda.value = ''
+    
+    dialog.value = false
+    alert('Reconocimiento enviado exitosamente')
+  } catch (error) {
+    console.error('Error al crear reconocimiento:', error)
+    alert('Error al enviar el reconocimiento')
+  }
 }
 </script>
 

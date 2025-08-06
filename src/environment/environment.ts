@@ -26,7 +26,9 @@ export const environment = {
     reconocimientos: {
       obtenerReconocimientos: '/reconocimientos',
       crearReconocimiento: '/reconocimientos',
-      obtenerCumpleanos: '/cumpleaños'
+      obtenerCumpleanos: '/cumpleaños',
+      buscarAlumnos: '/alumnos/buscar',
+      eliminarReconocimiento: '/reconocimientos'
     },
     permisos: {
       crearSalida: '/api/permisos/salida',

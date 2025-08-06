@@ -1,8 +1,8 @@
 <template>
-  <v-dialog v-model="dialog" max-width="500px" persistent>
-    <v-card class="pa-4" style="border-radius: 16px">
+  <v-dialog v-model="dialog" max-width="600px" persistent>
+    <v-card style="border-radius: 16px; padding: 32px 45px 36px;">
       <v-card-title class="d-flex justify-space-between align-center pa-0 mb-4">
-        <h2 class="text-h5 font-weight-bold" style="color: #e91e63">Crear publicación</h2>
+        <h2 style="color: #A80038; text-align: center; flex: 1; font-size: 35px; font-weight: 400; font-family: 'Righteous', cursive;">Realizar una Publicación</h2>
         <button
           @click="dialog = false"
           style="background: none; border: none; cursor: pointer"
@@ -14,7 +14,7 @@
 
       <v-form @submit.prevent="submitPublicacion">
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Descripción </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;">Descripción</label>
           <v-textarea
             v-model="form.descripcion"
             variant="outlined"
@@ -26,7 +26,7 @@
         </div>
 
         <div class="mb-6">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Imagen </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;">Adjuntar imagen</label>
           <v-card
             class="upload-area d-flex flex-column align-center justify-center"
             style="min-height: 120px; border: 2px dashed #e0e0e0; background-color: #f5f5f5"
@@ -34,7 +34,7 @@
           >
             <v-icon size="32" color="grey-lighten-1" class="mb-2"> mdi-cloud-upload </v-icon>
             <span class="text-body-2 text-grey-lighten-1">
-              {{ selectedFile ? selectedFile.name : 'Adjuntar imagen' }}
+              {{ selectedFile ? selectedFile.name : 'Subir Imagen' }}
             </span>
             <input
               ref="fileInput"
@@ -50,12 +50,12 @@
         <div v-if="!mode" class="d-flex justify-center">
           <v-btn
             type="submit"
-            color="#e91e63"
+            color="#F2B200"
             size="large"
-            style="border-radius: 20px; text-transform: none; font-weight: 500"
+            style="border-radius: 15px; text-transform: none; font-weight: 400; font-size: 18px; padding: 12px 24px;"
             min-width="120px"
           >
-            Enviar
+            Publicar
           </v-btn>
         </div>
       </v-form>

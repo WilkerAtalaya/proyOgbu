@@ -11,3 +11,9 @@ export interface Cumpleanos {
   nombre: string
   id: number
 }
+
+export interface Alumno {
+  id: number
+  nombre: string
+  correo: string
+}

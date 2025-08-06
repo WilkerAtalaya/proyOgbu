@@ -1,58 +1,84 @@
 <template>
-  <n-card class="card-sidemenu">
-    <div 
-      v-for="option in menuOptions" 
-      :key="option.key"
-      class="menu-item" 
-      :class="{ active: route.path === option.key }"
-      @click="navigate(option.key)"
-    >
+  <div class="sidebar-container">
+    <n-card class="card-sidemenu">
       <div 
-        class="icon-container circular-icon"
+        v-for="option in menuOptions" 
+        :key="option.key"
+        class="menu-item" 
+        :class="{ active: route.path === option.key }"
+        @click="navigate(option.key)"
       >
-        <i :class="option.iconClass"></i>
+        <div 
+          class="icon-container circular-icon"
+        >
+          <img :src="option.iconSrc" :alt="option.label" class="menu-icon-img" />
+        </div>
+        <span class="menu-label">{{ option.label }}</span>
       </div>
-      <span class="menu-label">{{ option.label }}</span>
+    </n-card>
+    
+    <div v-if="route.path === '/anuncios' && isAdmin" class="action-buttons">
+      <button 
+        class="action-button"
+        @click="modalActions.showModalPublicacion()"
+      >
+        Realizar una publicación
+      </button>
+      <button 
+        class="action-button"
+        @click="modalActions.showModalReconocimiento()"
+      >
+        Realizar un Reconocimiento
+      </button>
     </div>
-  </n-card>
+  </div>
 </template>
 
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
+import LoginService from '@/services/LoginService'
+import { modalActions } from '@/stores/modalStore'
+import anuncioIcon from '@/assets/icons/anuncio.png'
+import quejaIcon from '@/assets/icons/queja.png'
+import actividadIcon from '@/assets/icons/actividad.png'
+import permisoIcon from '@/assets/icons/permiso.png'
+import citaIcon from '@/assets/icons/cita.png'
+import asistenciaIcon from '@/assets/icons/asistencia.png'
 
 const router = useRouter()
 const route = useRoute()
+const isAdmin = LoginService.isAdmin()
 
 const menuOptions = [
   {
     label: 'Anuncios',
     key: '/anuncios',
-    iconClass: 'fa-solid fa-bullhorn icon',
+    iconSrc: anuncioIcon,
   },
   {
     label: 'Quejas',
     key: '/quejas',
-    iconClass: 'fa-regular fa-clipboard icon',
+    iconSrc: quejaIcon,
   },
   {
     label: 'Actividades',
     key: '/actividades',
-    iconClass: 'fa-solid fa-person-running icon',
+    iconSrc: actividadIcon,
   },
   {
     label: 'Permisos',
     key: '/permisos',
-    iconClass: 'fa-solid fa-person-circle-check icon',
+    iconSrc: permisoIcon,
   },
   {
     label: 'Citas',
     key: '/citas',
-    iconClass: 'fa-regular fa-calendar-days icon',
+    iconSrc: citaIcon,
   },
   {
     label: 'Asistencia',
     key: '/asistencia',
-    iconClass: 'fa-regular fa-calendar-check icon',
+    iconSrc: asistenciaIcon,
   },
 ]
 
@@ -62,6 +88,12 @@ function navigate(key) {
 </script>
 
 <style scoped>
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .card-sidemenu {
   background: #7E271BF2;
   width: 100%;
@@ -106,9 +138,10 @@ function navigate(key) {
   flex-shrink: 0;
 }
 
-.icon {
-  color: #aac4c8;
-  font-size: 18px;
+.menu-icon-img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
 }
 
 .menu-label {
@@ -120,5 +153,36 @@ function navigate(key) {
 
 .menu-item.active .menu-label {
   color: #163053;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.action-button {
+  background-color: #EAE6C9;
+  color: black;
+  border-radius: 25px;
+  padding: 16px 12px;
+  border: none;
+  font-weight: 400;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0px 10px 4px 0px #00000040;
+}
+
+.action-button:hover {
+  background-color: #c7c4ac;
+  transform: translateY(-2px);
+  box-shadow: 0px 12px 8px 0px #00000040;
+}
+
+.action-button:active {
+  transform: translateY(0);
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>
