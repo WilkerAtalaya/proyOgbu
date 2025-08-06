@@ -39,3 +39,11 @@ def buscar_alumnos_por_nombre(termino):
             func.lower(Usuario.nombre).like(termino_busqueda)
         )
     ).all()
+
+def eliminar_reconocimiento(id_reconocimiento):
+    reconocimiento = Reconocimiento.query.get(id_reconocimiento)
+    if not reconocimiento:
+        return False  # No encontrado
+    db.session.delete(reconocimiento)
+    db.session.commit()
+    return True

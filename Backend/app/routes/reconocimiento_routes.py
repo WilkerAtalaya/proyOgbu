@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.reconocimiento_controller import crear_reconocimiento, obtener_reconocimientos, buscar_alumnos_por_nombre
+from app.controllers.reconocimiento_controller import crear_reconocimiento, obtener_reconocimientos, buscar_alumnos_por_nombre, eliminar_reconocimiento
 
 reconocimiento_bp = Blueprint("reconocimiento", __name__)
 
@@ -45,3 +45,9 @@ def buscar_alumnos():
     ]
     return jsonify(resultados)
 
+@reconocimiento_bp.route("/reconocimientos/<int:id_reconocimiento>", methods=["DELETE"])
+def eliminar(id_reconocimiento):
+    exito = eliminar_reconocimiento(id_reconocimiento)
+    if not exito:
+        return jsonify({"error": "Reconocimiento no encontrado"}), 404
+    return jsonify({"mensaje": "Reconocimiento eliminado correctamente"}), 200
