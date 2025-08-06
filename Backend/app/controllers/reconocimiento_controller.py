@@ -43,7 +43,7 @@ def buscar_alumnos_por_nombre(termino):
 def eliminar_reconocimiento(id_reconocimiento):
     reconocimiento = Reconocimiento.query.get(id_reconocimiento)
     if not reconocimiento:
-        return False  # No encontrado
+        return False  
     db.session.delete(reconocimiento)
     db.session.commit()
     return True
