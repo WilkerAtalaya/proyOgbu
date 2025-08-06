@@ -2,21 +2,23 @@
   <div id="app">
     <!-- Layout para páginas que requieren autenticación -->
     <template v-if="showLayout">
-      <n-layout  class="base-layout" has-sider style="height: 100vh">
+      <n-layout class="base-layout" has-sider style="height: 100vh">
         <!-- Sidebar izquierdo -->
-        <n-layout-sider style="background-color: white !important;" bordered width="15%" content-style="padding: 10px 20px;">
-          <UserCard style="margin-bottom: 20px" :user="user" />
-          <SidebarMenu />
+        <n-layout-sider width="346px" content-style="padding: 32px; display: flex; flex-direction: column;">
+          <UserCard style="margin-bottom: 20px; height: 72px;" :user="user" />
+          <div style="flex: 1">
+            <SidebarMenu />
+          </div>
           <ButtonAction style="margin-top: 20px" label="Cerrar Sesión" @click="handleLogout" />
         </n-layout-sider>
 
         <!-- Contenido principal con fondo -->
-        <n-layout-content style="padding: 20px; flex: 1">
+        <n-layout-content style="flex: 1">
           <router-view />
         </n-layout-content>
 
         <!-- Sidebar derecho -->
-        <n-layout-sider width="25%" content-style="padding: 20px;">
+        <!-- <n-layout-sider width="25%" content-style="padding: 20px;">
           <n-image width="100%" :src="logo" />
           <CelebrationCard />
           <n-layout-header style="padding: 10px; margin-top: 20px">
@@ -25,7 +27,7 @@
               <div style="padding: 1em">¡Bienvenido!</div>
             </n-modal>
           </n-layout-header>
-        </n-layout-sider>
+        </n-layout-sider> -->
       </n-layout>
     </template>
 
@@ -72,7 +74,7 @@ const handleLogout = () => {
 <style scoped>
 .base-layout {
   min-height: 100vh;
-  background: url('../src/assets/background.jpg');
+  background: url('../src/assets/background.png');
   background-size: cover;
   background-position: center;
   position: relative;
@@ -89,5 +91,10 @@ const handleLogout = () => {
 .base-layout > * {
   position: relative;
   z-index: 2;
+}
+
+.sidebar-left {
+  padding: 32px;
+  width: 346px;
 }
 </style>

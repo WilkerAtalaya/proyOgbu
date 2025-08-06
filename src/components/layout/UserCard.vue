@@ -1,6 +1,6 @@
 <template>
   <n-card class="user-card">
-    <div style="display: flex; align-items: center; gap: 5px">
+    <div style="display: flex; align-items: center; gap: 16px">
       <i class="fa-solid fa-circle icon-green"></i>
       <p>{{ props.user?.nombre }}</p>
     </div>
@@ -15,14 +15,19 @@ const props = defineProps({
 <style scoped>
 .user-card {
   background-color: #373b41;
-  padding: 15px;
+  padding: 16px 20px;
+  border-radius: 25px;
+  box-shadow: 0px 10px 4px 0px #00000040;
+  border: none;
+}
+.user-card p {
+  margin: 0;
   color: white;
-  border-radius: 20px;
+  font-size: 20px;
+  font-weight: 400;
 }
 .icon-green {
   color: green;
-}
-.icon-red {
-  color: red;
+  font-size: 16px;
 }
 </style>
