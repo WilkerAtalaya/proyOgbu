@@ -1,8 +1,7 @@
-from flask import jsonify
+from flask import jsonify, request
 from app import db
 from app.models.asistencia import RegistroAsistencia
 from app.models.usuarios import Usuario
-from sqlalchemy import extract
 from datetime import datetime, date
 
 
@@ -29,27 +28,86 @@ def obtener_fechas_asistencia(id_usuario):
 
 
 def obtener_detalle_por_fecha(id_usuario, fecha_str):
-    fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-    registros = RegistroAsistencia.query.filter_by(id_usuario=id_usuario, fecha=fecha)\
-        .order_by(RegistroAsistencia.hora_marcado.asc()).all()
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
+
+    registros = (RegistroAsistencia.query
+                 .filter_by(id_usuario=id_usuario, fecha=fecha)
+                 .order_by(RegistroAsistencia.hora_marcado.asc())
+                 .all())
     return jsonify([r.to_dict() for r in registros])
 
 
-def obtener_reporte_admin(fecha_str):
-    fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-    registros = RegistroAsistencia.query.filter_by(fecha=fecha).order_by(RegistroAsistencia.hora_marcado.asc()).all()
-
-    resultado = []
-    for r in registros:
-        usuario = Usuario.query.get(r.id_usuario)
-        resultado.append({
-            'codigo': usuario.id_usuario if usuario else None,
-            'nombre': usuario.nombre if usuario else 'Desconocido',
-            'hora': r.hora_marcado.strftime('%H:%M:%S')
-        })
-    return jsonify(resultado)
-
 def obtener_fechas_asistencia_general():
-    registros = RegistroAsistencia.query.with_entities(RegistroAsistencia.fecha).distinct().order_by(RegistroAsistencia.fecha.desc()).all()
+    registros = (RegistroAsistencia.query
+                 .with_entities(RegistroAsistencia.fecha)
+                 .distinct()
+                 .order_by(RegistroAsistencia.fecha.desc())
+                 .all())
     fechas = [r.fecha.isoformat() for r in registros]
     return jsonify(fechas)
+
+
+def obtener_reporte_admin_filtrado():
+    
+    fecha_str = request.args.get('fecha', '').strip()
+    if not fecha_str:
+        return jsonify({'error': 'El parámetro "fecha" es obligatorio (YYYY-MM-DD).'}), 400
+
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD).'}), 400
+
+    id_param = request.args.get('id', '').strip()
+    nombre_param = request.args.get('nombre', '').strip()
+
+    
+    q = (db.session.query(RegistroAsistencia, Usuario)
+         .join(Usuario, RegistroAsistencia.id_usuario == Usuario.id_usuario)
+         .filter(RegistroAsistencia.fecha == fecha)
+         .filter(Usuario.rol == 'alumno'))
+
+    if id_param:
+        
+        try:
+            id_int = int(id_param)
+            q = q.filter(RegistroAsistencia.id_usuario == id_int)
+        except ValueError:
+            return jsonify({'error': 'El parámetro "id" debe ser numérico.'}), 400
+
+    if nombre_param:
+        q = q.filter(Usuario.nombre.ilike(f'%{nombre_param}%'))
+
+    q = q.order_by(RegistroAsistencia.hora_marcado.asc())
+
+    registros = q.all()
+
+    resultado = [{
+        'codigo': u.id_usuario,
+        'nombre': u.nombre,
+        'fecha': r.fecha.isoformat(),
+        'hora': r.hora_marcado.strftime('%H:%M:%S')
+    } for r, u in registros]
+
+    return jsonify(resultado)
+
+
+def obtener_reporte_alumno_por_fecha(id_usuario):
+    fecha_str = request.args.get('fecha', '').strip()
+    if not fecha_str:
+        return jsonify({'error': 'El parámetro "fecha" es obligatorio (YYYY-MM-DD).'}), 400
+
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD).'}), 400
+
+    registros = (RegistroAsistencia.query
+                 .filter_by(id_usuario=id_usuario, fecha=fecha)
+                 .order_by(RegistroAsistencia.hora_marcado.asc())
+                 .all())
+
+    return jsonify([r.to_dict() for r in registros])

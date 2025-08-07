@@ -3,8 +3,9 @@ from app.controllers.asistencia_controller import (
     registrar_asistencia,
     obtener_fechas_asistencia,
     obtener_detalle_por_fecha,
-    obtener_reporte_admin,
-    obtener_fechas_asistencia_general
+    obtener_reporte_admin_filtrado,     
+    obtener_fechas_asistencia_general,
+    obtener_reporte_alumno_por_fecha    
 )
 
 asistencia_bp = Blueprint('asistencia', __name__)
@@ -21,9 +22,13 @@ def ver_fechas(id_usuario):
 def ver_detalle_dia(id_usuario, fecha):
     return obtener_detalle_por_fecha(id_usuario, fecha)
 
-@asistencia_bp.route('/asistencia/admin/<fecha>', methods=['GET'])
-def ver_reporte_admin(fecha):
-    return obtener_reporte_admin(fecha)
+@asistencia_bp.route('/asistencia/admin/reporte', methods=['GET'])
+def ver_reporte_admin_filtrado():
+    return obtener_reporte_admin_filtrado()
+
+@asistencia_bp.route('/asistencia/alumno/<int:id_usuario>/reporte', methods=['GET'])
+def ver_reporte_alumno(id_usuario):
+    return obtener_reporte_alumno_por_fecha(id_usuario)
 
 @asistencia_bp.route('/asistencia/admin/fechas', methods=['GET'])
 def ver_fechas_asistencia_general():
