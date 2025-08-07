@@ -91,3 +91,14 @@ a,
 .dp__input::placeholder {
   color: rgb(118, 118, 118) !important;
 }
+.dp__range_between{
+  background-color: #A8003852 !important;
+  color: white !important;
+  border: none !important;
+}
+.v-window {
+  overflow: visible !important;
+}
+.v-card {
+  overflow: visible !important;
+}

@@ -5,7 +5,7 @@
     </div>
     
     <div class="second-row">
-      <div style="background-color: #B8BAA3F2; width: 100%; height: 100%; padding: 32px 60px; border-radius: 25px;">
+      <div :style="{ backgroundColor: backgroundColor, width: '100%', height: '100%', padding: padding, borderRadius: '25px' }">
         <slot />
       </div>
     </div>
@@ -13,6 +13,17 @@
 </template>
 <script setup>
 import logo from '@/assets/OGBU-logo.png'
+
+const props = defineProps({
+  backgroundColor: {
+    type: String,
+    default: '#B8BAA3F2'
+  },
+  padding: {
+    type: String,
+    default: '32px 60px'
+  }
+})
 </script>
 <style scoped>
 .main-container {
