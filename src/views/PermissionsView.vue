@@ -249,7 +249,7 @@
         <v-data-table :items="solicitudes" :items-per-page="10" class="custom-table">
           <template #headers>
             <tr class="table-header">
-              <th>ID Usuario</th>
+              <th>Alumno</th>
               <th>Fecha Salida</th>
               <th>Fecha Regreso</th>
               <th>Motivo</th>
@@ -258,7 +258,7 @@
           </template>
           <template #item="{ item }">
             <tr>
-              <td>{{ item.id_usuario }}</td>
+              <td>{{ item.nombre_usuario }}</td>
               <td>{{ dateFormatV2(item.fecha_salida) }}</td>
               <td>{{ dateFormatV2(item.fecha_regreso) }}</td>
               <td>{{ item.motivo || 'Sin motivo' }}</td>
@@ -295,7 +295,7 @@
         <v-data-table :items="areaComunItems" :items-per-page="10" class="custom-table">
           <template #headers>
             <tr class="table-header">
-              <th>ID Usuario</th>
+              <th>Alumno</th>
               <th>Lugar</th>
               <th>Fecha</th>
               <th>Horario</th>
@@ -304,7 +304,7 @@
           </template>
           <template #item="{ item }">
             <tr>
-              <td>{{ item.id_usuario }}</td>
+              <td>{{ item.nombre_usuario }}</td>
               <td>{{ item.lugar }}</td>
               <td>{{ dateFormatV2(item.fecha) }}</td>
               <td>{{ item.horario }}</td>
@@ -571,6 +571,7 @@ async function loadPermisosDeSalida() {
     id: a.id,
     id_usuario: a.id_usuario,
     motivo: a.descripcion || '',
+    nombre_usuario: a.nombre_usuario || 'Desconocido',
   }))
 }
 
@@ -595,6 +596,7 @@ async function loadPermisosDeAreaComun() {
     id: a.id,
     id_usuario: a.id_usuario,
     lugar: a.lugar || '',
+    nombre_usuario: a.nombre_usuario || 'Desconocido',
   }))
 }
 
