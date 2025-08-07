@@ -45,7 +45,8 @@ def ver_todas():
     actividades = listar_todas()
     return jsonify([{
         'id': a.id_actividad,
-        'usuario': a.id_usuario,
+        'id_usuario': a.id_usuario,
+        'nombre_usuario': a.usuario.nombre if a.usuario else None,
         'tipo': a.tipo,
         'titulo': a.titulo,
         'descripcion': a.descripcion,
@@ -55,6 +56,7 @@ def ver_todas():
         'archivo': a.archivo,
         'stock': a.stock,
     } for a in actividades])
+
 
 @actividad_bp.route('/actividades/<int:id_actividad>/estado', methods=['PUT'])
 def actualizar_estado(id_actividad):
@@ -81,6 +83,7 @@ def ver_aprobadas():
             'cupos_restantes': cupos
         })
     return jsonify(resp)
+
 
 
 @actividad_bp.route('/actividades/<int:id_actividad>/inscribirse', methods=['POST'])

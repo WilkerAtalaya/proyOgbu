@@ -20,7 +20,7 @@ def crear_actividad_con_archivo(aprobado_por_admin=False):
     titulo          = request.form.get('titulo')
     descripcion     = request.form.get('descripcion')
     fecha_raw       = request.form.get('fecha_actividad')
-    stock_raw       = request.form.get('stock')          # ←  nuevo
+    stock_raw       = request.form.get('stock')          
     id_usuario      = request.form.get('id_usuario')
     archivo         = None
     # -------------------------------------------
@@ -75,7 +75,7 @@ def listar_por_usuario(id_usuario):
     return Actividad.query.filter_by(id_usuario=id_usuario).order_by(Actividad.fecha_solicitud.desc()).all()
 
 def listar_todas():
-    return Actividad.query.order_by(Actividad.fecha_solicitud.desc()).all()
+    return db.session.query(Actividad).join(Actividad.usuario).filter(Usuario.rol == 'alumno').order_by(Actividad.fecha_solicitud.desc()).all()
 
 def cambiar_estado(id_actividad, nuevo_estado):
     actividad = Actividad.query.get(id_actividad)
@@ -86,7 +86,23 @@ def cambiar_estado(id_actividad, nuevo_estado):
     return None
 
 def listar_aprobadas():
-    return Actividad.query.filter_by(estado='Aprobado').order_by(Actividad.fecha_solicitud.desc()).all()
+    hoy = date.today()
+    actividades_aprobadas = Actividad.query.filter_by(estado='Aprobado').all()
+
+    actualizadas = []
+    mostrables = []
+
+    for a in actividades_aprobadas:
+        if a.fecha_actividad.date() < hoy:
+            a.estado = 'Finalizado'
+            actualizadas.append(a)
+        else:
+            mostrables.append(a)
+
+    if actualizadas:
+        db.session.commit()
+
+    return mostrables
 
 
 def inscribir_alumno(id_actividad, id_usuario):

@@ -14,3 +14,4 @@ class Actividad(db.Model):
     estado = db.Column(db.String(50), default='Pendiente')
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=False)
     stock = db.Column(db.Integer, nullable=False, default=0)
+    usuario = db.relationship('Usuario', backref='actividades')
