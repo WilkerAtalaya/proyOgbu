@@ -17,6 +17,7 @@ class SalidaVivienda(db.Model):
         return {
             'id': self.id,
             'id_usuario': self.id_usuario,
+            'nombre_usuario': self.usuario.nombre if self.usuario else None,
             'fecha_salida': self.fecha_salida.strftime('%Y-%m-%d'),
             'fecha_regreso': self.fecha_regreso.strftime('%Y-%m-%d'),
             'motivo': self.motivo,
@@ -40,6 +41,7 @@ class ReservaAreaComun(db.Model):
         return {
             'id': self.id,
             'id_usuario': self.id_usuario,
+            'nombre_usuario': self.usuario.nombre if self.usuario else None,
             'lugar': self.lugar,
             'fecha': self.fecha.strftime('%Y-%m-%d'),
             'horario': self.horario,
