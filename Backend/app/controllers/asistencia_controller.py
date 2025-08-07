@@ -53,37 +53,41 @@ def obtener_fechas_asistencia_general():
 def obtener_reporte_admin_filtrado():
     
     fecha_str = request.args.get('fecha', '').strip()
-    if not fecha_str:
-        return jsonify({'error': 'El parámetro "fecha" es obligatorio (YYYY-MM-DD).'}), 400
-
-    try:
-        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-    except ValueError:
-        return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD).'}), 400
-
     id_param = request.args.get('id', '').strip()
     nombre_param = request.args.get('nombre', '').strip()
+    limit_param = request.args.get('limit', '').strip()
 
-    
+    try:
+        limit = int(limit_param) if limit_param else 200
+        limit = max(1, min(limit, 2000))  # no más de 2000
+    except ValueError:
+        return jsonify({'error': 'El parámetro "limit" debe ser numérico.'}), 400
+
     q = (db.session.query(RegistroAsistencia, Usuario)
          .join(Usuario, RegistroAsistencia.id_usuario == Usuario.id_usuario)
-         .filter(RegistroAsistencia.fecha == fecha)
          .filter(Usuario.rol == 'alumno'))
 
+    if fecha_str:
+        try:
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD).'}), 400
+        q = q.filter(RegistroAsistencia.fecha == fecha)
+
     if id_param:
-        
         try:
             id_int = int(id_param)
-            q = q.filter(RegistroAsistencia.id_usuario == id_int)
         except ValueError:
             return jsonify({'error': 'El parámetro "id" debe ser numérico.'}), 400
+        q = q.filter(RegistroAsistencia.id_usuario == id_int)
 
     if nombre_param:
         q = q.filter(Usuario.nombre.ilike(f'%{nombre_param}%'))
 
-    q = q.order_by(RegistroAsistencia.hora_marcado.asc())
+    q = q.order_by(RegistroAsistencia.fecha.desc(),
+                   RegistroAsistencia.hora_marcado.asc())
 
-    registros = q.all()
+    registros = q.limit(limit).all()
 
     resultado = [{
         'codigo': u.id_usuario,
@@ -93,6 +97,7 @@ def obtener_reporte_admin_filtrado():
     } for r, u in registros]
 
     return jsonify(resultado)
+
 
 
 def obtener_reporte_alumno_por_fecha(id_usuario):
