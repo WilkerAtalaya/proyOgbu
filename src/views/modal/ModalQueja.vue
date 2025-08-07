@@ -1,20 +1,20 @@
 <template>
-  <v-dialog v-model="dialog" max-width="500px" persistent>
-    <v-card class="pa-4" style="border-radius: 16px">
+  <v-dialog v-model="dialog" max-width="600px" persistent>
+    <v-card style="border-radius: 16px; padding: 32px 45px 36px;">
       <v-card-title class="d-flex justify-space-between align-center pa-0 mb-4">
-        <h2 class="text-h5 font-weight-bold" style="color: #e91e63">{{ type === 'form' ? 'Visualizar queja' : 'Reportar una Queja' }}</h2>
+        <h2 :style="{ color: mode ? '#CF990D' : '#A80038', textAlign: 'center', flex: 1, fontSize: '35px', fontWeight: 400, fontFamily: 'Righteous, cursive' }">{{ mode ? `Reporte ${form.numero}` : 'Realizar una Queja' }}</h2>
         <button
           @click="dialog = false"
-          style="background: none; border: none; cursor: pointer"
+          :style="{ background: 'none', border: 'none', cursor: 'pointer', color: mode ? '#CF990D' : '#A80038' }"
           title="Cerrar Modal"
         >
-          <i class="fa-solid fa-xmark" style="color: #1976d2; font-size: 20px"></i>
+          <i class="fa-solid fa-xmark" style="font-size: 20px"></i>
         </button>
       </v-card-title>
 
       <v-form @submit.prevent="submitComplaint">
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Asunto </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Asunto </label>
           <v-text-field
             v-model="form.asunto"
             variant="outlined"
@@ -26,7 +26,7 @@
         </div>
 
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Motivo </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Motivo </label>
           <v-select
             v-model="form.motivo"
             :items="motivosOptions"
@@ -39,7 +39,7 @@
         </div>
 
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Descripción </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Descripción </label>
           <v-textarea
             v-model="form.descripcion"
             variant="outlined"
@@ -50,8 +50,36 @@
           ></v-textarea>
         </div>
 
+        <div v-if="mode" class="mb-4">
+          <v-row>
+            <v-col cols="6">
+              <label style="font-size: 18px; color: black; font-weight: 400;"> Fecha </label>
+              <v-text-field
+                v-model="form.fecha"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                class="custom-input"
+                disabled
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6">
+              <label style="font-size: 18px; color: black; font-weight: 400;"> Estado </label>
+              <v-select
+                v-model="form.estado"
+                :items="estadosOptions"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                class="custom-input"
+                :disabled="!LoginService.isAdmin()"
+              ></v-select>
+            </v-col>
+          </v-row>
+        </div>
+
         <div class="mb-6">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Prueba multimedia </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Prueba multimedia </label>
           <v-card
             class="upload-area d-flex flex-column align-center justify-center"
             style="min-height: 120px; border: 2px dashed #e0e0e0; background-color: #f5f5f5"
@@ -84,6 +112,19 @@
           </v-btn>
         </div>
       </v-form>
+
+      <div v-if="mode && LoginService.isAdmin()" class="d-flex justify-center mt-4">
+        <v-btn
+          @click="updateEstado"
+          color="#CF990D"
+          size="large"
+          style="border-radius: 20px; text-transform: none; font-weight: 500"
+          min-width="120px"
+          :disabled="form.estado === originalEstado"
+        >
+          Actualizar Estado
+        </v-btn>
+      </div>
     </v-card>
   </v-dialog>
 </template>
@@ -92,11 +133,14 @@
 import { currentDate } from '@/util/functions.js'
 import { ref, reactive, watch, computed } from 'vue'
 import QuejasService from '@/services/QuejasService'
+import LoginService from '@/services/LoginService'
 
 const fileInput = ref(null)
 const selectedFile = ref(null)
 const form = reactive({ numero: '', asunto: '', motivo: '', fecha: '', estado: '', descripcion: ''})
 const motivosOptions = ['Robo', 'Daños a la propiedad', 'Ruido excesivo', 'Acoso', 'Incumplimiento de normas', 'Otro']
+const estadosOptions = ['Recibido', 'En revisión', 'En proceso', 'Resuelto', 'Cerrado']
+const originalEstado = ref('')
 
 const props = defineProps({
   modelValue: Boolean,
@@ -106,7 +150,7 @@ const props = defineProps({
   type: String,
 })
 
-const emit = defineEmits(['update:modelValue', 'agregarQueja'])
+const emit = defineEmits(['update:modelValue', 'agregarQueja', 'actualizarEstado'])
 
 const dialog = computed({
   get: () => props.modelValue,
@@ -118,12 +162,15 @@ watch(
   (val) => {
     if (val) {
       console.log('Objeto recibido en ModalQueja:', val)
+      console.log('Propiedades del objeto:', Object.keys(val))
+      console.log('ID encontrado:', val.id)
       form.numero = val.numero || ''
       form.asunto = val.asunto || ''
       form.motivo = val.motivo || ''
       form.fecha = val.fecha || ''
       form.estado = val.estado || ''
       form.descripcion = val.descripcion || ''
+      originalEstado.value = val.estado || ''
     }
   },
   { immediate: true },
@@ -159,6 +206,24 @@ async function submitComplaint() {
   })
   dialog.value = false;
   alert('Queja enviada exitosamente');
+}
+
+async function updateEstado() {
+  if (form.estado !== originalEstado.value && props.item?.id) {
+    try {
+      console.log('Actualizando estado de queja ID:', props.item.id, 'a:', form.estado);
+      await QuejasService.actualizarEstadoQueja(props.item.id, form.estado);
+      originalEstado.value = form.estado;
+      emit('actualizarEstado');
+      dialog.value = false;
+      alert('Estado actualizado exitosamente');
+    } catch (error) {
+      console.error('Error al actualizar estado:', error);
+      alert('Error al actualizar el estado');
+    }
+  } else {
+    console.log('No se actualizó - Estado igual o ID faltante');
+  }
 }
 </script>
 

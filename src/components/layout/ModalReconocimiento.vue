@@ -14,7 +14,7 @@
 
       <v-form @submit.prevent="submitReconocimiento">
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Alumno </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Alumno </label>
           <v-autocomplete
             v-model="form.alumnoSeleccionado"
             :items="alumnos"
@@ -38,7 +38,7 @@
         </div>
 
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Descripción </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Descripción </label>
           <v-textarea
             v-model="form.descripcion"
             variant="outlined"

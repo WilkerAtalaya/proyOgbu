@@ -34,6 +34,12 @@ export class QuejasService {
       })
       .then((res) => res.data)
   }
+
+  async actualizarEstadoQueja(idQueja: number, estado: string): Promise<any> {
+    return axios
+      .put(`${environment.baseUrlApi}/quejas/${idQueja}/estado`, { estado })
+      .then((res) => res.data)
+  }
 }
 
 export default new QuejasService()

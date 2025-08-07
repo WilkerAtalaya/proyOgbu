@@ -42,9 +42,8 @@
             <div class="descripcion-text">{{ reconocimiento.descripcion }}</div>
           </div>
           
-          <div class="action-column">
+          <div v-if="isAdmin" class="action-column">
             <button 
-              v-if="isAdmin" 
               class="delete-button"
               @click="eliminarReconocimiento(index)"
             >
