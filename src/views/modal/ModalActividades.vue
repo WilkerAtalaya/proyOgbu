@@ -1,20 +1,20 @@
 <template>
-  <v-dialog v-model="dialog" max-width="500px" persistent>
-    <v-card class="pa-4" style="border-radius: 16px">
+  <v-dialog v-model="dialog" max-width="600px" persistent>
+    <v-card style="border-radius: 16px; padding: 32px 45px 36px;">
       <v-card-title class="d-flex justify-space-between align-center pa-0 mb-4">
-        <h2 class="text-h5 font-weight-bold" style="color: #e91e63">{{ type === 'form' ? 'Formulario de actividad' : 'Realizar una Actividad' }}</h2>
+        <h2 style="color: #A80038; text-align: center; flex: 1; font-size: 35px; font-weight: 400; font-family: 'Righteous', cursive;">{{ type === 'form' ? 'Formulario de actividad' : 'Realizar una Actividad' }}</h2>
         <button
           @click="dialog = false"
-          style="background: none; border: none; cursor: pointer"
+          style="background: none; border: none; cursor: pointer; color: #A80038"
           title="Cerrar Modal"
         >
-          <i class="fa-solid fa-xmark" style="color: #1976d2; font-size: 20px"></i>
+          <i class="fa-solid fa-xmark" style="font-size: 20px"></i>
         </button>
       </v-card-title>
 
       <v-form @submit.prevent="submitComplaint()">
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Tipo </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Tipo </label>
           <v-select
             v-model="form.tipo"
             :items="tipoOptions"
@@ -22,43 +22,66 @@
             density="comfortable"
             hide-details
             class="custom-input"
+            :error="!!errors.tipo"
           ></v-select>
+          <span v-if="errors.tipo" class="error-message">{{ errors.tipo }}</span>
         </div>
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Título </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Título </label>
           <v-text-field
             v-model="form.titulo"
             variant="outlined"
             density="comfortable"
             hide-details
             class="custom-input"
+            :error="!!errors.titulo"
           ></v-text-field>
+          <span v-if="errors.titulo" class="error-message">{{ errors.titulo }}</span>
         </div>
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Stock </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Stock </label>
           <v-text-field
             v-model="form.stock"
+            type="number"
+            min="0"
             variant="outlined"
             density="comfortable"
             hide-details
             class="custom-input"
+            :error="!!errors.stock"
           ></v-text-field>
+          <span v-if="errors.stock" class="error-message">{{ errors.stock }}</span>
         </div>
 
+        <div class="mb-4">
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Fecha de la Actividad </label>
+          <VueDatePicker
+            v-model="form.fecha_actividad"
+            locale="es"
+            format="dd/MM/yyyy"
+            :ui="{ input: 'custom-input' }"
+            :enable-time-picker="false"
+            :min-date="new Date()"
+            placeholder="Selecciona la fecha"
+          />
+          <span v-if="errors.fecha_actividad" class="error-message">{{ errors.fecha_actividad }}</span>
+        </div>
 
         <div class="mb-4">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Descripción </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Descripción </label>
           <v-textarea
             v-model="form.descripcion"
             variant="outlined"
             rows="4"
             hide-details
             class="custom-input"
+            :error="!!errors.descripcion"
           ></v-textarea>
+          <span v-if="errors.descripcion" class="error-message">{{ errors.descripcion }}</span>
         </div>
 
         <div class="mb-6">
-          <label class="text-body-2 font-weight-medium mb-2 d-block"> Prueba </label>
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Prueba </label>
           <v-card
             class="upload-area d-flex flex-column align-center justify-center"
             style="min-height: 120px; border: 2px dashed #e0e0e0; background-color: #f5f5f5"
@@ -87,7 +110,7 @@
         <div class="d-flex justify-center">
           <v-btn
             type="submit"
-            color="#e91e63"
+            color="#A80038"
             size="large"
             style="border-radius: 20px; text-transform: none; font-weight: 500"
             min-width="120px"
@@ -106,6 +129,8 @@ import { currentDate } from '@/util/functions.js'
 import { ref, reactive, watch, computed } from 'vue'
 import LoginService from '@/services/LoginService'
 import ActividadesService from '@/services/ActividadesService'
+import VueDatePicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -115,13 +140,21 @@ const props = defineProps({
 const user = ref(LoginService.getCurrentUser())
 const isAdmin = LoginService.isAdmin()
 
-const emit = defineEmits(['update:modelValue', 'agregarActividad'])
+const emit = defineEmits(['update:modelValue', 'actividadCreada'])
 const dialog = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 })
 const fileInput = ref(null)
 const selectedFile = ref(null)
+
+const errors = reactive({
+  tipo: '',
+  titulo: '',
+  stock: '',
+  fecha_actividad: '',
+  descripcion: ''
+})
 
 const form = reactive({
   numero: '',
@@ -131,9 +164,62 @@ const form = reactive({
   estado: '',
   descripcion: '',
   stock: '',
+  fecha_actividad: '',
 })
 
 const tipoOptions = ['Viaje', 'Taller', 'Visita']
+
+function validateField(field, value) {
+  switch (field) {
+    case 'tipo':
+      if (!value || value.trim() === '') {
+        errors.tipo = 'El tipo es obligatorio'
+        return false
+      }
+      errors.tipo = ''
+      return true
+    case 'titulo':
+      if (!value || value.trim() === '') {
+        errors.titulo = 'El título es obligatorio'
+        return false
+      }
+      errors.titulo = ''
+      return true
+    case 'stock':
+      if (!value || value === '' || Number(value) <= 0) {
+        errors.stock = 'El stock debe ser mayor a 0'
+        return false
+      }
+      errors.stock = ''
+      return true
+    case 'fecha_actividad':
+      if (!value) {
+        errors.fecha_actividad = 'La fecha de actividad es obligatoria'
+        return false
+      }
+      errors.fecha_actividad = ''
+      return true
+    case 'descripcion':
+      if (!value || value.trim() === '') {
+        errors.descripcion = 'La descripción es obligatoria'
+        return false
+      }
+      errors.descripcion = ''
+      return true
+    default:
+      return true
+  }
+}
+
+function validateForm() {
+  let isValid = true
+  isValid = validateField('tipo', form.tipo) && isValid
+  isValid = validateField('titulo', form.titulo) && isValid
+  isValid = validateField('stock', form.stock) && isValid
+  isValid = validateField('fecha_actividad', form.fecha_actividad) && isValid
+  isValid = validateField('descripcion', form.descripcion) && isValid
+  return isValid
+}
 
 watch(
   () => props.item,
@@ -153,6 +239,26 @@ watch(
   { immediate: true },
 )
 
+watch(() => form.tipo, (newValue) => {
+  if (errors.tipo) validateField('tipo', newValue)
+})
+
+watch(() => form.titulo, (newValue) => {
+  if (errors.titulo) validateField('titulo', newValue)
+})
+
+watch(() => form.stock, (newValue) => {
+  if (errors.stock) validateField('stock', newValue)
+})
+
+watch(() => form.fecha_actividad, (newValue) => {
+  if (errors.fecha_actividad) validateField('fecha_actividad', newValue)
+})
+
+watch(() => form.descripcion, (newValue) => {
+  if (errors.descripcion) validateField('descripcion', newValue)
+})
+
 const triggerFileInput = () => {
   fileInput.value.click()
 }
@@ -165,27 +271,43 @@ const handleFileSelect = (event) => {
 }
 
 async function submitComplaint() {
+  if (!validateForm()) {
+    return
+  }
+
   const formData = new FormData()
   formData.append('tipo', form.tipo)
   formData.append('titulo', form.titulo)
   formData.append('descripcion', form.descripcion)
-  formData.append('fecha_actividad', new Date().toISOString().slice(0, 10))
-  formData.append('id_usuario', user.value.id)
-  formData.append('stock', Number(form.stock))
-  if (isAdmin) {
-    await ActividadesService.crearActividad(formData)
-  } else {
-    await ActividadesService.crearSolicitud(formData)
+  
+  let fechaActividad = new Date().toISOString().slice(0, 10)
+  if (form.fecha_actividad) {
+    if (form.fecha_actividad instanceof Date) {
+      fechaActividad = form.fecha_actividad.toISOString().slice(0, 10)
+    } else {
+      const [dia, mes, anio] = form.fecha_actividad.split('/')
+      fechaActividad = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`
+    }
   }
   
-  emit('agregarActividad', {
-    tipo: form.tipo,
-    titulo: form.titulo,
-    fecha: currentDate(),
-    descripcion: form.descripcion,
-  })
-  dialog.value = false;
-  alert('Actividad enviada exitosamente')
+  formData.append('fecha_actividad', fechaActividad)
+  formData.append('id_usuario', user.value.id)
+  formData.append('stock', Number(form.stock))
+  
+  try {
+    if (isAdmin) {
+      await ActividadesService.crearActividad(formData)
+    } else {
+      await ActividadesService.crearSolicitud(formData)
+    }
+    
+    emit('actividadCreada', { esAdmin: isAdmin })
+    dialog.value = false
+    alert('Actividad enviada exitosamente')
+  } catch (error) {
+    console.error('Error al crear actividad:', error)
+    alert('Error al enviar la actividad. Por favor, inténtalo de nuevo.')
+  }
 }
 </script>
 
@@ -208,5 +330,27 @@ async function submitComplaint() {
 .upload-area:hover {
   border-color: #e91e63;
   background-color: #fce4ec;
+}
+
+:deep(.dp__theme_light) {
+  --dp-primary-color: #A80038;
+  --dp-primary-text-color: #fff;
+}
+
+:deep(.dp__input) {
+  height: 48px !important;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+:deep(.dp__input:focus) {
+  background-color: white;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
 }
 </style>

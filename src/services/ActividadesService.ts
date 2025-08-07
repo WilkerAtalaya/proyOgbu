@@ -11,6 +11,7 @@ export class ActividadesService {
   private urlCrearSolicitud: string
   private urlActualizar: string
   private urlEliminar: string
+  private urlInscribirse: string
 
   constructor() {
     this.urlObtenerPorUsuario = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerPorUsuario}`
@@ -21,6 +22,7 @@ export class ActividadesService {
     this.urlCrearSolicitud = `${environment.baseUrlApi}${environment.endPoint.actividades.crearSolicitud}`
     this.urlActualizar = `${environment.baseUrlApi}${environment.endPoint.actividades.actualizar}`
     this.urlEliminar = `${environment.baseUrlApi}${environment.endPoint.actividades.eliminar}`
+    this.urlInscribirse = `${environment.baseUrlApi}${environment.endPoint.actividades.inscribirse}`
   }
 
   async obtenerTodas(): Promise<Actividad[]> {
@@ -64,6 +66,18 @@ export class ActividadesService {
           'Content-Type': 'multipart/form-data',
         },
       })
+      .then((res) => res.data)
+  }
+
+  async inscribirse(actividadId: number, body: { id_usuario: number }): Promise<any> {
+    return axios
+      .post(`${this.urlInscribirse}/${actividadId}/inscribirse`, body)
+      .then((res) => res.data)
+  }
+
+  async actualizarEstado(actividadId: number, estado: string): Promise<any> {
+    return axios
+      .put(`${this.urlActualizar}/${actividadId}/estado`, { estado })
       .then((res) => res.data)
   }
 

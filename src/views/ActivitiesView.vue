@@ -1,13 +1,13 @@
 <template>
-  <v-card class="contenido">
+  <ContainerView>
     <v-tabs v-model="tab" align-tabs="start" color="#A37801">
-      <v-tab :value="1" class="custom-tab"><h3 class="mb-4 text-title">Actividades</h3></v-tab>
-      <v-tab :value="2" class="custom-tab"><h3  class="mb-4 text-title">Mis Solicitudes</h3></v-tab>
-       <v-spacer></v-spacer>
-      <v-btn variant="outlined" class="mb-6" @click="openModalNuevo">
-            <span v-if="isAdmin"> Nueva Actividad </span>
-            <span v-else>Solicitar</span>
-          </v-btn>
+      <v-tab :value="1" class="custom-tab"><h3 class="mb-4 text-title">{{ isAdmin ? 'Act. Aprobadas' : 'Actividades' }}</h3></v-tab>
+      <v-tab :value="2" class="custom-tab"><h3  class="mb-4 text-title">{{ isAdmin ? 'Solicitudes' : 'Mis Solicitudes' }}</h3></v-tab>
+      <v-spacer></v-spacer>
+      <v-btn variant="outlined" class="mb-6 custom-button" @click="openModalNuevo">
+        <span v-if="isAdmin">Agregar actividad</span>
+        <span v-else>Solicitar una actividad</span>
+      </v-btn>
     </v-tabs>
     <v-tabs-window v-model="tab">
       <v-tabs-window-item :value="1">
@@ -25,76 +25,49 @@
             </div>
             <div class="tipo">{{ actividad.tipo.toUpperCase() }}</div>
             <div class="accion">
-              <n-button  style="background-color:#ffc107;" type="warning"  @click="openModalNuevo('form', actividad)">Acceder al formulario</n-button>
+              <n-button style="background-color:#ffc107;" type="warning" @click="abrirDetalleActividad(actividad)">{{ isAdmin ? 'Ver detalle' : 'Acceder al formulario' }}</n-button>
             </div>
           </div>
         </v-container>
       </v-tabs-window-item>
       <v-tabs-window-item :value="2">
-        <v-container fluid>
-          <div class="pa-4">
-            <v-card class="elevation-2" style="border-radius: 12px">
-              <v-data-table
-                :headers="headers"
-                :items="items"
-                class="custom-table"
-                hide-default-footer
-                :items-per-page="-1"
-              >
-                <template v-slot:item.codigo="{ item }">
-                  <span class="text-body-2 font-weight-medium text-grey-darken-1">
-                    {{ item.codigo }}
-                  </span>
-                </template>
-                <template v-slot:item.titulo="{ item }">
-                  <span class="text-body-2 font-weight-medium">
-                    {{ item.titulo }}
-                  </span>
-                </template>
-                <template v-slot:item.fecha="{ item }">
-                  <span class="text-body-2 text-grey-darken-1">
-                    {{ item.fecha }}
-                  </span>
-                </template>
-                <template v-slot:item.resumen="{ item }">
-                  <span class="text-body-2 text-grey-darken-1">
-                    {{ item.descripcion }}
-                  </span>
-                </template>
-                <template v-slot:item.acciones="{ item }">
-                  <v-menu>
-                    <template v-slot:activator="{ props }">
-                      <button
-                        v-bind="props"
-                        style="background: none; border: none; cursor: pointer"
-                        title="Ver detalle"
-                         @click="openModalSolicitudes(item)"
-                      >
-                        <i
-                          class="fa-solid fa-eye"
-                          style="color: #1976d2; font-size: 20px"
-                        ></i>
-                      </button>
-                    </template>
-                    
-                  </v-menu>
-                </template>
-              </v-data-table>
-            </v-card>
-            <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
-              {{ snackbar.message }}
-              <template v-slot:actions>
-                <v-btn variant="text" @click="snackbar.show = false"> Cerrar </v-btn>
-              </template>
-            </v-snackbar>
-          </div>
-        </v-container>
+        <v-data-table :items="items" :items-per-page="10" class="custom-table">
+          <template #headers>
+            <tr class="table-header">
+              <th>Código</th>
+              <th>Título</th>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Acción</th>
+            </tr>
+          </template>
+          <template #item="{ item }">
+            <tr>
+              <td>{{ item.codigo }}</td>
+              <td>{{ item.titulo }}</td>
+              <td>{{ item.fecha }}</td>
+              <td>{{ item.tipo }}</td>
+              <td>{{ item.estado || 'Pendiente' }}</td>
+              <td>
+                <button
+                  @click="openModalSolicitudes(item)"
+                  style="background: none; border: none; cursor: pointer;"
+                  title="Ver detalle"
+                >
+                  <i class="fa-solid fa-eye" style="color: #1976d2; font-size: 20px;"></i>
+                </button>
+              </td>
+            </tr>
+          </template>
+        </v-data-table>
       </v-tabs-window-item>
     </v-tabs-window>
-  </v-card>
-  {{ selectedItem }}
-  <ModalActividades :type="modalType" v-model="showModal" :item="selectedItem" :user="user"  @agregar-actividad="agregarActividad" />
-   <ModalMisSolicitudes v-model="showModalSolicitudes" :item="selectedItem" :user="user" />
+  </ContainerView>
+  <ModalActividades :type="modalType" v-model="showModal" :item="selectedItem" :user="user" @actividad-creada="onActividadCreada" />
+  <ModalMisSolicitudes v-model="showModalSolicitudes" :item="selectedItem" :user="user" />
+  <ModalDetalleActividad v-model="showModalDetalle" :actividad="selectedActividad" :is-admin="isAdmin" @inscripcion-exitosa="onInscripcionExitosa" />
+  <ModalDetalleSolicitud v-model="showModalDetalleSolicitud" :solicitud="selectedSolicitud" :is-admin="isAdmin" @estado-actualizado="onEstadoActualizado" />
 </template>
 <script setup>
 import { NButton } from 'naive-ui'
@@ -103,6 +76,9 @@ import LoginService from '@/services/LoginService'
 import ActividadesService from '@/services/ActividadesService'
 import ModalActividades from './modal/ModalActividades.vue'
 import ModalMisSolicitudes from './modal/ModalMisSolicitudes.vue'
+import ModalDetalleActividad from './modal/ModalDetalleActividad.vue'
+import ModalDetalleSolicitud from './modal/ModalDetalleSolicitud.vue'
+import ContainerView from '@/components/layout/ContainerView.vue'
 
 const tab = ref(1)
 const items = ref([])
@@ -110,83 +86,54 @@ const actividades = ref([])
 const showModal = ref(false)
 const modalType = ref('actividad')
 const showModalSolicitudes = ref(false)
+const showModalDetalle = ref(false)
+const showModalDetalleSolicitud = ref(false)
 const selectedItem = ref(null)
+const selectedActividad = ref(null)
+const selectedSolicitud = ref(null)
 const user = ref(LoginService.getCurrentUser())
 const isAdmin = LoginService.isAdmin()
-const snackbar = reactive({
-  show: false,
-  message: '',
-  color: 'success',
-})
-const headers = [
-  {
-    title: 'Código',
-    align: 'start',
-    sortable: true,
-    key: 'codigo',
-    width: '100px',
-  },
-  {
-    title: 'Título',
-    align: 'start',
-    sortable: true,
-    key: 'titulo',
-    width: '250px',
-  },
-  {
-    title: 'Fecha',
-    align: 'start',
-    sortable: true,
-    key: 'fecha',
-    width: '150px',
-  },
-  {
-    title: 'Resumen',
-    align: 'start',
-    sortable: false,
-    key: 'resumen',
-  },
-  {
-    title: 'Acciones',
-    align: 'center',
-    sortable: false,
-    key: 'acciones',
-    width: '100px',
-  },
-]
 
 onMounted(async () => {
-  await Promise.all[loadActividadesAprobadas(), chooseSolicitudes()]
+  await Promise.all([loadActividadesAprobadas(), chooseSolicitudes()])
 })
 
-const editItem = (item) => {
-  snackbar.message = `Editando elemento: ${item.titulo}`
-  snackbar.color = 'info'
-  snackbar.show = true
+function abrirDetalleActividad(actividad) {
+  selectedActividad.value = {
+    id: actividad.id || extractIdFromCodigo(actividad.codigo),
+    titulo: actividad.titulo,
+    tipo: actividad.tipo,
+    fecha_actividad: actividad.fecha,
+    descripcion: actividad.descripcion,
+    stock: actividad.stock,
+    cupos_restantes: actividad.cupos_restantes || actividad.stock,
+    archivo: actividad.archivo
+  }
+  showModalDetalle.value = true
 }
 
-const viewItem = (item) => {
-  snackbar.message = `Viendo detalles de: ${item.titulo}`
-  snackbar.color = 'info'
-  snackbar.show = true
+function extractIdFromCodigo(codigo) {
+  return parseInt(codigo.split('-')[1]) || 0
 }
 
-const deleteItem = (item) => {
-  if (confirm(`¿Estás seguro de que quieres eliminar "${item.titulo}"?`)) {
-    const index = items.value.findIndex((i) => i.id === item.id)
-    if (index > -1) {
-      items.value.splice(index, 1)
-      snackbar.message = `Elemento eliminado: ${item.titulo}`
-      snackbar.color = 'success'
-      snackbar.show = true
-    }
+function onInscripcionExitosa() {
+  loadActividadesAprobadas()
+  showModalDetalle.value = false
+}
+
+async function onActividadCreada({ esAdmin }) {
+  await Promise.all([loadActividadesAprobadas(), chooseSolicitudes()])
+  
+  if (esAdmin) {
+    tab.value = 1
+  } else {
+    tab.value = 2
   }
 }
 
-function agregarActividad(actividad) {
-  actividades.value.unshift(actividad)
+async function onEstadoActualizado() {
+  await Promise.all([loadActividadesAprobadas(), chooseSolicitudes()])
 }
-
 
 function openModalNuevo( type = 'actividad', actividad = null) {
   const user = LoginService.getCurrentUser()
@@ -215,8 +162,18 @@ function openModalNuevo( type = 'actividad', actividad = null) {
 }
 
 function openModalSolicitudes(item) {
-  selectedItem.value = item
-  showModalSolicitudes.value = true
+  selectedSolicitud.value = {
+    id: item.id,
+    titulo: item.titulo,
+    tipo: item.tipo,
+    fecha_actividad: item.fecha,
+    fecha_solicitud: item.fecha_solicitud || item.fecha,
+    descripcion: item.descripcion,
+    stock: item.stock,
+    estado: item.estado,
+    archivo: item.archivo
+  }
+  showModalDetalleSolicitud.value = true
 }
 
 function chooseSolicitudes() {
@@ -235,10 +192,13 @@ async function loadSolicitudesPorUsuario() {
       codigo: `UNMSM-${a.id}`,
       titulo: a.titulo,
       fecha: a.fecha_actividad,
+      fecha_solicitud: a.fecha_solicitud,
       resumen: a.descripcion,
       descripcion: a.descripcion,
       tipo: a.tipo,
       stock: a.stock,
+      estado: a.estado || 'Pendiente',
+      archivo: a.archivo,
     }))
   } catch (error) {
     console.error(error)
@@ -253,10 +213,13 @@ async function loadSolicitudes() {
       codigo: `UNMSM-${a.id}`,
       titulo: a.titulo,
       fecha: a.fecha_actividad,
+      fecha_solicitud: a.fecha_solicitud,
       resumen: a.descripcion,
       descripcion: a.descripcion,
       tipo: a.tipo,
       stock: a.stock,
+      estado: a.estado || 'Pendiente',
+      archivo: a.archivo,
     }))
   } catch (error) {
     console.error(error)
@@ -267,12 +230,15 @@ async function loadActividadesAprobadas() {
   try {
     const activities = await ActividadesService.obtenerActividadesAprobadas()
     actividades.value = activities.map((a) => ({
+      id: a.id,
       codigo: `UNMSM-${a.id}`,
       fecha: a.fecha_actividad,
       descripcion: a.descripcion,
       titulo: a.titulo,
       tipo: a.tipo.toUpperCase(),
       stock: a.stock,
+      cupos_restantes: a.cupos_restantes,
+      archivo: a.archivo,
     }))
   } catch (error) {
     console.error(error)
@@ -388,7 +354,10 @@ async function loadActividadesAprobadas() {
   justify-content: flex-end;
 }
 
-/*Mis actividades*/
+.custom-table {
+  margin-top: 32px;
+}
+
 .custom-table :deep(.v-data-table__wrapper) {
   border-radius: 12px;
 }
@@ -414,10 +383,6 @@ async function loadActividadesAprobadas() {
   color: #616161;
 }
 
-.custom-table :deep(tbody tr:hover) {
-  background-color: #f8f9fa;
-}
-
 .custom-table :deep(tbody tr:last-child td) {
   border-bottom: none;
 }
@@ -426,5 +391,17 @@ async function loadActividadesAprobadas() {
   font-size: larger;
   text-transform: none;
   font-family: 'Righteous', cursive;
+}
+.custom-button {
+  background-color: #53696D !important;
+  border-radius: 25px !important;
+  border: none !important;
+  padding: 16px 24px !important;
+  height: auto !important;
+  margin: 0 !important;
+}
+
+.custom-button span {
+  color: white !important;
 }
 </style>

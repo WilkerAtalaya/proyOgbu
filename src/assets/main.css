@@ -84,3 +84,10 @@ a,
 .data-table .n-data-table .n-data-table-td{
   background-color: red !important;
 }
+.dp__input {
+    border-color: light-dark(rgb(118, 118, 118), rgb(133, 133, 133)) !important;
+    border-image: initial !important;
+}
+.dp__input::placeholder {
+  color: rgb(118, 118, 118) !important;
+}
