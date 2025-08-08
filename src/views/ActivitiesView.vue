@@ -25,7 +25,13 @@
             </div>
             <div class="tipo">{{ actividad.tipo.toUpperCase() }}</div>
             <div class="accion">
-              <n-button style="background-color:#ffc107;" type="warning" @click="abrirDetalleActividad(actividad)">{{ isAdmin ? 'Ver detalle' : 'Acceder al formulario' }}</n-button>
+              <button
+                @click="abrirDetalleActividad(actividad)"
+                style="background: #CCF658; border: none; cursor: pointer; padding: 12px 16px; box-shadow: 0px 4px 4px 0px #00000040;"
+                title="Ver detalle"
+              >
+                {{ isAdmin ? 'Ver detalle' : 'Acceder al formulario' }}
+              </button>
             </div>
           </div>
         </v-container>
@@ -64,10 +70,24 @@
       </v-tabs-window-item>
     </v-tabs-window>
   </ContainerView>
-  <ModalActividades :type="modalType" v-model="showModal" :item="selectedItem" :user="user" @actividad-creada="onActividadCreada" />
+  <ModalActividades :type="modalType" v-model="showModal" :item="selectedItem" :user="user" @actividad-creada="onActividadCreada" @mostrar-notificacion="onMostrarNotificacion" />
+  <ModalDetalleActividad v-model="showModalDetalle" :actividad="selectedActividad" :is-admin="isAdmin" @inscripcion-exitosa="onInscripcionExitosa" @mostrar-notificacion="onMostrarNotificacion" />
   <ModalMisSolicitudes v-model="showModalSolicitudes" :item="selectedItem" :user="user" />
-  <ModalDetalleActividad v-model="showModalDetalle" :actividad="selectedActividad" :is-admin="isAdmin" @inscripcion-exitosa="onInscripcionExitosa" />
   <ModalDetalleSolicitud v-model="showModalDetalleSolicitud" :solicitud="selectedSolicitud" :is-admin="isAdmin" @estado-actualizado="onEstadoActualizado" />
+  
+  <v-snackbar 
+    v-model="snackbar.show" 
+    :color="snackbar.color" 
+    timeout="4000"
+    location="top"
+  >
+    {{ snackbar.message }}
+    <template v-slot:actions>
+      <v-btn variant="text" @click="snackbar.show = false">
+        Cerrar
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 <script setup>
 import { NButton } from 'naive-ui'
@@ -94,6 +114,12 @@ const selectedSolicitud = ref(null)
 const user = ref(LoginService.getCurrentUser())
 const isAdmin = LoginService.isAdmin()
 
+const snackbar = ref({
+  show: false,
+  message: '',
+  color: 'success'
+})
+
 onMounted(async () => {
   await Promise.all([loadActividadesAprobadas(), chooseSolicitudes()])
 })
@@ -118,7 +144,14 @@ function extractIdFromCodigo(codigo) {
 
 function onInscripcionExitosa() {
   loadActividadesAprobadas()
-  showModalDetalle.value = false
+}
+
+function onMostrarNotificacion({ mensaje, tipo }) {
+  snackbar.value = {
+    show: true,
+    message: mensaje,
+    color: tipo
+  }
 }
 
 async function onActividadCreada({ esAdmin }) {

@@ -58,7 +58,22 @@
     v-model="modalStore.mostrarModalReconocimiento"
     :mode="false"
     @agregarReconocimiento="agregarReconocimiento"
+    @mostrar-notificacion="onMostrarNotificacion"
   />
+  
+  <v-snackbar 
+    v-model="snackbar.show" 
+    :color="snackbar.color" 
+    timeout="4000"
+    location="top"
+  >
+    {{ snackbar.message }}
+    <template v-slot:actions>
+      <v-btn variant="text" @click="snackbar.show = false">
+        Cerrar
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <script setup>
@@ -76,6 +91,12 @@ const route = useRoute()
 const reconocimientoItems = ref([])
 const cumpleanosItems = ref([])
 const isAdmin = LoginService.isAdmin()
+
+const snackbar = ref({
+  show: false,
+  message: '',
+  color: 'success'
+})
 
 async function loadReconocimientos() {
   try {
@@ -113,18 +134,30 @@ function agregarReconocimiento() {
   loadReconocimientos()
 }
 
-async function eliminarReconocimiento(index) {
-  if (!confirm('¿Estás seguro de que quieres eliminar este reconocimiento?')) {
-    return
+function onMostrarNotificacion({ mensaje, tipo }) {
+  snackbar.value = {
+    show: true,
+    message: mensaje,
+    color: tipo
   }
-  
+}
+
+async function eliminarReconocimiento(index) {
   try {
     const reconocimiento = reconocimientoItems.value[index]
     await ReconocimientosService.eliminarReconocimiento(reconocimiento.id)
     await loadReconocimientos()
+    
+    onMostrarNotificacion({ 
+      mensaje: 'Reconocimiento eliminado exitosamente', 
+      tipo: 'success' 
+    })
   } catch (error) {
     console.error('Error al eliminar reconocimiento:', error)
-    alert('Error al eliminar el reconocimiento')
+    onMostrarNotificacion({ 
+      mensaje: 'Error al eliminar el reconocimiento. Por favor, inténtalo de nuevo.', 
+      tipo: 'error' 
+    })
   }
 }
 </script>

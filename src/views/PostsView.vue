@@ -5,6 +5,7 @@
         v-model="modalStore.mostrarModalPublicacion"
         :mode="false"
         @agregarPublicacion="agregarPublicacion"
+        @mostrar-notificacion="onMostrarNotificacion"
       />
       <div class="posts-container">
         <div class="post-card" v-for="post in posts" :key="post.id">
@@ -20,6 +21,20 @@
       <CelebrationCard />
     </div>
   </div>
+  
+  <v-snackbar 
+    v-model="snackbar.show" 
+    :color="snackbar.color" 
+    timeout="4000"
+    location="top"
+  >
+    {{ snackbar.message }}
+    <template v-slot:actions>
+      <v-btn variant="text" @click="snackbar.show = false">
+        Cerrar
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <script setup>
@@ -35,6 +50,12 @@ import { modalStore } from '@/stores/modalStore'
 const isAdmin = LoginService.isAdmin()
 const posts = ref([])
 
+const snackbar = ref({
+  show: false,
+  message: '',
+  color: 'success'
+})
+
 async function loadPublicaciones() {
   try {
     posts.value = await AnunciosService.listarAnuncios()
@@ -45,6 +66,14 @@ async function loadPublicaciones() {
 
 function agregarPublicacion(pub) {
   posts.value.unshift(pub)
+}
+
+function onMostrarNotificacion({ mensaje, tipo }) {
+  snackbar.value = {
+    show: true,
+    message: mensaje,
+    color: tipo
+  }
 }
 
 onMounted(() => {
@@ -96,7 +125,7 @@ onMounted(() => {
   padding: 15px;
   max-width: 600px;
   width: 90%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 10px 4px 0px #00000040;
 }
 .post-date {
   font-size: 0.9rem;

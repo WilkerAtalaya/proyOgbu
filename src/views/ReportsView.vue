@@ -37,7 +37,21 @@
         </tr>
       </template>
     </v-data-table>
-    <ModalQueja :type="modalType" v-model="showModal" :item="selectedItem" :user="user" :mode="isView"  @agregar-queja="agregarQueja" @actualizar-estado="onEstadoActualizado" />
+    <ModalQueja :type="modalType" v-model="showModal" :item="selectedItem" :user="user" :mode="isView"  @agregar-queja="agregarQueja" @actualizar-estado="onEstadoActualizado" @mostrar-notificacion="onMostrarNotificacion" />
+    
+    <v-snackbar 
+      v-model="snackbar.show" 
+      :color="snackbar.color" 
+      timeout="4000"
+      location="top"
+    >
+      {{ snackbar.message }}
+      <template v-slot:actions>
+        <v-btn variant="text" @click="snackbar.show = false">
+          Cerrar
+        </v-btn>
+      </template>
+    </v-snackbar>
   </ContainerView>
 </template>
 <script setup>
@@ -56,6 +70,12 @@ const selectedAddress = ref(null)
 const modalType = ref('queja')
 const user = ref(LoginService.getCurrentUser())
 const isAdmin = LoginService.isAdmin()
+
+const snackbar = ref({
+  show: false,
+  message: '',
+  color: 'success'
+})
 
 const filteredData = computed(() => {
   if (!selectedAddress.value) return data.value
@@ -134,6 +154,14 @@ function chooseQuejas() {
 
 function onEstadoActualizado() {
   chooseQuejas()
+}
+
+function onMostrarNotificacion({ mensaje, tipo }) {
+  snackbar.value = {
+    show: true,
+    message: mensaje,
+    color: tipo
+  }
 }
 </script>
 <style scoped>

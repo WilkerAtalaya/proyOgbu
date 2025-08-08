@@ -1,83 +1,54 @@
 <template>
-  <v-dialog v-model="dialog" max-width="600px" persistent>
-    <v-card style="border-radius: 16px; padding: 32px 45px 36px;">
-      <v-card-title class="d-flex justify-space-between align-center pa-0 mb-4">
-        <h2 style="color: #A80038; text-align: center; flex: 1; font-size: 35px; font-weight: 400; font-family: 'Righteous', cursive;">Realizar una Publicación</h2>
-        <button
-          @click="dialog = false"
-          style="background: none; border: none; cursor: pointer"
-          title="Cerrar Modal"
-        >
-          <i class="fa-solid fa-xmark" style="color: #1976d2; font-size: 20px"></i>
-        </button>
-      </v-card-title>
+  <ContainerModal v-model="dialog" title="Realizar una publicación" colorTheme="#A80038" >
+    <v-form @submit.prevent="submitPublicacion">
+      <div class="mb-4">
+        <label style="font-size: 18px; color: black; font-weight: 400;">Descripción</label>
+        <v-textarea v-model="form.descripcion" variant="outlined" rows="4" hide-details class="custom-input"
+          :disabled="mode" :error="!!errors.descripcion"></v-textarea>
+        <span v-if="errors.descripcion" class="error-message">{{ errors.descripcion }}</span>
+      </div>
 
-      <v-form @submit.prevent="submitPublicacion">
-        <div class="mb-4">
-          <label style="font-size: 18px; color: black; font-weight: 400;">Descripción</label>
-          <v-textarea
-            v-model="form.descripcion"
-            variant="outlined"
-            rows="4"
-            hide-details
-            class="custom-input"
-            :disabled="mode"
-          ></v-textarea>
-        </div>
+      <div class="mb-6">
+        <label style="font-size: 18px; color: black; font-weight: 400;">Adjuntar imagen</label>
+        <v-card class="upload-area d-flex flex-column align-center justify-center"
+          style="min-height: 120px; border: 2px dashed #e0e0e0; background-color: #f5f5f5" @click="triggerFileInput">
+          <v-icon size="32" color="grey-lighten-1" class="mb-2"> mdi-cloud-upload </v-icon>
+          <span class="text-body-2 text-grey-lighten-1">
+            {{ selectedFile ? selectedFile.name : 'Subir Imagen' }}
+          </span>
+          <input ref="fileInput" type="file" accept="image/*" style="display: none" :disabled="mode"
+            @change="handleFileSelect" />
+        </v-card>
+      </div>
 
-        <div class="mb-6">
-          <label style="font-size: 18px; color: black; font-weight: 400;">Adjuntar imagen</label>
-          <v-card
-            class="upload-area d-flex flex-column align-center justify-center"
-            style="min-height: 120px; border: 2px dashed #e0e0e0; background-color: #f5f5f5"
-            @click="triggerFileInput"
-          >
-            <v-icon size="32" color="grey-lighten-1" class="mb-2"> mdi-cloud-upload </v-icon>
-            <span class="text-body-2 text-grey-lighten-1">
-              {{ selectedFile ? selectedFile.name : 'Subir Imagen' }}
-            </span>
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/*"
-              style="display: none"
-              :disabled="mode"
-              @change="handleFileSelect"
-            />
-          </v-card>
-        </div>
-
-        <div v-if="!mode" class="d-flex justify-center">
-          <v-btn
-            type="submit"
-            color="#F2B200"
-            size="large"
-            style="border-radius: 15px; text-transform: none; font-weight: 400; font-size: 18px; padding: 12px 24px;"
-            min-width="120px"
-          >
-            Publicar
-          </v-btn>
-        </div>
-      </v-form>
-    </v-card>
-  </v-dialog>
+      <div v-if="!mode" class="d-flex justify-center">
+        <v-btn type="submit" color="#F2B200" size="large"
+          style="border-radius: 15px; text-transform: none; font-weight: 400; font-size: 18px; padding: 12px 24px;"
+          min-width="120px">
+          Publicar
+        </v-btn>
+      </div>
+    </v-form>
+  </ContainerModal>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import AnunciosService from '@/services/AnunciosService'
 import LoginService from '@/services/LoginService'
+import ContainerModal from '@/components/layout/ContainerModal.vue'
 
 const fileInput = ref(null)
 const selectedFile = ref(null)
 const form = reactive({ descripcion: '' })
+const errors = reactive({ descripcion: '' })
 
 const props = defineProps({
   modelValue: Boolean,
   mode: Boolean,
 })
 
-const emit = defineEmits(['update:modelValue', 'agregarPublicacion'])
+const emit = defineEmits(['update:modelValue', 'agregarPublicacion', 'mostrar-notificacion'])
 
 const dialog = computed({
   get: () => props.modelValue,
@@ -95,24 +66,68 @@ const handleFileSelect = (event) => {
   }
 }
 
+function mostrarNotificacion(mensaje, tipo = 'success') {
+  emit('mostrar-notificacion', { mensaje, tipo })
+}
+
+function validateField(field, value) {
+  switch (field) {
+    case 'descripcion':
+      if (!value || value.trim() === '') {
+        errors.descripcion = 'La descripción es obligatoria'
+        return false
+      }
+      errors.descripcion = ''
+      return true
+    default:
+      return true
+  }
+}
+
+function validateForm() {
+  let isValid = true
+  isValid = validateField('descripcion', form.descripcion) && isValid
+  return isValid
+}
+
+watch(() => form.descripcion, (newValue) => {
+  if (errors.descripcion) validateField('descripcion', newValue)
+})
+
 async function submitPublicacion() {
-  const user = LoginService.getCurrentUser()
-  const formData = new FormData()
-  formData.append('id_usuario', user.id)
-  formData.append('descripcion', form.descripcion)
-  formData.append('imagen', selectedFile.value)
-  const response = await AnunciosService.crearAnuncio(formData)
-  emit('agregarPublicacion', {
-    id_usuario: user.id,
-    descripcion: form.descripcion,
-    imagen: response.imagen_url || '',
-    fecha_publicacion: new Date()
-  })
-  
-  form.descripcion = ''
-  selectedFile.value = null
-  dialog.value = false
-  alert('Publicación enviada exitosamente')
+  if (!validateForm()) {
+    return
+  }
+
+  try {
+    const user = LoginService.getCurrentUser()
+    const formData = new FormData()
+    formData.append('id_usuario', user.id)
+    formData.append('descripcion', form.descripcion)
+    if (selectedFile.value) {
+      formData.append('imagen', selectedFile.value)
+    }
+    const response = await AnunciosService.crearAnuncio(formData)
+    emit('agregarPublicacion', {
+      id_usuario: user.id,
+      descripcion: form.descripcion,
+      imagen: response.imagen_url || '',
+      fecha_publicacion: new Date()
+    })
+
+    form.descripcion = ''
+    selectedFile.value = null
+    Object.keys(errors).forEach(key => errors[key] = '')
+
+    mostrarNotificacion('Publicación enviada exitosamente', 'success')
+
+    setTimeout(() => {
+      dialog.value = false
+    }, 500)
+  } catch (error) {
+    console.error('Error al enviar publicación:', error)
+    mostrarNotificacion('Error al enviar la publicación. Por favor, inténtalo de nuevo.', 'error')
+  }
 }
 </script>
 
@@ -135,5 +150,12 @@ async function submitPublicacion() {
 .upload-area:hover {
   border-color: #e91e63;
   background-color: #fce4ec;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
 }
 </style>
