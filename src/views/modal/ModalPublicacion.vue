@@ -2,6 +2,13 @@
   <ContainerModal v-model="dialog" title="Realizar una publicación" colorTheme="#A80038" >
     <v-form @submit.prevent="submitPublicacion">
       <div class="mb-4">
+        <label style="font-size: 18px; color: black; font-weight: 400;">Título</label>
+        <v-text-field v-model="form.titulo" variant="outlined" hide-details class="custom-input"
+          :disabled="mode" :error="!!errors.titulo"></v-text-field>
+        <span v-if="errors.titulo" class="error-message">{{ errors.titulo }}</span>
+      </div>
+
+      <div class="mb-4">
         <label style="font-size: 18px; color: black; font-weight: 400;">Descripción</label>
         <v-textarea v-model="form.descripcion" variant="outlined" rows="4" hide-details class="custom-input"
           :disabled="mode" :error="!!errors.descripcion"></v-textarea>
@@ -40,8 +47,8 @@ import ContainerModal from '@/components/layout/ContainerModal.vue'
 
 const fileInput = ref(null)
 const selectedFile = ref(null)
-const form = reactive({ descripcion: '' })
-const errors = reactive({ descripcion: '' })
+const form = reactive({ titulo: '', descripcion: '' })
+const errors = reactive({ titulo: '', descripcion: '' })
 
 const props = defineProps({
   modelValue: Boolean,
@@ -72,6 +79,13 @@ function mostrarNotificacion(mensaje, tipo = 'success') {
 
 function validateField(field, value) {
   switch (field) {
+    case 'titulo':
+      if (!value || value.trim() === '') {
+        errors.titulo = 'El título es obligatorio'
+        return false
+      }
+      errors.titulo = ''
+      return true
     case 'descripcion':
       if (!value || value.trim() === '') {
         errors.descripcion = 'La descripción es obligatoria'
@@ -86,12 +100,17 @@ function validateField(field, value) {
 
 function validateForm() {
   let isValid = true
+  isValid = validateField('titulo', form.titulo) && isValid
   isValid = validateField('descripcion', form.descripcion) && isValid
   return isValid
 }
 
 watch(() => form.descripcion, (newValue) => {
   if (errors.descripcion) validateField('descripcion', newValue)
+})
+
+watch(() => form.titulo, (newValue) => {
+  if (errors.titulo) validateField('titulo', newValue)
 })
 
 async function submitPublicacion() {
@@ -103,6 +122,7 @@ async function submitPublicacion() {
     const user = LoginService.getCurrentUser()
     const formData = new FormData()
     formData.append('id_usuario', user.id)
+    formData.append('titulo', form.titulo)
     formData.append('descripcion', form.descripcion)
     if (selectedFile.value) {
       formData.append('imagen', selectedFile.value)
@@ -110,11 +130,13 @@ async function submitPublicacion() {
     const response = await AnunciosService.crearAnuncio(formData)
     emit('agregarPublicacion', {
       id_usuario: user.id,
+      titulo: form.titulo,
       descripcion: form.descripcion,
       imagen: response.imagen_url || '',
       fecha_publicacion: new Date()
     })
 
+    form.titulo = ''
     form.descripcion = ''
     selectedFile.value = null
     Object.keys(errors).forEach(key => errors[key] = '')
@@ -125,8 +147,11 @@ async function submitPublicacion() {
       dialog.value = false
     }, 500)
   } catch (error) {
-    console.error('Error al enviar publicación:', error)
-    mostrarNotificacion('Error al enviar la publicación. Por favor, inténtalo de nuevo.', 'error')
+    if (error.status === 400) {
+      mostrarNotificacion(error.response.data.mensaje || 'Error en los datos proporcionados.', 'error')
+    } else {
+      mostrarNotificacion('Error al enviar la publicación. Por favor, inténtalo de nuevo.', 'error')
+    }
   }
 }
 </script>
