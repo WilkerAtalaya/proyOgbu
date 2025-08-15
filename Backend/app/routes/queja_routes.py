@@ -17,6 +17,8 @@ def registrar_queja():
     nombre_archivo = None
 
     if archivo:
+        if not os.path.exists("uploads/quejas"):
+            os.makedirs("uploads/quejas", exist_ok=True)
         filename = secure_filename(archivo.filename)
         nombre_archivo = f"evidencia_{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
         ruta_destino = os.path.join("uploads/quejas", nombre_archivo)
@@ -51,7 +53,38 @@ def listar_quejas_usuario(id_usuario):
 
 @queja_bp.route('/quejas', methods=['GET'])
 def listar_todas_quejas():
-    quejas = obtener_todas_quejas()
+    estado = request.args.get('estado', type=str)
+    nombre = request.args.get('nombre', type=str)   
+    motivo = request.args.get('motivo', type=str)
+
+    fecha_desde_str = request.args.get('fecha_desde', type=str)  
+    fecha_hasta_str = request.args.get('fecha_hasta', type=str)
+
+    fecha_desde = None
+    fecha_hasta = None
+
+  
+    if fecha_desde_str:
+        try:
+            fecha_desde = datetime.strptime(fecha_desde_str, '%Y-%m-%d')
+        except ValueError:
+            pass
+    if fecha_hasta_str:
+        try:
+            fecha_hasta = datetime.strptime(fecha_hasta_str, '%Y-%m-%d')
+        except ValueError:
+            pass
+
+    filtros = {
+        'estado': estado if estado else None,
+        'nombre': nombre if nombre else None,
+        'motivo': motivo if motivo else None,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta
+    }
+
+    quejas = obtener_todas_quejas(filtros)
+
     return jsonify([{
         'id': q.id_queja,
         'codigo': q.codigo_reporte,
