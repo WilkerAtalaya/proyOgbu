@@ -13,6 +13,7 @@ def crear_anuncio(data):
             db.session.commit()
 
     nuevo = Publicacion(
+        titulo=data.get('titulo'),
         descripcion=data.get('descripcion'),
         imagen=data.get('imagen'),
         id_usuario=data.get('id_usuario')
@@ -25,3 +26,36 @@ def crear_anuncio(data):
 
 def obtener_anuncios():
     return Publicacion.query.order_by(Publicacion.fecha_publicacion.desc()).limit(15).all()
+
+def obtener_anuncio_por_id(id_publicacion: int):
+    return Publicacion.query.get(id_publicacion)
+
+
+def actualizar_anuncio(
+    id_publicacion: int,
+    titulo: str | None = None,
+    descripcion: str | None = None,
+    imagen: str | None = None
+):
+    anuncio = Publicacion.query.get(id_publicacion)
+    if not anuncio:
+        return None
+
+    if titulo is not None:
+        anuncio.titulo = titulo
+    if descripcion is not None:
+        anuncio.descripcion = descripcion
+    if imagen is not None:
+        anuncio.imagen = imagen if imagen != '' else None
+
+    db.session.commit()
+    return anuncio
+
+
+def eliminar_anuncio(id_publicacion: int):
+    anuncio = Publicacion.query.get(id_publicacion)
+    if not anuncio:
+        return None
+    db.session.delete(anuncio)
+    db.session.commit()
+    return True

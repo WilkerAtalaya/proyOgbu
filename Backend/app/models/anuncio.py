@@ -11,6 +11,7 @@ class Publicacion(db.Model):
 
     id_publicacion = db.Column(db.Integer, primary_key=True)
     descripcion = db.Column(db.Text, nullable=False)
-    imagen = db.Column(db.String(255))  # opcional
+    titulo = db.Column(db.String(150), nullable=False)
+    imagen = db.Column(db.String(255))
     fecha_publicacion = db.Column(db.DateTime, default=hora_peru)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=False)
