@@ -1,5 +1,5 @@
 <template>
-  <ContainerModal v-model="dialog" title="Realizar una publicación" colorTheme="#A80038" >
+  <ContainerModal v-model="dialog" :title="isEditMode ? 'Actualizar publicación' : 'Realizar una publicación'" colorTheme="#A80038" >
     <v-form @submit.prevent="submitPublicacion">
       <div class="mb-4">
         <label style="font-size: 18px; color: black; font-weight: 400;">Título</label>
@@ -17,7 +17,22 @@
 
       <div class="mb-6">
         <label style="font-size: 18px; color: black; font-weight: 400;">Adjuntar imagen</label>
-        <v-card class="upload-area d-flex flex-column align-center justify-center"
+        
+        <div v-if="currentImageUrl && !selectedFile" class="current-image-container mb-3">
+          <img :src="currentImageUrl" alt="Imagen actual" class="current-image" />
+          <v-btn
+            size="small"
+            color="#A80038"
+            variant="outlined"
+            @click="removeCurrentImage"
+            class="remove-image-btn"
+          >
+            <i class="fas fa-times mr-2"></i>
+            Quitar imagen
+          </v-btn>
+        </div>
+
+        <v-card v-if="!currentImageUrl || selectedFile" class="upload-area d-flex flex-column align-center justify-center"
           style="min-height: 120px; border: 2px dashed #e0e0e0; background-color: #f5f5f5" @click="triggerFileInput">
           <v-icon size="32" color="grey-lighten-1" class="mb-2"> mdi-cloud-upload </v-icon>
           <span class="text-body-2 text-grey-lighten-1">
@@ -32,7 +47,7 @@
         <v-btn type="submit" color="#F2B200" size="large"
           style="border-radius: 15px; text-transform: none; font-weight: 400; font-size: 18px; padding: 12px 24px;"
           min-width="120px">
-          Publicar
+          {{ isEditMode ? 'Actualizar' : 'Publicar' }}
         </v-btn>
       </div>
     </v-form>
@@ -47,19 +62,32 @@ import ContainerModal from '@/components/layout/ContainerModal.vue'
 
 const fileInput = ref(null)
 const selectedFile = ref(null)
+const currentImageUrl = ref('')
+const imageRemoved = ref(false)
 const form = reactive({ titulo: '', descripcion: '' })
 const errors = reactive({ titulo: '', descripcion: '' })
 
 const props = defineProps({
   modelValue: Boolean,
   mode: Boolean,
+  editData: {
+    type: Object,
+    default: null
+  }
 })
 
-const emit = defineEmits(['update:modelValue', 'agregarPublicacion', 'mostrar-notificacion'])
+const emit = defineEmits(['update:modelValue', 'agregarPublicacion', 'actualizarPublicacion', 'mostrar-notificacion'])
+
+const isEditMode = computed(() => !!props.editData)
 
 const dialog = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val),
+  set: (val) => {
+    if (!val) {
+      resetForm()
+    }
+    emit('update:modelValue', val)
+  }
 })
 
 const triggerFileInput = () => {
@@ -70,8 +98,34 @@ const handleFileSelect = (event) => {
   const file = event.target.files[0]
   if (file) {
     selectedFile.value = file
+    imageRemoved.value = false
   }
 }
+
+const removeCurrentImage = () => {
+  currentImageUrl.value = ''
+  imageRemoved.value = true
+  selectedFile.value = null
+}
+
+const resetForm = () => {
+  form.titulo = ''
+  form.descripcion = ''
+  selectedFile.value = null
+  currentImageUrl.value = ''
+  imageRemoved.value = false
+  Object.keys(errors).forEach(key => errors[key] = '')
+}
+
+watch(() => props.editData, (newData) => {
+  if (newData) {
+    form.titulo = newData.titulo || ''
+    form.descripcion = newData.descripcion || ''
+    currentImageUrl.value = newData.imagen || ''
+    imageRemoved.value = false
+    selectedFile.value = null
+  }
+}, { immediate: true })
 
 function mostrarNotificacion(mensaje, tipo = 'success') {
   emit('mostrar-notificacion', { mensaje, tipo })
@@ -120,28 +174,69 @@ async function submitPublicacion() {
 
   try {
     const user = LoginService.getCurrentUser()
-    const formData = new FormData()
-    formData.append('id_usuario', user.id)
-    formData.append('titulo', form.titulo)
-    formData.append('descripcion', form.descripcion)
-    if (selectedFile.value) {
-      formData.append('imagen', selectedFile.value)
+    
+    if (isEditMode.value) {
+      const formData = new FormData()
+      formData.append('id_usuario', user.id)
+      formData.append('titulo', form.titulo)
+      formData.append('descripcion', form.descripcion)
+      
+      let response
+      
+      const soloSeEliminoImagen = imageRemoved.value && 
+                                  !selectedFile.value && 
+                                  form.titulo === props.editData.titulo && 
+                                  form.descripcion === props.editData.descripcion
+      
+      const hayCambiosTexto = form.titulo !== props.editData.titulo || 
+                              form.descripcion !== props.editData.descripcion
+      
+      if (soloSeEliminoImagen) {
+        const patchFormData = new FormData()
+        patchFormData.append('eliminar_imagen', '1')
+        response = await AnunciosService.actualizarAnuncioParcial(props.editData.id, patchFormData)
+      } else if (imageRemoved.value && hayCambiosTexto) {
+        const patchFormData = new FormData()
+        patchFormData.append('eliminar_imagen', '1')
+        await AnunciosService.actualizarAnuncioParcial(props.editData.id, patchFormData)
+        
+        response = await AnunciosService.actualizarAnuncio(props.editData.id, formData)
+      } else {
+        if (selectedFile.value) {
+          formData.append('imagen', selectedFile.value)
+        }
+        response = await AnunciosService.actualizarAnuncio(props.editData.id, formData)
+      }
+      
+      emit('actualizarPublicacion', {
+        ...props.editData,
+        titulo: form.titulo,
+        descripcion: form.descripcion,
+        imagen: response.imagen_url || (imageRemoved.value ? '' : currentImageUrl.value)
+      })
+      
+      mostrarNotificacion('Publicación actualizada exitosamente', 'success')
+    } else {
+      const formData = new FormData()
+      formData.append('id_usuario', user.id)
+      formData.append('titulo', form.titulo)
+      formData.append('descripcion', form.descripcion)
+      if (selectedFile.value) {
+        formData.append('imagen', selectedFile.value)
+      }
+      const response = await AnunciosService.crearAnuncio(formData)
+      emit('agregarPublicacion', {
+        id_usuario: user.id,
+        titulo: form.titulo,
+        descripcion: form.descripcion,
+        imagen: response.imagen_url || '',
+        fecha_publicacion: new Date()
+      })
+      
+      mostrarNotificacion('Publicación enviada exitosamente', 'success')
     }
-    const response = await AnunciosService.crearAnuncio(formData)
-    emit('agregarPublicacion', {
-      id_usuario: user.id,
-      titulo: form.titulo,
-      descripcion: form.descripcion,
-      imagen: response.imagen_url || '',
-      fecha_publicacion: new Date()
-    })
 
-    form.titulo = ''
-    form.descripcion = ''
-    selectedFile.value = null
-    Object.keys(errors).forEach(key => errors[key] = '')
-
-    mostrarNotificacion('Publicación enviada exitosamente', 'success')
+    resetForm()
 
     setTimeout(() => {
       dialog.value = false
@@ -150,7 +245,7 @@ async function submitPublicacion() {
     if (error.status === 400) {
       mostrarNotificacion(error.response.data.mensaje || 'Error en los datos proporcionados.', 'error')
     } else {
-      mostrarNotificacion('Error al enviar la publicación. Por favor, inténtalo de nuevo.', 'error')
+      mostrarNotificacion(`Error al ${isEditMode.value ? 'actualizar' : 'enviar'} la publicación. Por favor, inténtalo de nuevo.`, 'error')
     }
   }
 }
@@ -182,5 +277,24 @@ async function submitPublicacion() {
   font-size: 12px;
   margin-top: 4px;
   display: block;
+}
+
+.current-image-container {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #e0e0e0;
+}
+
+.current-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.remove-image-btn {
+  margin-top: 8px;
+  font-size: 14px;
 }
 </style>
