@@ -174,27 +174,19 @@ onMounted(() => {
 .main-container {
   display: flex;
   gap: 20px;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .left-column {
   flex: 1;
-  overflow-y: auto;
   padding: 32px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer y Edge */
-}
-
-.left-column::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
 }
 
 .right-column {
   width: 347px;
   flex-shrink: 0;
   padding: 32px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 32px;
