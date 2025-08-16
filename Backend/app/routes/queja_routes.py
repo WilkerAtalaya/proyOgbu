@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.queja_controller import crear_queja, obtener_quejas_por_usuario, obtener_todas_quejas, actualizar_estado_queja
+from app.controllers.queja_controller import crear_queja, obtener_quejas_por_usuario, obtener_todas_quejas, actualizar_estado_queja, actualizar_queja_por_alumno
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
 
 queja_bp = Blueprint('queja', __name__)
+UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'uploads', 'quejas'))
+
 
 @queja_bp.route('/quejas', methods=['POST'])
 def registrar_queja():
@@ -104,3 +106,93 @@ def cambiar_estado_queja(id_queja):
     if queja_actualizada:
         return jsonify({'mensaje': 'Estado actualizado'}), 200
     return jsonify({'error': 'Queja no encontrada'}), 404
+
+@queja_bp.route('/quejas/<int:id_queja>', methods=['PUT', 'PATCH'])
+def editar_queja_alumno(id_queja):
+    """
+    Acepta multipart/form-data para permitir cambiar archivo.
+    Reglas:
+      - Debe enviar id_usuario (por ahora sin auth).
+      - Solo edita si estado actual es "Recibido".
+      - Campos editables: asunto, motivo, descripcion, prueba (archivo).
+      - eliminar_prueba=1 elimina la evidencia sin subir otra.
+    """
+    id_usuario = request.form.get('id_usuario') or request.args.get('id_usuario')
+    if not id_usuario:
+        return jsonify({'error': 'id_usuario es obligatorio'}), 400
+
+    # Guardaremos nuevo archivo (si viene)
+    new_filename = None
+    reemplazo = False
+
+    # Procesar archivo nuevo
+    if 'prueba' in request.files and request.files['prueba'].filename:
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        up = request.files['prueba']
+        fname = secure_filename(up.filename)
+        new_filename = f"evidencia_{datetime.now().strftime('%Y%m%d%H%M%S')}_{fname}"
+        up.save(os.path.join(UPLOAD_DIR, new_filename))
+        reemplazo = True
+
+    eliminar_prueba_flag = request.form.get('eliminar_prueba', '0') == '1'
+
+    # Traer la queja para poder borrar archivo viejo si corresponde
+    from app.models.queja import Queja
+    q = Queja.query.get(id_queja)
+    if not q:
+        # si ya subimos archivo, lo borramos para no dejar basura
+        if new_filename:
+            try: os.remove(os.path.join(UPLOAD_DIR, new_filename))
+            except FileNotFoundError: pass
+        return jsonify({'error': 'Queja no encontrada'}), 404
+
+    old_file = q.prueba
+
+    # Preparar valores a actualizar
+    asunto = request.form.get('asunto', None)
+    motivo = request.form.get('motivo', None)
+    descripcion = request.form.get('descripcion', None)
+
+    # política de archivo a enviar al controller:
+    prueba_value = None
+    if reemplazo:
+        prueba_value = new_filename
+    elif eliminar_prueba_flag:
+        prueba_value = ''  # instrucción para borrar
+
+    queja_editada, err = actualizar_queja_por_alumno(
+        id_queja=id_queja,
+        id_usuario=int(id_usuario),
+        asunto=asunto,
+        motivo=motivo,
+        descripcion=descripcion,
+        prueba=prueba_value
+    )
+
+    if err == "NOT_FOUND":
+        if new_filename:
+            try: os.remove(os.path.join(UPLOAD_DIR, new_filename))
+            except FileNotFoundError: pass
+        return jsonify({'error': 'Queja no encontrada'}), 404
+    if err == "FORBIDDEN":
+        if new_filename:
+            try: os.remove(os.path.join(UPLOAD_DIR, new_filename))
+            except FileNotFoundError: pass
+        return jsonify({'error': 'No puede editar una queja de otro usuario'}), 403
+    if err == "LOCKED":
+        if new_filename:
+            try: os.remove(os.path.join(UPLOAD_DIR, new_filename))
+            except FileNotFoundError: pass
+        return jsonify({'error': 'La queja ya no es editable (estado distinto de "Recibido")'}), 409
+
+    # Si reemplazó o eliminó archivo, borrar el anterior del disco
+    if (reemplazo or eliminar_prueba_flag) and old_file:
+        try: os.remove(os.path.join(UPLOAD_DIR, old_file))
+        except FileNotFoundError:
+            pass
+
+    return jsonify({
+        'mensaje': 'Queja actualizada',
+        'codigo': queja_editada.codigo_reporte,
+        'estado': queja_editada.estado
+    }), 200

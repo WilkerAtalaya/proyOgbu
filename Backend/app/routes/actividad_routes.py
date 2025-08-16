@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify, send_from_directory
-from app.controllers.actividad_controller import crear_actividad_con_archivo, listar_por_usuario, listar_todas, cambiar_estado, listar_aprobadas, inscribir_alumno, cancelar_inscripcion, listar_actividades_inscritas_por_usuario, listar_inscritos_de_actividad, UPLOAD_FOLDER
+from app.controllers.actividad_controller import crear_actividad_con_archivo, listar_por_usuario, listar_todas, cambiar_estado, listar_aprobadas, inscribir_alumno, cancelar_inscripcion, listar_actividades_inscritas_por_usuario, listar_inscritos_de_actividad
+import os
 
 actividad_bp = Blueprint('actividad', __name__)
+UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'uploads', 'actividades'))
 
 @actividad_bp.route('/uploads/actividades/<path:filename>', methods=['GET'])
 def serve_actividad_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+    return send_from_directory(UPLOAD_DIR, filename)
 
 @actividad_bp.route('/actividades', methods=['POST'])
 def registrar_actividad_alumno():

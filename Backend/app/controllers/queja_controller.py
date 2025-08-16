@@ -53,3 +53,35 @@ def actualizar_estado_queja(id_queja, nuevo_estado):
         queja.estado = nuevo_estado
         db.session.commit()
     return queja
+
+def actualizar_queja_por_alumno(
+    id_queja: int,
+    id_usuario: int,
+    asunto: str | None = None,
+    motivo: str | None = None,
+    descripcion: str | None = None,
+    prueba: str | None = None 
+):
+    queja = Queja.query.get(id_queja)
+    if not queja:
+        return None, "NOT_FOUND"
+
+    if int(queja.id_usuario) != int(id_usuario):
+        return None, "FORBIDDEN"
+
+    
+    if queja.estado != "Recibido":
+        return None, "LOCKED" 
+
+    if asunto is not None:
+        queja.asunto = asunto
+    if motivo is not None:
+        queja.motivo = motivo
+    if descripcion is not None:
+        queja.descripcion = descripcion
+    if prueba is not None:
+        queja.prueba = (None if prueba == '' else prueba)
+
+    db.session.commit()
+    return queja, None
+
