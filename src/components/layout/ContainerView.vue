@@ -30,7 +30,7 @@ const props = defineProps({
   display: flex;
   flex-direction: column;
   gap: 32px;
-  height: 100vh;
+  min-height: 100vh;
   padding: 32px;
 }
 .first-row {
