@@ -75,7 +75,9 @@ def actualizar_estado(id_actividad):
 
 @actividad_bp.route('/actividades/aprobadas', methods=['GET'])
 def ver_aprobadas():
-    acts = listar_aprobadas()
+    id_usuario = request.args.get('id_usuario', type=int)
+
+    acts = listar_aprobadas(excluir_usuario_id=id_usuario)
     resp = []
     for a in acts:
         cupos = a.stock - len(a.inscripciones)
@@ -90,6 +92,7 @@ def ver_aprobadas():
             'cupos_restantes': cupos
         })
     return jsonify(resp)
+
 
 
 @actividad_bp.route('/actividades/<int:id_actividad>/inscribirse', methods=['POST'])

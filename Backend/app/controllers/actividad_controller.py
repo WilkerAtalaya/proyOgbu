@@ -106,7 +106,7 @@ def cambiar_estado(id_actividad, nuevo_estado, motivo=None):
     db.session.commit()
     return actividad
 
-def listar_aprobadas():
+def listar_aprobadas(excluir_usuario_id: int | None = None):
     hoy = date.today()
     actividades_aprobadas = Actividad.query.filter_by(estado='Aprobado').all()
 
@@ -123,6 +123,16 @@ def listar_aprobadas():
     if actualizadas:
         db.session.commit()
 
+    if excluir_usuario_id:
+        ids_inscritas = {
+            row[0]
+            for row in db.session.query(InscripcionActividad.id_actividad)
+                                 .filter(InscripcionActividad.id_usuario == excluir_usuario_id)
+                                 .all()
+        }
+        mostrables = [a for a in mostrables if a.id_actividad not in ids_inscritas]
+
+    mostrables.sort(key=lambda x: x.fecha_actividad)
     return mostrables
 
 
