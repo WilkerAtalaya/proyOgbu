@@ -28,8 +28,8 @@ const props = defineProps({
     default: false
   },
   maxWidth: {
-    type: String,
-    default: '600px'
+    type: Number,
+    default: 600
   },
   colorTheme: {
     type: String,

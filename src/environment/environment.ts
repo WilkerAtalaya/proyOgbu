@@ -17,7 +17,8 @@ export const environment = {
       crearSolicitud: '/actividades',
       actualizar: '/actividades',
       eliminar: '/actividades',
-      inscribirse: '/actividades'
+      inscribirse: '/actividades',
+      inscritas: '/actividades/inscritas'
     },
     quejas: {
       obtenerPorUsuario: '/quejas/usuario',

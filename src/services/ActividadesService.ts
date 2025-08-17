@@ -12,6 +12,7 @@ export class ActividadesService {
   private urlActualizar: string
   private urlEliminar: string
   private urlInscribirse: string
+  private urlActividadesInscritas: string
 
   constructor() {
     this.urlObtenerPorUsuario = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerPorUsuario}`
@@ -23,6 +24,7 @@ export class ActividadesService {
     this.urlActualizar = `${environment.baseUrlApi}${environment.endPoint.actividades.actualizar}`
     this.urlEliminar = `${environment.baseUrlApi}${environment.endPoint.actividades.eliminar}`
     this.urlInscribirse = `${environment.baseUrlApi}${environment.endPoint.actividades.inscribirse}`
+    this.urlActividadesInscritas = `${environment.baseUrlApi}${environment.endPoint.actividades.inscritas}`
   }
 
   async obtenerTodas(): Promise<Actividad[]> {
@@ -75,9 +77,22 @@ export class ActividadesService {
       .then((res) => res.data)
   }
 
-  async actualizarEstado(actividadId: number, estado: string): Promise<any> {
+  async actualizarEstado(actividadId: number, estado: string, motivo: string = ''): Promise<any> {
+    const body = { estado, motivo }
     return axios
-      .put(`${this.urlActualizar}/${actividadId}/estado`, { estado })
+      .put(`${this.urlActualizar}/${actividadId}/estado`, body)
+      .then((res) => res.data)
+  }
+
+  async obtenerActividadesInscritas(usuarioId: number): Promise<any[]> {
+    return axios
+      .get<any[]>(`${this.urlActividadesInscritas}/${usuarioId}`)
+      .then((res) => res.data)
+  }
+
+  async obtenerInscritosActividad(actividadId: number): Promise<any[]> {
+    return axios
+      .get<any[]>(`${environment.baseUrlApi}/actividades/${actividadId}/inscritos`)
       .then((res) => res.data)
   }
 

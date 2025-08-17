@@ -3,7 +3,7 @@
     colorTheme="#A80038">
     <v-form @submit.prevent="submitComplaint()">
       <div class="mb-4">
-        <label style="font-size: 18px; color: black; font-weight: 400;"> Tipo </label>
+        <label style="font-size: 18px; color: black; font-weight: 400;"> Tipo de actividad </label>
         <v-select v-model="form.tipo" :items="tipoOptions" variant="outlined" density="comfortable" hide-details
           class="custom-input" :error="!!errors.tipo"></v-select>
         <span v-if="errors.tipo" class="error-message">{{ errors.tipo }}</span>
@@ -14,19 +14,6 @@
           :error="!!errors.titulo"></v-text-field>
         <span v-if="errors.titulo" class="error-message">{{ errors.titulo }}</span>
       </div>
-      <div class="mb-4">
-        <label style="font-size: 18px; color: black; font-weight: 400;"> Stock </label>
-        <v-text-field v-model="form.stock" type="number" min="0" variant="outlined" density="comfortable" hide-details
-          class="custom-input" :error="!!errors.stock"></v-text-field>
-        <span v-if="errors.stock" class="error-message">{{ errors.stock }}</span>
-      </div>
-
-      <div class="mb-4">
-        <label style="font-size: 18px; color: black; font-weight: 400;"> Fecha de la Actividad </label>
-        <VueDatePicker v-model="form.fecha_actividad" locale="es" format="dd/MM/yyyy" :ui="{ input: 'custom-input' }"
-          :enable-time-picker="false" :min-date="new Date()" placeholder="Selecciona la fecha" />
-        <span v-if="errors.fecha_actividad" class="error-message">{{ errors.fecha_actividad }}</span>
-      </div>
 
       <div class="mb-4">
         <label style="font-size: 18px; color: black; font-weight: 400;"> Descripción </label>
@@ -35,8 +22,33 @@
         <span v-if="errors.descripcion" class="error-message">{{ errors.descripcion }}</span>
       </div>
 
+      <div class="fecha-stock-container mb-4">
+        <div class="fecha-field">
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Fecha de la Actividad </label>
+          <VueDatePicker 
+            v-model="form.fecha_actividad" 
+            locale="es" 
+            format="dd/MM/yyyy HH:mm" 
+            :ui="{ input: 'custom-input' }"
+            :enable-time-picker="true"
+            :min-date="new Date()" 
+            placeholder="Selecciona fecha y hora"
+            time-picker-inline
+            :minutes-increment="15"
+          />
+          <span v-if="errors.fecha_actividad" class="error-message">{{ errors.fecha_actividad }}</span>
+        </div>
+
+        <div class="stock-field">
+          <label style="font-size: 18px; color: black; font-weight: 400;"> Cantidad de Participantes </label>
+          <v-text-field v-model="form.stock" type="number" min="0" variant="outlined" density="comfortable" hide-details
+            class="custom-input" :error="!!errors.stock"></v-text-field>
+          <span v-if="errors.stock" class="error-message">{{ errors.stock }}</span>
+        </div>
+      </div>
+
       <div class="mb-6">
-        <label style="font-size: 18px; color: black; font-weight: 400;"> Prueba </label>
+        <label style="font-size: 18px; color: black; font-weight: 400;"> Adjuntar multimedia </label>
         <v-card class="upload-area d-flex flex-column align-center justify-center"
           style="min-height: 120px; border: 2px dashed #e0e0e0; background-color: #f5f5f5" @click="triggerFileInput">
           <v-icon size="32" color="grey-lighten-1" class="mb-2"> mdi-cloud-upload </v-icon>
@@ -61,7 +73,6 @@
 </template>
 
 <script setup>
-import { currentDate } from '@/util/functions.js'
 import { ref, reactive, watch, computed } from 'vue'
 import LoginService from '@/services/LoginService'
 import ActividadesService from '@/services/ActividadesService'
@@ -245,17 +256,30 @@ async function submitComplaint() {
   formData.append('titulo', form.titulo)
   formData.append('descripcion', form.descripcion)
 
-  let fechaActividad = new Date().toISOString().slice(0, 10)
+  let fechaActividad = ''
+  let horaActividad = '00:00'
+
   if (form.fecha_actividad) {
     if (form.fecha_actividad instanceof Date) {
-      fechaActividad = form.fecha_actividad.toISOString().slice(0, 10)
-    } else {
-      const [dia, mes, anio] = form.fecha_actividad.split('/')
-      fechaActividad = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`
+      fechaActividad = form.fecha_actividad.toISOString().split('T')[0] // YYYY-MM-DD
+      horaActividad = form.fecha_actividad.toTimeString().slice(0, 5) // HH:MM
+    } else if (typeof form.fecha_actividad === 'string') {
+      const [fecha, hora] = form.fecha_actividad.split(' ')
+      if (fecha) {
+        const [dia, mes, anio] = fecha.split('/')
+        fechaActividad = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`
+      }
+      if (hora) {
+        horaActividad = hora
+      }
     }
+  } else {
+    const today = new Date()
+    fechaActividad = today.toISOString().split('T')[0]
   }
 
   formData.append('fecha_actividad', fechaActividad)
+  formData.append('hora_actividad', horaActividad)
   formData.append('id_usuario', user.value.id)
   formData.append('stock', Number(form.stock))
 
@@ -303,16 +327,33 @@ async function submitComplaint() {
 :deep(.dp__theme_light) {
   --dp-primary-color: #A80038;
   --dp-primary-text-color: #fff;
+  --dp-secondary-color: #f3e5f5;
+  --dp-background-color: #fff;
+  --dp-border-color: #e0e0e0;
 }
 
 :deep(.dp__input) {
   height: 48px !important;
   border-radius: 8px;
   background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
 }
 
 :deep(.dp__input:focus) {
   background-color: white;
+  border-color: #A80038;
+}
+
+:deep(.dp__time_input) {
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+:deep(.dp__time_picker) {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
 }
 
 .error-message {
@@ -320,5 +361,26 @@ async function submitComplaint() {
   font-size: 12px;
   margin-top: 4px;
   display: block;
+}
+
+.fecha-stock-container {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.fecha-field {
+  flex: 1;
+}
+
+.stock-field {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .fecha-stock-container {
+    flex-direction: column;
+    gap: 16px;
+  }
 }
 </style>
