@@ -85,6 +85,24 @@ const dialog = computed({
 const fileInput = ref(null)
 const selectedFile = ref(null)
 
+function resetForm() {
+  form.numero = ''
+  form.tipo = ''
+  form.titulo = ''
+  form.fecha = ''
+  form.estado = ''
+  form.descripcion = ''
+  form.stock = ''
+  form.fecha_actividad = ''
+  selectedFile.value = null
+  
+  errors.tipo = ''
+  errors.titulo = ''
+  errors.stock = ''
+  errors.fecha_actividad = ''
+  errors.descripcion = ''
+}
+
 const errors = reactive({
   tipo: '',
   titulo: '',
@@ -161,7 +179,7 @@ function validateForm() {
 watch(
   () => props.item,
   (val) => {
-    if (val) {
+    if (val && props.type === 'edit') {
       console.log('Objeto recibido en ModalActividades:', val)
       form.codigo = val.codigo || ''
       form.descripcion = val.descripcion || ''
@@ -194,6 +212,12 @@ watch(() => form.fecha_actividad, (newValue) => {
 
 watch(() => form.descripcion, (newValue) => {
   if (errors.descripcion) validateField('descripcion', newValue)
+})
+
+watch(() => props.modelValue, (newValue) => {
+  if (newValue) {
+    resetForm()
+  }
 })
 
 const triggerFileInput = () => {

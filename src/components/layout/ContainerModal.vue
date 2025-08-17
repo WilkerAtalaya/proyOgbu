@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" :max-width="maxWidth" persistent>
+  <v-dialog v-model="dialog" :max-width="maxWidth" persistent scrollable>
     <v-card style="border-radius: 16px; padding: 32px 45px 36px; position: relative;">
         <button
           @click="dialog = false"
@@ -12,7 +12,9 @@
         <v-card-title class="pa-0 mb-4">
             <h2 :style="{ color: colorTheme, textAlign: 'center', width: '100%', fontSize: '35px', fontWeight: 400, fontFamily: 'Righteous, cursive' }">{{ title }}</h2>
         </v-card-title>
-        <slot />
+        <v-card-text style="max-height: 70vh; overflow-y: auto;">
+          <slot />
+        </v-card-text>
     </v-card>
   </v-dialog>
 </template>

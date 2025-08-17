@@ -148,11 +148,6 @@ async function inscribirse() {
 </script>
 
 <style scoped>
-.contenido-modal {
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
 .tipo-badge {
   display: inline-block;
   background-color: #71C82F;

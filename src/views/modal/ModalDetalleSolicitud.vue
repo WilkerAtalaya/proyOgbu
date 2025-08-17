@@ -275,12 +275,6 @@ async function denegarSolicitud() {
 </script>
 
 <style scoped>
-.contenido-modal {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 16px;
-}
-
 .info-cards-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
