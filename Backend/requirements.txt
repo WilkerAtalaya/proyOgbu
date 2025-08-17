@@ -7,3 +7,4 @@ pytz
 flask_jwt_extended
 flask_cors
 psycopg2
+tzdata
