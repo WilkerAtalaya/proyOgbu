@@ -22,29 +22,45 @@
         <span v-if="errors.descripcion" class="error-message">{{ errors.descripcion }}</span>
       </div>
 
-      <div class="fecha-stock-container mb-4">
-        <div class="fecha-field">
-          <label style="font-size: 18px; color: black; font-weight: 400;"> Fecha de la Actividad </label>
-          <VueDatePicker 
-            v-model="form.fecha_actividad" 
-            locale="es" 
-            format="dd/MM/yyyy HH:mm" 
-            :ui="{ input: 'custom-input' }"
-            :enable-time-picker="true"
-            :min-date="new Date()" 
-            placeholder="Selecciona fecha y hora"
-            time-picker-inline
-            :minutes-increment="15"
-          />
-          <span v-if="errors.fecha_actividad" class="error-message">{{ errors.fecha_actividad }}</span>
-        </div>
+      <div class="mb-4">
+        <label style="font-size: 18px; color: black; font-weight: 400;"> Fecha de la Actividad </label>
+        <VueDatePicker 
+          v-model="form.fecha_actividad" 
+          locale="es" 
+          format="dd/MM/yyyy" 
+          :ui="{ input: 'custom-input' }"
+          :enable-time-picker="false"
+          :min-date="new Date()" 
+          placeholder="Selecciona la fecha"
+          auto-apply
+        />
+        <span v-if="errors.fecha_actividad" class="error-message">{{ errors.fecha_actividad }}</span>
+      </div>
 
-        <div class="stock-field">
-          <label style="font-size: 18px; color: black; font-weight: 400;"> Cantidad de Participantes </label>
-          <v-text-field v-model="form.stock" type="number" min="0" variant="outlined" density="comfortable" hide-details
-            class="custom-input" :error="!!errors.stock"></v-text-field>
-          <span v-if="errors.stock" class="error-message">{{ errors.stock }}</span>
-        </div>
+      <div class="mb-4">
+        <label style="font-size: 18px; color: black; font-weight: 400;"> 
+          Hora de la Actividad 
+          <span style="font-size: 14px; color: #666; font-weight: normal;">(opcional)</span>
+        </label>
+        <VueDatePicker 
+          v-model="form.hora_actividad" 
+          locale="es" 
+          format="HH:mm" 
+          :ui="{ input: 'custom-input' }"
+          time-picker
+          :enable-seconds="false"
+          placeholder="Selecciona la hora"
+          auto-apply
+          :clearable="true"
+        />
+        <span v-if="errors.hora_actividad" class="error-message">{{ errors.hora_actividad }}</span>
+      </div>
+
+      <div class="mb-4">
+        <label style="font-size: 18px; color: black; font-weight: 400;"> Cantidad de Participantes </label>
+        <v-text-field v-model="form.stock" type="number" min="0" variant="outlined" density="comfortable" hide-details
+          class="custom-input" :error="!!errors.stock"></v-text-field>
+        <span v-if="errors.stock" class="error-message">{{ errors.stock }}</span>
       </div>
 
       <div class="mb-6">
@@ -105,12 +121,14 @@ function resetForm() {
   form.descripcion = ''
   form.stock = ''
   form.fecha_actividad = ''
+  form.hora_actividad = ''
   selectedFile.value = null
   
   errors.tipo = ''
   errors.titulo = ''
   errors.stock = ''
   errors.fecha_actividad = ''
+  errors.hora_actividad = ''
   errors.descripcion = ''
 }
 
@@ -119,6 +137,7 @@ const errors = reactive({
   titulo: '',
   stock: '',
   fecha_actividad: '',
+  hora_actividad: '',
   descripcion: ''
 })
 
@@ -131,6 +150,7 @@ const form = reactive({
   descripcion: '',
   stock: '',
   fecha_actividad: '',
+  hora_actividad: '',
 })
 
 const tipoOptions = ['Viaje', 'Taller', 'Visita']
@@ -165,6 +185,22 @@ function validateField(field, value) {
       }
       errors.fecha_actividad = ''
       return true
+    case 'hora_actividad':
+      if (value) {
+        if (value instanceof Date || (typeof value === 'object' && value.hours !== undefined)) {
+          errors.hora_actividad = ''
+          return true
+        }
+        if (typeof value === 'string' && value.trim() !== '') {
+          const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+          if (!timeRegex.test(value)) {
+            errors.hora_actividad = 'Formato de hora inválido (HH:MM)'
+            return false
+          }
+        }
+      }
+      errors.hora_actividad = ''
+      return true
     case 'descripcion':
       if (!value || value.trim() === '') {
         errors.descripcion = 'La descripción es obligatoria'
@@ -181,9 +217,10 @@ function validateForm() {
   let isValid = true
   isValid = validateField('tipo', form.tipo) && isValid
   isValid = validateField('titulo', form.titulo) && isValid
-  isValid = validateField('stock', form.stock) && isValid
-  isValid = validateField('fecha_actividad', form.fecha_actividad) && isValid
   isValid = validateField('descripcion', form.descripcion) && isValid
+  isValid = validateField('fecha_actividad', form.fecha_actividad) && isValid
+  isValid = validateField('hora_actividad', form.hora_actividad) && isValid
+  isValid = validateField('stock', form.stock) && isValid
   return isValid
 }
 
@@ -219,6 +256,10 @@ watch(() => form.stock, (newValue) => {
 
 watch(() => form.fecha_actividad, (newValue) => {
   if (errors.fecha_actividad) validateField('fecha_actividad', newValue)
+})
+
+watch(() => form.hora_actividad, (newValue) => {
+  if (errors.hora_actividad) validateField('hora_actividad', newValue)
 })
 
 watch(() => form.descripcion, (newValue) => {
@@ -262,20 +303,27 @@ async function submitComplaint() {
   if (form.fecha_actividad) {
     if (form.fecha_actividad instanceof Date) {
       fechaActividad = form.fecha_actividad.toISOString().split('T')[0] // YYYY-MM-DD
-      horaActividad = form.fecha_actividad.toTimeString().slice(0, 5) // HH:MM
     } else if (typeof form.fecha_actividad === 'string') {
-      const [fecha, hora] = form.fecha_actividad.split(' ')
-      if (fecha) {
-        const [dia, mes, anio] = fecha.split('/')
+      const [dia, mes, anio] = form.fecha_actividad.split('/')
+      if (dia && mes && anio) {
         fechaActividad = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`
-      }
-      if (hora) {
-        horaActividad = hora
       }
     }
   } else {
     const today = new Date()
     fechaActividad = today.toISOString().split('T')[0]
+  }
+
+  if (form.hora_actividad) {
+    if (form.hora_actividad instanceof Date) {
+      horaActividad = form.hora_actividad.toTimeString().slice(0, 5) // HH:MM
+    } else if (typeof form.hora_actividad === 'object' && form.hora_actividad.hours !== undefined) {
+      const hours = String(form.hora_actividad.hours).padStart(2, '0')
+      const minutes = String(form.hora_actividad.minutes || 0).padStart(2, '0')
+      horaActividad = `${hours}:${minutes}`
+    } else if (typeof form.hora_actividad === 'string' && form.hora_actividad.trim() !== '') {
+      horaActividad = form.hora_actividad
+    }
   }
 
   formData.append('fecha_actividad', fechaActividad)
@@ -363,7 +411,7 @@ async function submitComplaint() {
   display: block;
 }
 
-.fecha-stock-container {
+.fecha-hora-container {
   display: flex;
   gap: 16px;
   align-items: flex-start;
@@ -373,12 +421,12 @@ async function submitComplaint() {
   flex: 1;
 }
 
-.stock-field {
+.hora-field {
   flex: 1;
 }
 
 @media (max-width: 768px) {
-  .fecha-stock-container {
+  .fecha-hora-container {
     flex-direction: column;
     gap: 16px;
   }

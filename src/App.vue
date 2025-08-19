@@ -5,7 +5,7 @@
       <n-layout class="base-layout" has-sider style="height: 100vh">
         <!-- Sidebar izquierdo -->
         <n-layout-sider width="346px" content-style="padding: 32px; display: flex; flex-direction: column;">
-          <UserCard style="margin-bottom: 20px; height: 72px;" :user="user" />
+          <UserCard style="margin-bottom: 20px;" :user="user" />
           <div style="flex: 1">
             <SidebarMenu />
           </div>

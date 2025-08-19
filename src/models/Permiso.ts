@@ -4,7 +4,10 @@ export interface Salida {
   fecha_salida: string,
   id: number,
   id_usuario: number,
-  motivo: string
+  motivo: string,
+  archivo_justificacion?: string,
+  Fecha_solicitada: string,
+  nombre_usuario?: string
 }
 
 export interface AreaComun {
@@ -13,5 +16,8 @@ export interface AreaComun {
   horario: string,
   id: number,
   id_usuario: number,
-  lugar: string
+  lugar: string,
+  motivo?: string,
+  Fecha_solicitada: string,
+  nombre_usuario?: string
 }

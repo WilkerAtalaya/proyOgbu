@@ -1,9 +1,15 @@
 <template>
   <ContainerView>
     <v-tabs v-model="tab" align-tabs="start" color="#A37801">
-      <v-tab :value="1" class="custom-tab"><h3 class="mb-4 text-title">Actividades</h3></v-tab>
-      <v-tab v-if="!isAdmin" :value="2" class="custom-tab"><h3 class="mb-4 text-title">Act. Inscritas</h3></v-tab>
-      <v-tab :value="3" class="custom-tab"><h3  class="mb-4 text-title">{{ isAdmin ? 'Solicitudes' : 'Mis Solicitudes' }}</h3></v-tab>
+      <v-tab :value="1" class="custom-tab">
+        <h3 class="mb-4 text-title">Actividades</h3>
+      </v-tab>
+      <v-tab v-if="!isAdmin" :value="2" class="custom-tab">
+        <h3 class="mb-4 text-title">Act. Inscritas</h3>
+      </v-tab>
+      <v-tab :value="3" class="custom-tab">
+        <h3 class="mb-4 text-title">{{ isAdmin ? 'Solicitudes' : 'Mis Solicitudes' }}</h3>
+      </v-tab>
       <v-spacer></v-spacer>
       <v-btn variant="outlined" class="mb-6 custom-button" @click="openModalNuevo">
         <span v-if="isAdmin">Agregar actividad</span>
@@ -16,15 +22,11 @@
           <div class="actividades-grid">
             <div v-for="(actividad, index) in actividades" :key="index" class="actividad-card">
               <div class="card-header">
-                <div v-if="actividad.archivo" class="card-image" @click="handleFileClick(actividad.archivo)" style="cursor: pointer;">
-                  <n-image 
-                    v-if="isImageFile(actividad.archivo)"
-                    :src="getImageUrl(actividad.archivo)" 
-                    :alt="actividad.titulo"
-                    object-fit="cover"
-                    :style="{ width: '100%', height: '160px', borderRadius: '0' }"
-                    :preview-disabled="false"
-                  />
+                <div v-if="actividad.archivo" class="card-image" @click="handleFileClick(actividad.archivo)"
+                  style="cursor: pointer;">
+                  <n-image v-if="isImageFile(actividad.archivo)" :src="getImageUrl(actividad.archivo)"
+                    :alt="actividad.titulo" object-fit="cover"
+                    :style="{ width: '100%', height: '160px', borderRadius: '0' }" :preview-disabled="false" />
                   <div v-else-if="isPDFFile(actividad.archivo)" class="file-placeholder pdf-file">
                     <i class="fa-solid fa-file-pdf" style="font-size: 48px; color: #d32f2f;"></i>
                     <span class="file-label">PDF</span>
@@ -46,7 +48,7 @@
 
               <div class="card-content">
                 <h3 class="titulo-actividad">{{ actividad.titulo }}</h3>
-                
+
                 <div class="info-container">
                   <div class="fecha-card">
                     <div class="fecha-icon">
@@ -77,16 +79,10 @@
               </div>
 
               <div class="card-footer">
-                <v-btn 
-                  v-if="!isAdmin"
-                  @click="inscribirseDirecto(actividad)"
-                  color="#53696D"
-                  variant="flat"
-                  block
+                <v-btn v-if="!isAdmin" @click="inscribirseDirecto(actividad)" color="#53696D" variant="flat" block
                   class="btn-inscribirse"
                   :disabled="(actividad.cupos_restantes || actividad.stock) <= 0 || inscribiendose[actividad.id]"
-                  :loading="inscribiendose[actividad.id]"
-                >
+                  :loading="inscribiendose[actividad.id]">
                   <template v-if="(actividad.cupos_restantes || actividad.stock) <= 0">
                     Sin cupos disponibles
                   </template>
@@ -95,40 +91,21 @@
                     Inscribirse
                   </template>
                 </v-btn>
-                
-                <v-btn 
-                  v-else
-                  @click="abrirDetalleActividad(actividad)"
-                  color="#A37801"
-                  variant="outlined"
-                  block
-                  class="btn-ver-detalle"
-                >
+
+                <v-btn v-else @click="abrirDetalleActividad(actividad)" color="#A37801" variant="outlined" block
+                  class="btn-ver-detalle">
                   <i class="fa-solid fa-eye" style="margin-right: 8px; font-size: 16px;"></i>
                   Ver detalle
                 </v-btn>
 
-                <v-btn 
-                  v-if="isAdmin"
-                  @click="abrirModalInscritos(actividad)"
-                  color="#53696D"
-                  variant="outlined"
-                  block
-                  class="btn-ver-inscritos"
-                  style="margin-top: 8px;"
-                >
+                <v-btn v-if="isAdmin" @click="abrirModalInscritos(actividad)" color="#53696D" variant="outlined" block
+                  class="btn-ver-inscritos" style="margin-top: 8px;">
                   <i class="fa-solid fa-users" style="margin-right: 8px; font-size: 16px;"></i>
                   Ver Inscritos
                 </v-btn>
 
-                <v-btn 
-                  v-if="!isAdmin"
-                  @click="abrirDetalleActividad(actividad)"
-                  variant="text"
-                  size="small"
-                  class="btn-mas-info"
-                  color="#53696D"
-                >
+                <v-btn v-if="!isAdmin" @click="abrirDetalleActividad(actividad)" variant="text" size="small"
+                  class="btn-mas-info" color="#53696D">
                   <i class="fa-solid fa-info-circle" style="margin-right: 4px; font-size: 14px;"></i>
                   Más información
                 </v-btn>
@@ -142,15 +119,11 @@
           <div class="actividades-grid">
             <div v-for="(actividad, index) in actividadesInscritas" :key="index" class="actividad-card inscrita-card">
               <div class="card-header">
-                <div v-if="actividad.archivo" class="card-image" @click="handleFileClick(actividad.archivo)" style="cursor: pointer;">
-                  <n-image 
-                    v-if="isImageFile(actividad.archivo)"
-                    :src="actividad.archivo" 
-                    :alt="actividad.titulo"
-                    object-fit="cover"
-                    :style="{ width: '100%', height: '160px', borderRadius: '0' }"
-                    :preview-disabled="false"
-                  />
+                <div v-if="actividad.archivo" class="card-image" @click="handleFileClick(actividad.archivo)"
+                  style="cursor: pointer;">
+                  <n-image v-if="isImageFile(actividad.archivo)" :src="actividad.archivo" :alt="actividad.titulo"
+                    object-fit="cover" :style="{ width: '100%', height: '160px', borderRadius: '0' }"
+                    :preview-disabled="false" />
                   <div v-else-if="isPDFFile(actividad.archivo)" class="file-placeholder pdf-file">
                     <i class="fa-solid fa-file-pdf" style="font-size: 48px; color: #d32f2f;"></i>
                     <span class="file-label">PDF</span>
@@ -168,15 +141,15 @@
                   <i class="fa-solid fa-calendar-days" style="font-size: 48px; color: #53696D;"></i>
                 </div>
                 <div class="tipo-badge">{{ actividad.tipo }}</div>
-                <div v-if="actividad.estado_actividad === 'Cancelado' || actividad.estado_actividad === 'Finalizado'" 
-                     class="estado-badge" :class="getEstadoClass(actividad.estado_actividad)">
+                <div v-if="actividad.estado_actividad === 'Cancelado' || actividad.estado_actividad === 'Finalizado'"
+                  class="estado-badge" :class="getEstadoClass(actividad.estado_actividad)">
                   {{ actividad.estado_actividad }}
                 </div>
               </div>
 
               <div class="card-content">
                 <h3 class="titulo-actividad">{{ actividad.titulo }}</h3>
-                
+
                 <div class="info-container">
                   <div class="fecha-card">
                     <div class="fecha-icon">
@@ -206,14 +179,8 @@
               </div>
 
               <div class="card-footer">
-                <v-btn 
-                  @click="abrirDetalleActividadInscrita(actividad)"
-                  variant="outlined"
-                  size="small"
-                  class="btn-mas-info-inscrita"
-                  color="#53696D"
-                  block
-                >
+                <v-btn @click="abrirDetalleActividadInscrita(actividad)" variant="outlined" size="small"
+                  class="btn-mas-info-inscrita" color="#53696D" block>
                   <i class="fa-solid fa-info-circle" style="margin-right: 4px; font-size: 14px;"></i>
                   Más información
                 </v-btn>
@@ -223,38 +190,176 @@
         </v-container>
       </v-tabs-window-item>
       <v-tabs-window-item :value="3">
-        <v-container fluid>
-          <div v-if="isAdmin" class="filtro-container mb-6">
-            <div class="filtro-content">
-              <label class="filtro-label">Filtrar por estado:</label>
-              <v-select
-                v-model="filtroEstado"
-                :items="['Todos', 'Pendiente', 'Aprobado', 'Finalizado', 'Cancelado']"
-                variant="outlined"
-                density="compact"
-                class="filtro-select"
-                style="max-width: 200px;"
-                hide-details
-              >
-                <template v-slot:prepend-inner>
-                  <i class="fa-solid fa-filter" style="color: #A37801; font-size: 16px; margin-right: 8px;"></i>
-                </template>
-              </v-select>
+        <v-container fluid v-if="isAdmin">
+          <div class="dashboard-cards mb-6 mt-6">
+            <div class="stat-card">
+              <div class="stat-icon blue">
+                <i class="fas fa-calendar-alt"></i>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Total Solicitudes</p>
+                <p class="stat-value">{{ items.length }}</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon yellow">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Pendientes</p>
+                <p class="stat-value">{{items.filter(s => s.estado === 'Pendiente').length}}</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green">
+                <i class="fas fa-check"></i>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Aprobadas</p>
+                <p class="stat-value">{{items.filter(s => s.estado === 'Aprobado').length}}</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon red">
+                <i class="fas fa-times"></i>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Canceladas</p>
+                <p class="stat-value">{{items.filter(s => s.estado === 'Cancelado').length}}</p>
+              </div>
             </div>
           </div>
-          
+
+          <div class="search-filter-section">
+            <div class="search-input-container">
+              <i class="fas fa-search search-icon"></i>
+              <input type="text" placeholder="Buscar por título o usuario..." class="search-input"
+                v-model="searchTermActividades" />
+            </div>
+            <div class="filter-tabs">
+              <button v-for="estado in filtrosActividades" :key="estado.value"
+                @click="filtroEstadoActividades = estado.value"
+                :class="['filter-tab', { 'active': filtroEstadoActividades === estado.value }]">
+                {{ estado.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="permisos-table-container">
+            <div class="table-wrapper">
+              <table class="permisos-table">
+                <thead>
+                  <tr>
+                    <th>Solicitante</th>
+                    <th>Actividad</th>
+                    <th>Tipo y Fecha</th>
+                    <th>Cupos</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="solicitud in solicitudesPaginadas" :key="solicitud.id" class="table-row">
+                    <td>
+                      <div class="employee-info">
+                        <div class="avatar">
+                          {{ getInitials(solicitud.nombre_usuario) }}
+                        </div>
+                        <div class="employee-details">
+                          <div class="employee-name">{{ solicitud.nombre_usuario }}</div>
+                          <div class="employee-id">ID: {{ solicitud.id }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="actividad-info">
+                        <div class="actividad-titulo">{{ solicitud.titulo }}</div>
+                        <div class="actividad-descripcion" :title="solicitud.descripcion">
+                          {{ solicitud.descripcion?.substring(0, 50) }}{{ solicitud.descripcion?.length > 50 ? '...' :
+                          '' }}
+                        </div>
+                        <div class="fecha-solicitud">
+                          Solicitado: {{ formatFechaRegistro(solicitud.fecha_solicitud) }}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="tipo-fecha-info">
+                        <div class="tipo-actividad">
+                          <i class="fas fa-tag" style="color: #53696D; margin-right: 8px;"></i>
+                          {{ solicitud.tipo }}
+                        </div>
+                        <div class="fecha-actividad">
+                          <i class="fas fa-calendar" style="color: #A37801; margin-right: 8px;"></i>
+                          {{ formatFechaActividad(solicitud.fecha_actividad) }}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="cupos-info">
+                        <i class="fas fa-users" style="color: #53696D; margin-right: 8px;"></i>
+                        {{ solicitud.stock }} cupos
+                      </div>
+                    </td>
+                    <td>
+                      <span :class="['status-badge', getStatusClassActividad(solicitud.estado)]">
+                        <i :class="getStatusIconActividad(solicitud.estado)"></i>
+                        {{ solicitud.estado }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="actions">
+                        <button v-if="solicitud.archivo" @click="downloadFile(solicitud.archivo)"
+                          class="action-btn download" title="Descargar archivo">
+                          <i class="fas fa-download"></i>
+                        </button>
+                        <button @click="openModalSolicitudes(solicitud)" class="action-btn view" title="Ver detalles">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="pagination-container">
+            <div class="pagination-info">
+              <span>Mostrar</span>
+              <select v-model="itemsPerPageActividades" class="items-select">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span>de {{ totalFilteredItemsActividades }} resultados</span>
+            </div>
+            <div class="pagination-controls">
+              <button @click="currentPageActividades = Math.max(currentPageActividades - 1, 1)"
+                :disabled="currentPageActividades === 1" class="pagination-btn">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <span class="pagination-text">
+                Página {{ currentPageActividades }} de {{ totalPagesActividades }}
+              </span>
+              <button @click="currentPageActividades = Math.min(currentPageActividades + 1, totalPagesActividades)"
+                :disabled="currentPageActividades === totalPagesActividades" class="pagination-btn">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </v-container>
+
+        <v-container fluid v-else>
           <div class="actividades-grid">
             <div v-for="(solicitud, index) in solicitudesFiltradas" :key="index" class="actividad-card solicitud-card">
               <div class="card-header">
-                <div v-if="solicitud.archivo" class="card-image" @click="handleFileClick(solicitud.archivo)" style="cursor: pointer;">
-                  <n-image 
-                    v-if="isImageFile(solicitud.archivo)"
-                    :src="getImageUrl(solicitud.archivo)" 
-                    :alt="solicitud.titulo"
-                    object-fit="cover"
-                    :style="{ width: '100%', height: '160px', borderRadius: '0' }"
-                    :preview-disabled="false"
-                  />
+                <div v-if="solicitud.archivo" class="card-image" @click="handleFileClick(solicitud.archivo)"
+                  style="cursor: pointer;">
+                  <n-image v-if="isImageFile(solicitud.archivo)" :src="getImageUrl(solicitud.archivo)"
+                    :alt="solicitud.titulo" object-fit="cover"
+                    :style="{ width: '100%', height: '160px', borderRadius: '0' }" :preview-disabled="false" />
                   <div v-else-if="isPDFFile(solicitud.archivo)" class="file-placeholder pdf-file">
                     <i class="fa-solid fa-file-pdf" style="font-size: 48px; color: #d32f2f;"></i>
                     <span class="file-label">PDF</span>
@@ -269,37 +374,49 @@
                   </div>
                 </div>
                 <div v-else class="image-placeholder">
-                  <i class="fa-solid fa-file-text" style="font-size: 48px; color: #A37801;"></i>
+                  <i class="fa-solid fa-calendar-plus" style="font-size: 48px; color: #53696D;"></i>
                 </div>
                 <div class="tipo-badge">{{ solicitud.tipo }}</div>
                 <div class="estado-solicitud-badge" :class="getEstadoSolicitudClass(solicitud.estado)">
-                  {{ solicitud.estado || 'Pendiente' }}
+                  {{ solicitud.estado }}
                 </div>
               </div>
 
               <div class="card-content">
                 <h3 class="titulo-actividad">{{ solicitud.titulo }}</h3>
-                
-                <div class="info-container">
-                  <div class="fecha-card">
-                    <div class="fecha-icon">
-                      <i class="fa-solid fa-calendar" style="color: white; font-size: 18px;"></i>
-                    </div>
-                    <div class="fecha-details">
-                      <span class="fecha-dia">{{ getDiaFecha(solicitud.fecha_actividad) }}</span>
-                      <span class="fecha-mes">{{ getMesFecha(solicitud.fecha_actividad) }}</span>
-                      <span class="fecha-hora">{{ getHoraFecha(solicitud.fecha_actividad) }}</span>
-                    </div>
-                  </div>
 
+                <div class="info-container">
                   <div class="solicitud-card-info">
                     <div class="solicitud-icon">
-                      <i class="fa-solid fa-paper-plane" style="color: white; font-size: 18px;"></i>
+                      <i class="fa-solid fa-calendar-check" style="color: white; font-size: 18px;"></i>
                     </div>
                     <div class="solicitud-details">
                       <span class="solicitud-texto">Solicitado</span>
                       <span class="solicitud-fecha">{{ formatFechaRegistro(solicitud.fecha_solicitud) }}</span>
                     </div>
+                  </div>
+
+                  <div class="cupos-card">
+                    <div class="cupos-icon">
+                      <i class="fa-solid fa-users" style="color: white; font-size: 18px;"></i>
+                    </div>
+                    <div class="cupos-details">
+                      <span class="cupos-numero">{{ solicitud.stock }}</span>
+                      <span class="cupos-texto">cupos</span>
+                      <span class="cupos-total">solicitados</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="info-adicional">
+                  <div class="fecha-actividad-solicitud">
+                    <i class="fa-solid fa-calendar" style="color: #A37801; margin-right: 8px;"></i>
+                    <span>Fecha programada: {{ formatFechaActividad(solicitud.fecha_actividad) }}</span>
+                  </div>
+                  
+                  <div v-if="solicitud.motivo_cancelacion" class="motivo-cancelacion">
+                    <i class="fa-solid fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                    <span>{{ solicitud.motivo_cancelacion }}</span>
                   </div>
                 </div>
 
@@ -307,28 +424,19 @@
                   {{ solicitud.descripcion || 'Sin descripción disponible' }}
                 </p>
 
-                <div class="info-adicional">
-                  <div class="cupos-solicitud">
-                    <i class="fa-solid fa-users" style="color: #A37801; margin-right: 8px;"></i>
-                    <span>{{ solicitud.stock }} cupos solicitados</span>
-                  </div>
-                  <div v-if="solicitud.motivo_cancelacion" class="motivo-cancelacion">
-                    <i class="fa-solid fa-exclamation-triangle" style="color: #f44336; margin-right: 8px;"></i>
-                    <span>{{ solicitud.motivo_cancelacion }}</span>
-                  </div>
-                </div>
               </div>
 
               <div class="card-footer">
-                <v-btn 
-                  @click="openModalSolicitudes(solicitud)"
-                  color="#A37801"
-                  variant="outlined"
-                  block
-                  class="btn-ver-detalle"
-                >
+                <v-btn @click="openModalSolicitudes(solicitud)" color="#A37801" variant="outlined" block
+                  class="btn-ver-detalle">
                   <i class="fa-solid fa-eye" style="margin-right: 8px; font-size: 16px;"></i>
                   Ver detalle
+                </v-btn>
+
+                <v-btn v-if="solicitud.archivo" @click="handleFileClick(solicitud.archivo)" variant="text" size="small"
+                  class="btn-mas-info" color="#53696D">
+                  <i class="fa-solid fa-download" style="margin-right: 4px; font-size: 14px;"></i>
+                  Ver archivo adjunto
                 </v-btn>
               </div>
             </div>
@@ -337,25 +445,17 @@
       </v-tabs-window-item>
     </v-tabs-window>
   </ContainerView>
-  <ModalActividades :type="modalType" v-model="showModal" :item="selectedItem" :user="user" @actividad-creada="onActividadCreada" @mostrar-notificacion="onMostrarNotificacion" />
-  <ModalDetalleActividad 
-    v-model="showModalDetalle" 
-    :actividad="selectedActividad" 
-    :is-admin="isAdmin" 
-    :es-actividad-inscrita="esModalActividadInscrita"
-    @inscripcion-exitosa="onInscripcionExitosa" 
-    @mostrar-notificacion="onMostrarNotificacion" 
-  />
+  <ModalActividades :type="modalType" v-model="showModal" :item="selectedItem" :user="user"
+    @actividad-creada="onActividadCreada" @mostrar-notificacion="onMostrarNotificacion" />
+  <ModalDetalleActividad v-model="showModalDetalle" :actividad="selectedActividad" :is-admin="isAdmin"
+    :es-actividad-inscrita="esModalActividadInscrita" @inscripcion-exitosa="onInscripcionExitosa"
+    @mostrar-notificacion="onMostrarNotificacion" />
   <ModalMisSolicitudes v-model="showModalSolicitudes" :item="selectedItem" :user="user" />
-  <ModalDetalleSolicitud v-model="showModalDetalleSolicitud" :solicitud="selectedSolicitud" :is-admin="isAdmin" @estado-actualizado="onEstadoActualizado" />
+  <ModalDetalleSolicitud v-model="showModalDetalleSolicitud" :solicitud="selectedSolicitud" :is-admin="isAdmin"
+    @estado-actualizado="onEstadoActualizado" />
   <ModalInscritosActividad v-model="showModalInscritos" :actividad="selectedActividadInscritos" />
-  
-  <v-snackbar 
-    v-model="snackbar.show" 
-    :color="snackbar.color" 
-    timeout="4000"
-    location="top"
-  >
+
+  <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="4000" location="top">
     {{ snackbar.message }}
     <template v-slot:actions>
       <v-btn variant="text" @click="snackbar.show = false">
@@ -396,6 +496,19 @@ const inscribiendose = ref({})
 const esModalActividadInscrita = ref(false)
 const filtroEstado = ref('Todos')
 
+const searchTermActividades = ref('')
+const filtroEstadoActividades = ref('Todos')
+const currentPageActividades = ref(1)
+const itemsPerPageActividades = ref(10)
+
+const filtrosActividades = [
+  { label: 'Todos', value: 'Todos' },
+  { label: 'Pendientes', value: 'Pendiente' },
+  { label: 'Aprobadas', value: 'Aprobado' },
+  { label: 'Finalizadas', value: 'Finalizado' },
+  { label: 'Canceladas', value: 'Cancelado' }
+]
+
 const snackbar = ref({
   show: false,
   message: '',
@@ -406,16 +519,95 @@ const solicitudesFiltradas = computed(() => {
   if (!isAdmin || filtroEstado.value === 'Todos') {
     return items.value
   }
-  
+
   return items.value.filter(solicitud => {
     const estado = solicitud.estado || 'Pendiente'
     return estado.toLowerCase() === filtroEstado.value.toLowerCase()
   })
 })
 
+const solicitudesFiltradasAdmin = computed(() => {
+  let filtered = items.value
+
+  if (searchTermActividades.value) {
+    const searchTerm = searchTermActividades.value.toLowerCase()
+    filtered = filtered.filter(solicitud =>
+      solicitud.titulo?.toLowerCase().includes(searchTerm) ||
+      solicitud.nombre_usuario?.toLowerCase().includes(searchTerm) ||
+      solicitud.descripcion?.toLowerCase().includes(searchTerm)
+    )
+  }
+
+  if (filtroEstadoActividades.value !== 'Todos') {
+    filtered = filtered.filter(solicitud => {
+      const estado = solicitud.estado || 'Pendiente'
+      return estado.toLowerCase() === filtroEstadoActividades.value.toLowerCase()
+    })
+  }
+
+  return filtered
+})
+
+const totalFilteredItemsActividades = computed(() => solicitudesFiltradasAdmin.value.length)
+
+const totalPagesActividades = computed(() =>
+  Math.ceil(totalFilteredItemsActividades.value / itemsPerPageActividades.value)
+)
+
+const solicitudesPaginadas = computed(() => {
+  const start = (currentPageActividades.value - 1) * itemsPerPageActividades.value
+  const end = start + itemsPerPageActividades.value
+  return solicitudesFiltradasAdmin.value.slice(start, end)
+})
+
+function getInitials(name) {
+  if (!name) return 'U'
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+}
+
+function getStatusClassActividad(estado) {
+  switch (estado?.toLowerCase()) {
+    case 'aprobado':
+      return 'status-approved'
+    case 'finalizado':
+      return 'status-completed'
+    case 'cancelado':
+      return 'status-rejected'
+    case 'pendiente':
+    default:
+      return 'status-pending'
+  }
+}
+
+function getStatusIconActividad(estado) {
+  switch (estado?.toLowerCase()) {
+    case 'aprobado':
+      return 'fas fa-check'
+    case 'finalizado':
+      return 'fas fa-flag-checkered'
+    case 'cancelado':
+      return 'fas fa-times'
+    case 'pendiente':
+    default:
+      return 'fas fa-clock'
+  }
+}
+
+function formatFechaActividad(fecha) {
+  if (!fecha) return 'Sin fecha'
+  const date = new Date(fecha)
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
 onMounted(async () => {
   await Promise.all([
-    loadActividadesAprobadas(), 
+    loadActividadesAprobadas(),
     chooseSolicitudes(),
     !isAdmin ? loadActividadesInscritas() : Promise.resolve()
   ])
@@ -603,7 +795,7 @@ function onMostrarNotificacion({ mensaje, tipo }) {
 
 async function onActividadCreada({ esAdmin }) {
   await Promise.all([loadActividadesAprobadas(), chooseSolicitudes()])
-  
+
   if (esAdmin) {
     tab.value = 1
   } else {
@@ -615,7 +807,7 @@ async function onEstadoActualizado() {
   await Promise.all([loadActividadesAprobadas(), chooseSolicitudes()])
 }
 
-function openModalNuevo( type = 'actividad', actividad = null) {
+function openModalNuevo(type = 'actividad', actividad = null) {
   const user = LoginService.getCurrentUser()
   if (actividad) {
     selectedItem.value = {
@@ -628,14 +820,14 @@ function openModalNuevo( type = 'actividad', actividad = null) {
     }
   } else {
     selectedItem.value = {
-    numero: '',
-    asunto: '',
-    motivo: '',
-    fecha: '',
-    estado: '',
-    descripcion: '',
-    attend : false
-  }
+      numero: '',
+      asunto: '',
+      motivo: '',
+      fecha: '',
+      estado: '',
+      descripcion: '',
+      attend: false
+    }
   }
   modalType.value = type
   showModal.value = true
@@ -704,7 +896,8 @@ async function loadSolicitudes() {
       stock: a.stock,
       estado: a.estado || 'Pendiente',
       archivo: a.archivo,
-      motivo_cancelacion: a.motivo_cancelacion
+      motivo_cancelacion: a.motivo_cancelacion,
+      nombre_usuario: a.nombre_usuario
     }))
   } catch (error) {
     console.error(error)
@@ -1165,6 +1358,18 @@ async function loadActividadesInscritas() {
   gap: 8px;
 }
 
+.fecha-actividad-solicitud {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #A37801;
+  background: #fffbed;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #A37801;
+}
+
 .cupos-solicitud {
   display: flex;
   align-items: center;
@@ -1260,7 +1465,7 @@ async function loadActividadesInscritas() {
     gap: 16px;
     padding: 16px 0;
   }
-  
+
   .actividad-card {
     height: auto;
     min-height: 420px;
@@ -1311,12 +1516,14 @@ async function loadActividadesInscritas() {
 .custom-table :deep(tbody tr:last-child td) {
   border-bottom: none;
 }
-.text-title{
+
+.text-title {
   font-size: 28px !important;
   font-size: larger;
   text-transform: none;
   font-family: 'Righteous', cursive;
 }
+
 .custom-button {
   background-color: #53696D !important;
   border-radius: 25px !important;
@@ -1432,5 +1639,476 @@ async function loadActividadesInscritas() {
 
 .filtro-select :deep(.v-field__outline) {
   color: #A37801 !important;
+}
+
+/* Estilos para la nueva tabla de administrador */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: transparent;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #A37801;
+  display: flex;
+  align-items: center;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+
+.stat-icon.blue {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.stat-icon.yellow {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.stat-icon.green {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.stat-icon.red {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #293a5f;
+  margin: 0 0 4px 0;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+/* Search and Filter Section */
+.search-filter-section {
+  background: transparent;
+  border-radius: 12px;
+  border: 1px solid #A37801;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.search-input-container {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #111827;
+  font-size: 16px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 1px solid #A37801;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: #111827;
+}
+
+.search-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px #A37801;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-tab {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #FFFBED;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-tab:hover {
+  background: #A37801;
+  color: white;
+}
+
+.filter-tab.active {
+  background: #A37801;
+  color: white;
+}
+
+/* Table Styles */
+.permisos-table-container {
+  background: transparent;
+  border-radius: 12px;
+  border: 1px solid #A37801;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.permisos-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.permisos-table thead {
+  background: #FFFBED;
+}
+
+.permisos-table th {
+  padding: 16px 24px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: #525252;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #A37801;
+}
+
+.permisos-table th:last-child {
+  text-align: right;
+}
+
+.permisos-table tbody tr {
+  border-bottom: 1px solid #A37801;
+  transition: background-color 0.2s ease;
+}
+
+.permisos-table tbody tr:hover {
+  background: #FFFBED;
+}
+
+.permisos-table td {
+  padding: 16px 24px;
+  vertical-align: top;
+}
+
+.employee-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: #A37801;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 16px;
+}
+
+.employee-details {
+  flex: 1;
+}
+
+.employee-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.employee-id {
+  font-size: 12px;
+  color: #111827;
+}
+
+.date-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-range {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.date-requested {
+  font-size: 12px;
+  color: #111827;
+}
+
+.duration {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.motivo {
+  font-size: 14px;
+  color: #111827;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid;
+  gap: 8px;
+}
+
+.status-badge i {
+  margin-right: 4px;
+  font-size: 10px;
+}
+
+.status-badge.status-approved {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.status-badge.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.status-badge.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.status-badge.status-completed {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #111827;
+}
+
+.action-btn:hover {
+  transform: scale(1.05);
+}
+
+.action-btn.view:hover {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.action-btn.download:hover {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: transparent;
+  border-radius: 12px;
+  border: 1px solid #A37801;
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.items-select {
+  padding: 4px 8px;
+  border: 1px solid #A37801;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pagination-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #FFFBED;
+  color: #6b7280;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-text {
+  font-size: 14px;
+  color: #374151;
+}
+
+.actividad-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actividad-titulo {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.actividad-descripcion {
+  font-size: 12px;
+  color: #111827;
+  line-height: 1.4;
+}
+
+.fecha-solicitud {
+  font-size: 12px;
+  color: #111827;
+}
+
+.tipo-fecha-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tipo-actividad {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  display: flex;
+  align-items: center;
+}
+
+.fecha-actividad {
+  font-size: 12px;
+  color: #111827;
+  display: flex;
+  align-items: center;
+}
+
+.cupos-info {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  display: flex;
+  align-items: center;
+}
+
+.motivo-cancelacion-small {
+  font-size: 10px;
+  color: #dc2626;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .search-filter-section {
+    padding: 16px;
+  }
+
+  .filter-tabs {
+    flex-wrap: wrap;
+  }
+
+  .pagination-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .permisos-table th,
+  .permisos-table td {
+    padding: 12px 16px;
+  }
 }
 </style>

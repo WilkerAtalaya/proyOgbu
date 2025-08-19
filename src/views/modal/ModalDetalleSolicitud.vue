@@ -31,8 +31,7 @@
       </div>
 
       <div class="mb-4">
-        <label style="font-size: 18px; color: black; font-weight: 400; margin-bottom: 8px; display: block;">Código de
-          Solicitud</label>
+        <label class="field-label">Código de Solicitud</label>
         <div class="info-field">
           <i class="fa-solid fa-hashtag" style="color: #CF990D; margin-right: 8px;"></i>
           UNMSM-{{ solicitud.id }}
@@ -40,7 +39,7 @@
       </div>
 
       <div v-if="solicitud.archivo" class="mb-4">
-        <label style="font-size: 18px; color: black; font-weight: 400; margin-bottom: 8px; display: block;">
+        <label class="field-label">
           {{ isImageFile(solicitud.archivo) ? 'Imagen de la solicitud' : 'Archivo de la solicitud' }}
         </label>
         <v-card class="archivo-container" @click="handleFileClick(solicitud.archivo)" style="cursor: pointer;">
@@ -71,8 +70,7 @@
       </div>
 
       <div class="mb-4">
-        <label style="font-size: 18px; color: black; font-weight: 400; margin-bottom: 8px; display: block;">Fecha de
-          Solicitud</label>
+        <label class="field-label">Fecha de Solicitud</label>
         <div class="info-field">
           <i class="fa-solid fa-calendar-plus" style="color: #CF990D; margin-right: 8px;"></i>
           {{ formatearFechaSolicitud(solicitud.fecha_solicitud) }}
@@ -80,9 +78,7 @@
       </div>
 
       <div class="mb-4">
-        <label style="font-size: 18px; color: black; font-weight: 400; margin-bottom: 8px; display: block;">Fecha
-          Propuesta
-          para la Actividad</label>
+        <label class="field-label">Fecha Propuesta para la Actividad</label>
         <div class="info-field">
           <i class="fa-solid fa-calendar-check" style="color: #CF990D; margin-right: 8px;"></i>
           {{ formatearFechaSolicitud(solicitud.fecha_actividad) }}
@@ -90,16 +86,14 @@
       </div>
 
       <div class="mb-4">
-        <label
-          style="font-size: 18px; color: black; font-weight: 400; margin-bottom: 8px; display: block;">Descripción</label>
+        <label class="field-label">Descripción</label>
         <div class="info-field descripcion-text">
           {{ solicitud.descripcion }}
         </div>
       </div>
 
       <div class="mb-4">
-        <label style="font-size: 18px; color: black; font-weight: 400; margin-bottom: 8px; display: block;">Cupos
-          Solicitado</label>
+        <label class="field-label">Cupos Solicitado</label>
         <div class="info-field">
           <i class="fa-solid fa-users" style="color: #CF990D; margin-right: 8px;"></i>
           {{ solicitud.stock }} participantes
@@ -107,7 +101,7 @@
       </div>
 
       <div v-if="solicitud.motivo_cancelacion" class="mb-4">
-        <label style="font-size: 18px; color: black; font-weight: 400; margin-bottom: 8px; display: block;">
+        <label class="field-label">
           Motivo de Cancelación
         </label>
         <v-card class="motivo-cancelacion-card" elevation="0" variant="outlined">
@@ -153,18 +147,45 @@
         </div>
       </div>
 
-      <div v-if="isAdmin && isEstadoPendiente(solicitud.estado)" class="d-flex justify-center mt-6" style="gap: 20px;">
-        <v-btn @click="aprobarSolicitud" color="#CF990D" size="large"
-          style="border-radius: 20px; text-transform: none; font-weight: 500" min-width="120px"
-          :loading="actualizandoEstado" :disabled="actualizandoEstado">
-          Aprobar
-        </v-btn>
+      <div v-if="isAdmin && solicitud.estado === 'Pendiente'" class="acciones-container">
+        <div class="acciones-header">
+          <i class="fa-solid fa-clipboard-check" style="color: #CF990D; margin-right: 8px;"></i>
+          <span>Acciones del Administrador</span>
+        </div>
+        <div class="acciones-buttons">
+          <button 
+            @click="aprobarSolicitud"
+            class="btn-accion aprobar"
+            :disabled="actualizandoEstado"
+          >
+            <i class="fa-solid fa-check"></i>
+            <span>{{ actualizandoEstado ? 'Procesando...' : 'Aprobar Solicitud' }}</span>
+          </button>
+          <button 
+            @click="denegarSolicitud"
+            class="btn-accion rechazar"
+            :disabled="actualizandoEstado"
+          >
+            <i class="fa-solid fa-times"></i>
+            <span>{{ actualizandoEstado ? 'Procesando...' : 'Rechazar Solicitud' }}</span>
+          </button>
+        </div>
+      </div>
 
-        <v-btn @click="denegarSolicitud" color="#CF990D" size="large"
-          style="border-radius: 20px; text-transform: none; font-weight: 500" min-width="120px"
-          :loading="actualizandoEstado" :disabled="actualizandoEstado">
-          Denegar
-        </v-btn>
+      <div v-if="isAdmin && solicitud.estado !== 'Pendiente'" class="estado-final-info">
+        <div class="estado-final-header">
+          <i :class="getEstadoIcon(solicitud.estado)" :style="{ color: getEstadoColor(solicitud.estado) }"></i>
+          <span>Esta solicitud ya ha sido {{ solicitud.estado.toLowerCase() }}</span>
+        </div>
+      </div>
+
+      <div v-if="!isAdmin && !isEstadoPendiente(solicitud.estado) && !isEstadoAprobado(solicitud.estado) && !isEstadoDenegado(solicitud.estado)" class="mb-4">
+        <div class="estado-final-info">
+          <div class="estado-final-header">
+            <i :class="getEstadoIcon(solicitud.estado)" :style="{ color: getEstadoColor(solicitud.estado) }"></i>
+            <span>Estado actual: {{ solicitud.estado }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -351,6 +372,19 @@ function isEstadoDenegado(estado) {
   return estado === 'Cancelado'
 }
 
+const getEstadoColor = (estado) => {
+  switch (estado?.toLowerCase()) {
+    case 'aprobado':
+      return '#4caf50'
+    case 'cancelado':
+      return '#f44336'
+    case 'pendiente':
+      return '#ff9800'
+    default:
+      return '#757575'
+  }
+}
+
 async function aprobarSolicitud() {
   try {
     actualizandoEstado.value = true
@@ -419,6 +453,18 @@ function cancelarDenegacion() {
 </script>
 
 <style scoped>
+.contenido-modal {
+  padding: 0;
+}
+
+.field-label {
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
 .info-cards-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -427,132 +473,115 @@ function cancelarDenegacion() {
 }
 
 .info-card {
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-radius: 16px;
-  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  gap: 12px;
   border: 2px solid transparent;
   transition: all 0.3s ease;
 }
 
 .info-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .card-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   color: white;
-  flex-shrink: 0;
 }
 
 .tipo-card .card-icon {
-  background: linear-gradient(135deg, #CF990D 0%, #d63384 100%);
+  background: linear-gradient(135deg, #CF990D, #b8860b);
+}
+
+.estado-card .card-icon {
+  background: #6c757d;
+}
+
+.estado-card-aprobada .card-icon {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+.estado-card-rechazada .card-icon {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+}
+
+.estado-card-pendiente .card-icon {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
 }
 
 .card-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
+  gap: 2px;
 }
 
 .card-label {
   font-size: 12px;
-  font-weight: 500;
   color: #6c757d;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .card-value {
   font-size: 16px;
+  color: #333;
   font-weight: 600;
-  color: #2c3e50;
 }
 
-.estado-card-pendiente {
-  border-color: #ff9800;
-  background: linear-gradient(135deg, #fff3e0 0%, #ffffff 100%);
-}
-
-.estado-card-pendiente .card-icon {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-}
-
-.estado-card-aprobada {
-  border-color: #4caf50;
-  background: linear-gradient(135deg, #e8f5e8 0%, #ffffff 100%);
-}
-
-.estado-card-aprobada .card-icon {
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-}
-
-.estado-card-rechazada {
-  border-color: #f44336;
-  background: linear-gradient(135deg, #ffebee 0%, #ffffff 100%);
-}
-
-.estado-card-rechazada .card-icon {
-  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-}
-
-@media (max-width: 600px) {
-  .info-cards-container {
-    grid-template-columns: 1fr;
-  }
-
-  .info-card {
-    padding: 16px;
-  }
-
-  .card-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-  }
+.estado-value {
+  text-transform: uppercase;
 }
 
 .info-field {
-  background-color: #f8f9fa;
-  padding: 12px 16px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  font-size: 16px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
 }
 
 .descripcion-text {
   line-height: 1.5;
   text-align: justify;
+  align-items: flex-start;
 }
 
 .archivo-container {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .archivo-container:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .file-placeholder {
   width: 100%;
-  height: 100%;
+  height: 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -561,6 +590,7 @@ function cancelarDenegacion() {
   transition: all 0.3s ease;
   gap: 12px;
   padding: 20px;
+  border-radius: 8px;
 }
 
 .file-placeholder:hover {
@@ -611,22 +641,23 @@ function cancelarDenegacion() {
   margin-top: 4px;
 }
 
-.contenido-modal::-webkit-scrollbar {
-  width: 6px;
+.motivo-cancelacion-card {
+  border-color: #f44336 !important;
+  border-width: 2px !important;
+  background: #ffebee !important;
+  border-radius: 12px;
 }
 
-.contenido-modal::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
+.motivo-cancelacion-content {
+  padding: 16px !important;
 }
 
-.contenido-modal::-webkit-scrollbar-thumb {
-  background: #CF990D;
-  border-radius: 3px;
-}
-
-.contenido-modal::-webkit-scrollbar-thumb:hover {
-  background: #8a0030;
+.motivo-text {
+  flex: 1;
+  color: #d32f2f;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 .motivo-modal {
@@ -674,21 +705,126 @@ function cancelarDenegacion() {
   font-weight: 500 !important;
 }
 
-.motivo-cancelacion-card {
-  border-color: #f44336 !important;
-  border-width: 2px !important;
-  background: #ffebee !important;
+.contenido-modal::-webkit-scrollbar {
+  width: 6px;
 }
 
-.motivo-cancelacion-content {
-  padding: 16px !important;
+.contenido-modal::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
 }
 
-.motivo-text {
+.contenido-modal::-webkit-scrollbar-thumb {
+  background: #CF990D;
+  border-radius: 3px;
+}
+
+.contenido-modal::-webkit-scrollbar-thumb:hover {
+  background: #8a0030;
+}
+
+.acciones-container {
+  background: linear-gradient(135deg, #fff9e6, #fef3e2);
+  border: 2px solid #CF990D;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 8px;
+}
+
+.acciones-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #CF990D;
+}
+
+.acciones-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-accion {
   flex: 1;
-  color: #d32f2f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
   font-size: 14px;
-  line-height: 1.5;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-accion:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-accion.aprobar {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: white;
+}
+
+.btn-accion.aprobar:hover:not(:disabled) {
+  background: linear-gradient(135deg, #388e3c, #2e7d32);
+  transform: translateY(-1px);
+}
+
+.btn-accion.rechazar {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+}
+
+.btn-accion.rechazar:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d32f2f, #c62828);
+  transform: translateY(-1px);
+}
+
+.estado-final-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.estado-final-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
   font-weight: 500;
+  color: #6c757d;
+}
+
+@media (max-width: 768px) {
+  .info-cards-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-card {
+    padding: 16px;
+  }
+  
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .archivo-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .acciones-buttons {
+    flex-direction: column;
+  }
 }
 </style>
