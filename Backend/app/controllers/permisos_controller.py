@@ -1,12 +1,15 @@
-# app/controllers/permisos_controller.py
-import os, uuid
-from flask import request, jsonify, url_for, send_from_directory
-from werkzeug.utils import secure_filename
+import uuid
+from flask import request, jsonify, url_for, redirect
 from sqlalchemy import desc
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
+from app.models.permisos import SalidaVivienda, ReservaAreaComun, db
+from app.models.usuarios import Usuario
+from app.files.service import save_upload, file_url
+
 LIMA_TZ = ZoneInfo('America/Lima')
+BUCKET_JUST = 'justificacion'  # bucket único para justificantes
 
 def _to_lima_iso(dt):
     if dt is None:
@@ -15,29 +18,9 @@ def _to_lima_iso(dt):
         dt = dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(LIMA_TZ).isoformat(timespec='seconds')
 
-from app.models.permisos import (
-    SalidaVivienda, ReservaAreaComun, db
-)
-from app.models.usuarios import Usuario
-
-# --- Config de uploads (solo para Salida de vivienda) ---
-ALLOWED_EXT = {'pdf','doc','docx','xls','xlsx','ppt','pptx','txt','jpg','jpeg','png','gif','webp'}
-
-def _ext_ok(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
-
-def _justificacion_dir():
-    # raíz del proyecto: controllers/../../
-    base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    path = os.path.join(base, 'uploads', 'justificacion')
-    os.makedirs(path, exist_ok=True)
-    return path
-
-
 # ========== SALIDA DE VIVIENDA ==========
 
 def crear_salida_vivienda():
-   
     if request.content_type and 'multipart/form-data' in request.content_type:
         form = request.form
         file = request.files.get('archivo')  # archivo único (opcional)
@@ -65,24 +48,33 @@ def crear_salida_vivienda():
 
     # Guardar archivo si vino
     if file and file.filename:
-        if not _ext_ok(file.filename):
-            return jsonify({'error': 'Extensión no permitida'}), 400
-        ext = file.filename.rsplit('.', 1)[1].lower()
-        fname = secure_filename(f"{uuid.uuid4().hex}.{ext}")
-        file.save(os.path.join(_justificacion_dir(), fname))
-        salida.archivo_justificacion = fname
+        meta, err = save_upload(file, BUCKET_JUST, modes=('images','docs'))
+        if err:
+            return jsonify({'error': f'Archivo no permitido ({err})'}), 400
+        salida.archivo_justificacion = meta['stored_name']
 
     db.session.add(salida)
     db.session.commit()
 
-    return jsonify({'message': 'Solicitud registrada correctamente', 'id_solicitud': salida.id}), 201
+    return jsonify({
+        'message': 'Solicitud registrada correctamente',
+        'id_solicitud': salida.id,
+        'archivo': _to_archivo_obj(salida.archivo_justificacion)
+    }), 201
 
+def _to_archivo_obj(stored_name: str | None):
+    if not stored_name:
+        return None
+    return {
+        "bucket": BUCKET_JUST,
+        "stored_name": stored_name,
+        "original_name": stored_name.split('_', 1)[-1] if '_' in stored_name else stored_name,
+        "mime": None,
+        "size": None,
+        "url": file_url(BUCKET_JUST, stored_name, external=False)
+    }
 
-def _serialize_salida(s):
-    archivo_url = None
-    if s.archivo_justificacion:
-        archivo_url = url_for('permisos.descargar_justificacion', filename=s.archivo_justificacion, _external=True)
-
+def _serialize_salida(s: SalidaVivienda):
     return {
         'id': s.id,
         'id_usuario': s.id_usuario,
@@ -92,15 +84,13 @@ def _serialize_salida(s):
         'motivo': s.motivo,
         'estado': s.estado,
         'Fecha_solicitada': _to_lima_iso(s.Fecha_solicitada),
-        'archivo_justificacion': s.archivo_justificacion,
-        'archivo_url': archivo_url
+        # Legacy + homologado
+        'archivo_url': file_url(BUCKET_JUST, s.archivo_justificacion, external=False) if s.archivo_justificacion else None,
+        'archivo': _to_archivo_obj(s.archivo_justificacion),
     }
 
-
 def listar_salidas_vivienda(id_usuario=None):
-
     q = SalidaVivienda.query.join(Usuario, SalidaVivienda.id_usuario == Usuario.id_usuario)
-
     if id_usuario:
         q = q.filter(SalidaVivienda.id_usuario == id_usuario)
     else:
@@ -129,24 +119,21 @@ def listar_salidas_vivienda(id_usuario=None):
     salidas = q.order_by(desc(SalidaVivienda.Fecha_solicitada)).all()
     return jsonify([_serialize_salida(s) for s in salidas])
 
-
 def actualizar_estado_salida(id_salida, nuevo_estado):
-    salida = SalidaVivienda.query.get(id_salida)
-    if not salida:
+    s = SalidaVivienda.query.get(id_salida)
+    if not s:
         return jsonify({'error': 'Salida no encontrada'}), 404
-    salida.estado = nuevo_estado
+    s.estado = nuevo_estado
     db.session.commit()
     return jsonify({'message': 'Estado actualizado correctamente'})
 
-
+# Mantén este endpoint si tu front antiguo lo usa: redirige al nuevo /files/...
 def descargar_justificacion_file(filename):
-    return send_from_directory(_justificacion_dir(), filename, as_attachment=False)
-
+    return redirect(file_url(BUCKET_JUST, filename, external=True))
 
 # ========== ÁREA COMÚN ==========
 
 def crear_reserva_area_comun():
-    
     if request.content_type and 'multipart/form-data' in request.content_type:
         form = request.form
         id_usuario = int(form['id_usuario'])
@@ -163,46 +150,39 @@ def crear_reserva_area_comun():
         motivo = data.get('motivo')
 
     # Reglas de conflicto
-    reserva_existente = ReservaAreaComun.query.filter(
+    if ReservaAreaComun.query.filter(
         ReservaAreaComun.lugar == lugar,
         ReservaAreaComun.fecha == fecha,
         ReservaAreaComun.horario == horario,
         ReservaAreaComun.estado != 'Denegado'
-    ).first()
-    if reserva_existente:
+    ).first():
         return jsonify({'error': 'Ese lugar ya está reservado para esa fecha y horario.'}), 409
 
-    conflicto_usuario = ReservaAreaComun.query.filter(
+    if ReservaAreaComun.query.filter(
         ReservaAreaComun.id_usuario == id_usuario,
         ReservaAreaComun.fecha == fecha,
         ReservaAreaComun.horario == horario,
         ReservaAreaComun.estado != 'Denegado'
-    ).first()
-    if conflicto_usuario:
+    ).first():
         return jsonify({'error': 'Usted ya tiene una reserva en ese horario para esa fecha.'}), 409
 
-    repetido = ReservaAreaComun.query.filter(
+    if ReservaAreaComun.query.filter(
         ReservaAreaComun.id_usuario == id_usuario,
         ReservaAreaComun.lugar == lugar,
         ReservaAreaComun.fecha == fecha,
         ReservaAreaComun.estado != 'Denegado'
-    ).first()
-    if repetido:
+    ).first():
         return jsonify({'error': 'Ya tiene una reserva para ese lugar en esa fecha.'}), 409
 
-    reserva = ReservaAreaComun(
-        id_usuario=id_usuario,
-        lugar=lugar,
-        fecha=fecha,
-        horario=horario,
-        motivo=motivo
+    r = ReservaAreaComun(
+        id_usuario=id_usuario, lugar=lugar, fecha=fecha, horario=horario, motivo=motivo
     )
-    db.session.add(reserva)
+    db.session.add(r)
     db.session.commit()
 
-    return jsonify({'message': 'Reserva registrada correctamente', 'id_reserva': reserva.id}), 201
+    return jsonify({'message': 'Reserva registrada correctamente', 'id_reserva': r.id}), 201
 
-def _serialize_reserva(r):
+def _serialize_reserva(r: ReservaAreaComun):
     return {
         'id': r.id,
         'id_usuario': r.id_usuario,
@@ -212,14 +192,11 @@ def _serialize_reserva(r):
         'horario': r.horario,
         'estado': r.estado,
         'motivo': r.motivo,
-        'Fecha_solicitada': _to_lima_iso(r.Fecha_solicitada),  
+        'Fecha_solicitada': _to_lima_iso(r.Fecha_solicitada),
     }
 
-
 def listar_reservas_area_comun(id_usuario=None):
-    
     q = ReservaAreaComun.query.join(Usuario, ReservaAreaComun.id_usuario == Usuario.id_usuario)
-
     if id_usuario:
         q = q.filter(ReservaAreaComun.id_usuario == id_usuario)
     else:
@@ -251,11 +228,10 @@ def listar_reservas_area_comun(id_usuario=None):
     reservas = q.order_by(desc(ReservaAreaComun.Fecha_solicitada)).all()
     return jsonify([_serialize_reserva(r) for r in reservas])
 
-
 def actualizar_estado_reserva(id_reserva, nuevo_estado):
-    reserva = ReservaAreaComun.query.get(id_reserva)
-    if not reserva:
+    r = ReservaAreaComun.query.get(id_reserva)
+    if not r:
         return jsonify({'error': 'Reserva no encontrada'}), 404
-    reserva.estado = nuevo_estado
+    r.estado = nuevo_estado
     db.session.commit()
     return jsonify({'message': 'Estado actualizado correctamente'})

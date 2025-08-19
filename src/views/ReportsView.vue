@@ -130,8 +130,7 @@
                 </td>
                 <td>
                   <div class="actions">
-                    <button v-if="reporte.prueba" @click="downloadFile(reporte.prueba)" 
-                      class="action-btn download" title="Descargar evidencia">
+                    <button v-if="reporte.prueba" @click="downloadFile(reporte.prueba)" class="action-btn download">
                       <i class="fas fa-download"></i>
                     </button>
                     <button @click="openModal(reporte)" class="action-btn view" title="Ver detalles">
@@ -426,9 +425,12 @@ function isWordFile(fileName) {
   return wordExtensions.some(ext => fileName.toLowerCase().endsWith(ext))
 }
 
-function getImageUrl(fileName) {
-  if (!fileName) return ''
-  return `http://localhost:5000/uploads/quejas/${fileName}`
+function getImageUrl(archivo) {
+  if (!archivo) return ''
+  // si ya es una URL absoluta, úsela tal cual
+  if (/^https?:\/\//i.test(archivo)) return archivo
+  // si es solo nombre/relativo, prepéndalo al endpoint público
+  return `${environment.baseUrlApi}/uploads/quejas/${archivo}`
 }
 
 function getDiaFecha(fecha) {

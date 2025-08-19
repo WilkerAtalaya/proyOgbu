@@ -1,25 +1,37 @@
-from flask import Blueprint, request, jsonify, send_from_directory
-from app.controllers.anuncio_controller import crear_anuncio, obtener_anuncios, obtener_anuncio_por_id, actualizar_anuncio,eliminar_anuncio
-from werkzeug.utils import secure_filename
-import os
+from flask import Blueprint, request, jsonify
+from app.controllers.anuncio_controller import (
+    crear_anuncio, obtener_anuncios, obtener_anuncio_por_id,
+    actualizar_anuncio, eliminar_anuncio
+)
+from app.files.service import save_upload, delete_file, file_url
 from datetime import datetime
 
-UPLOAD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'uploads', 'anuncios'))
 anuncio_bp = Blueprint('anuncio', __name__)
+BUCKET = 'anuncios'
 
+def to_archivo_obj(stored_name: str | None):
+    if not stored_name:
+        return None
+    return {
+        "bucket": BUCKET,
+        "stored_name": stored_name,
+        "original_name": stored_name.split('_', 1)[-1] if '_' in stored_name else stored_name,
+        "mime": None,
+        "size": None,
+        "url": file_url(BUCKET, stored_name, external=False)
+    }
 
 @anuncio_bp.route('/anuncios', methods=['GET'])
 def listar_anuncios():
     anuncios = obtener_anuncios()
-    return jsonify([
-        {
-            'id': a.id_publicacion,
-            'titulo': a.titulo,
-            'descripcion': a.descripcion,
-            'imagen': f"{request.host_url}uploads/anuncios/{a.imagen}" if a.imagen else None,
-            'fecha_publicacion': a.fecha_publicacion.isoformat()
-        } for a in anuncios
-    ])
+    return jsonify([{
+        'id': a.id_publicacion,
+        'titulo': a.titulo,
+        'descripcion': a.descripcion,
+        'imagen': file_url(BUCKET, a.imagen, external=False) if a.imagen else None,
+        'archivo': to_archivo_obj(a.imagen),
+        'fecha_publicacion': a.fecha_publicacion.isoformat()
+    } for a in anuncios])
 
 
 @anuncio_bp.route('/anuncios', methods=['POST'])
@@ -27,126 +39,89 @@ def publicar_anuncio():
     titulo = (request.form.get('titulo') or '').strip()
     if not titulo:
         return jsonify({'mensaje': 'El campo "titulo" es obligatorio'}), 400
-
     descripcion = (request.form.get('descripcion') or '').strip()
     if not descripcion:
         return jsonify({'mensaje': 'El campo "descripcion" es obligatorio'}), 400
 
     id_usuario = request.form.get('id_usuario')
-    imagen = None
+    imagen_name = None
 
-    if 'imagen' in request.files:
-        imagen_file = request.files['imagen']
-        if imagen_file.filename != '':
-            if not os.path.exists(UPLOAD_FOLDER):
-                os.makedirs(UPLOAD_FOLDER)
-            filename = f"anuncio_{datetime.now().strftime('%Y%m%d%H%M%S')}_{secure_filename(imagen_file.filename)}"
-            ruta = os.path.join(UPLOAD_FOLDER, filename)
-            imagen_file.save(ruta)
-            imagen = filename
-            print("Guardando imagen en:", ruta)
+    if 'imagen' in request.files and request.files['imagen'].filename:
+        meta, err = save_upload(request.files['imagen'], BUCKET, modes=('images',))
+        if err:
+            return jsonify({'mensaje': f'Archivo no permitido ({err})'}), 400
+        imagen_name = meta['stored_name']
 
     nuevo = crear_anuncio({
-        'titulo': titulo,               # <-- NUEVO
+        'titulo': titulo,
         'descripcion': descripcion,
-        'imagen': imagen,
+        'imagen': imagen_name,
         'id_usuario': id_usuario
     })
 
-    return jsonify({'mensaje': 'Anuncio publicado', 'id': nuevo.id_publicacion}), 201
-
-
-@anuncio_bp.route('/uploads/anuncios/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+    return jsonify({
+        'mensaje': 'Anuncio publicado',
+        'id': nuevo.id_publicacion,
+        'archivo': to_archivo_obj(nuevo.imagen)
+    }), 201
 
 @anuncio_bp.route('/anuncios/<int:id_publicacion>', methods=['GET'])
 def obtener_anuncio(id_publicacion):
-    anuncio = obtener_anuncio_por_id(id_publicacion)
-    if not anuncio:
+    a = obtener_anuncio_por_id(id_publicacion)
+    if not a:
         return jsonify({'mensaje': 'Anuncio no encontrado'}), 404
-
     return jsonify({
-        'id': anuncio.id_publicacion,
-        'titulo': anuncio.titulo,  # <-- NUEVO
-        'descripcion': anuncio.descripcion,
-        'imagen': f"{request.host_url}uploads/anuncios/{anuncio.imagen}" if anuncio.imagen else None,
-        'fecha_publicacion': anuncio.fecha_publicacion.isoformat()
+        'id': a.id_publicacion,
+        'titulo': a.titulo,
+        'descripcion': a.descripcion,
+        'imagen': file_url(BUCKET, a.imagen, external=False) if a.imagen else None,
+        'archivo': to_archivo_obj(a.imagen),
+        'fecha_publicacion': a.fecha_publicacion.isoformat()
     })
 
 @anuncio_bp.route('/anuncios/<int:id_publicacion>', methods=['PUT', 'PATCH'])
 def editar_anuncio(id_publicacion):
-    """
-    Acepta multipart/form-data para actualizar en conjunto:
-      - titulo (opcional)
-      - descripcion (opcional)
-      - imagen (archivo opcional) -> si se envía, reemplaza la anterior
-      - eliminar_imagen = "1" (opcional) -> elimina imagen sin subir nueva
-    """
-    anuncio = obtener_anuncio_por_id(id_publicacion)
-    if not anuncio:
+    a = obtener_anuncio_por_id(id_publicacion)
+    if not a:
         return jsonify({'mensaje': 'Anuncio no encontrado'}), 404
 
-    old_image = anuncio.imagen
-
-    # Campos opcionales
+    old = a.imagen
     titulo = request.form.get('titulo', None)
     descripcion = request.form.get('descripcion', None)
-    eliminar_imagen_flag = request.form.get('eliminar_imagen', '0')
+    eliminar_imagen = request.form.get('eliminar_imagen', '0') == '1'
 
-    new_image_name = None
-    reemplazo_imagen = False
+    new_name = None
+    reemplazo = False
+    if 'imagen' in request.files and request.files['imagen'].filename:
+        meta, err = save_upload(request.files['imagen'], BUCKET, modes=('images',))
+        if err:
+            return jsonify({'mensaje': f'Archivo no permitido ({err})'}), 400
+        new_name = meta['stored_name']
+        reemplazo = True
 
-    if 'imagen' in request.files and request.files['imagen'].filename != '':
-        imagen_file = request.files['imagen']
-        if not os.path.exists(UPLOAD_FOLDER):
-            os.makedirs(UPLOAD_FOLDER)
-        filename = f"anuncio_{datetime.now().strftime('%Y%m%d%H%M%S')}_{secure_filename(imagen_file.filename)}"
-        ruta = os.path.join(UPLOAD_FOLDER, filename)
-        imagen_file.save(ruta)
-        new_image_name = filename
-        reemplazo_imagen = True
+    # Reglas de actualización del campo imagen
+    imagen_value = ('' if eliminar_imagen and not reemplazo else (new_name if reemplazo else None))
+    actualizado = actualizar_anuncio(id_publicacion, titulo=titulo, descripcion=descripcion, imagen=imagen_value)
 
-    # Eliminar imagen sin subir nueva
-    if eliminar_imagen_flag == '1' and not reemplazo_imagen:
-        actualizado = actualizar_anuncio(id_publicacion, titulo=titulo, descripcion=descripcion, imagen='')
-        if old_image:
-            try:
-                os.remove(os.path.join(UPLOAD_FOLDER, old_image))
-            except FileNotFoundError:
-                pass
-        return jsonify({'mensaje': 'Anuncio actualizado (imagen eliminada)', 'id': actualizado.id_publicacion})
+    # Borrar archivo anterior si corresponde
+    if (reemplazo or eliminar_imagen) and old:
+        delete_file(BUCKET, old)
 
-    # Reemplazo de imagen
-    if reemplazo_imagen:
-        actualizado = actualizar_anuncio(id_publicacion, titulo=titulo, descripcion=descripcion, imagen=new_image_name)
-        if old_image and old_image != new_image_name:
-            try:
-                os.remove(os.path.join(UPLOAD_FOLDER, old_image))
-            except FileNotFoundError:
-                pass
-        return jsonify({'mensaje': 'Anuncio actualizado', 'id': actualizado.id_publicacion})
-
-    # Actualización solo de texto (título/descripcion)
-    actualizado = actualizar_anuncio(id_publicacion, titulo=titulo, descripcion=descripcion, imagen=None)
-    return jsonify({'mensaje': 'Anuncio actualizado', 'id': actualizado.id_publicacion})
-
+    return jsonify({
+        'mensaje': 'Anuncio actualizado',
+        'id': actualizado.id_publicacion,
+        'archivo': to_archivo_obj(actualizado.imagen)
+    }), 200
 
 @anuncio_bp.route('/anuncios/<int:id_publicacion>', methods=['DELETE'])
 def borrar_anuncio(id_publicacion):
-    anuncio = obtener_anuncio_por_id(id_publicacion)
-    if not anuncio:
+    a = obtener_anuncio_por_id(id_publicacion)
+    if not a:
         return jsonify({'mensaje': 'Anuncio no encontrado'}), 404
-
-    old_image = anuncio.imagen
+    old = a.imagen
     ok = eliminar_anuncio(id_publicacion)
     if not ok:
         return jsonify({'mensaje': 'No se pudo eliminar el anuncio'}), 400
-
-    if old_image:
-        try:
-            os.remove(os.path.join(UPLOAD_FOLDER, old_image))
-        except FileNotFoundError:
-            pass
-
+    if old:
+        delete_file(BUCKET, old)
     return jsonify({'mensaje': 'Anuncio eliminado', 'id': id_publicacion}), 200

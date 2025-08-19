@@ -1,4 +1,3 @@
-# app/routes/permisos_routes.py
 from flask import Blueprint, request
 from app.controllers.permisos_controller import (
     crear_salida_vivienda,
@@ -32,11 +31,9 @@ def cambiar_estado_salida(id_salida):
     data = request.get_json()
     return actualizar_estado_salida(id_salida, data.get('estado'))
 
-# Descargar archivo justificación
 @permisos_bp.route('/uploads/justificacion/<path:filename>', methods=['GET'])
 def descargar_justificacion(filename):
     return descargar_justificacion_file(filename)
-
 
 # --- Área Común ---
 @permisos_bp.route('/area-comun', methods=['POST'])
