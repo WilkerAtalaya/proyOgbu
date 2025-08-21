@@ -18,7 +18,7 @@ def to_archivo_obj(stored_name: str | None):
         "original_name": stored_name.split('_', 1)[-1] if '_' in stored_name else stored_name,
         "mime": None,
         "size": None,
-        "url": file_url(BUCKET, stored_name, external=False)
+        "url": file_url(BUCKET, stored_name, external=True)
     }
 
 @anuncio_bp.route('/anuncios', methods=['GET'])
@@ -28,11 +28,9 @@ def listar_anuncios():
         'id': a.id_publicacion,
         'titulo': a.titulo,
         'descripcion': a.descripcion,
-        'imagen': file_url(BUCKET, a.imagen, external=False) if a.imagen else None,
         'archivo': to_archivo_obj(a.imagen),
         'fecha_publicacion': a.fecha_publicacion.isoformat()
     } for a in anuncios])
-
 
 @anuncio_bp.route('/anuncios', methods=['POST'])
 def publicar_anuncio():
@@ -44,18 +42,24 @@ def publicar_anuncio():
         return jsonify({'mensaje': 'El campo "descripcion" es obligatorio'}), 400
 
     id_usuario = request.form.get('id_usuario')
-    imagen_name = None
+    stored_name = None
 
-    if 'imagen' in request.files and request.files['imagen'].filename:
-        meta, err = save_upload(request.files['imagen'], BUCKET, modes=('images',))
+    upload = None
+    if 'archivo' in request.files and request.files['archivo'].filename:
+        upload = request.files['archivo']
+    elif 'imagen' in request.files and request.files['imagen'].filename:
+        upload = request.files['imagen']
+
+    if upload:
+        meta, err = save_upload(upload, BUCKET, modes=('images','docs'))
         if err:
             return jsonify({'mensaje': f'Archivo no permitido ({err})'}), 400
-        imagen_name = meta['stored_name']
+        stored_name = meta['stored_name']
 
     nuevo = crear_anuncio({
         'titulo': titulo,
         'descripcion': descripcion,
-        'imagen': imagen_name,
+        'imagen': stored_name,     
         'id_usuario': id_usuario
     })
 
@@ -74,7 +78,6 @@ def obtener_anuncio(id_publicacion):
         'id': a.id_publicacion,
         'titulo': a.titulo,
         'descripcion': a.descripcion,
-        'imagen': file_url(BUCKET, a.imagen, external=False) if a.imagen else None,
         'archivo': to_archivo_obj(a.imagen),
         'fecha_publicacion': a.fecha_publicacion.isoformat()
     })
@@ -88,23 +91,28 @@ def editar_anuncio(id_publicacion):
     old = a.imagen
     titulo = request.form.get('titulo', None)
     descripcion = request.form.get('descripcion', None)
-    eliminar_imagen = request.form.get('eliminar_imagen', '0') == '1'
+    eliminar_archivo = request.form.get('eliminar_archivo', '0') == '1' or request.form.get('eliminar_imagen', '0') == '1'
 
     new_name = None
     reemplazo = False
-    if 'imagen' in request.files and request.files['imagen'].filename:
-        meta, err = save_upload(request.files['imagen'], BUCKET, modes=('images',))
+
+    upload = None
+    if 'archivo' in request.files and request.files['archivo'].filename:
+        upload = request.files['archivo']
+    elif 'imagen' in request.files and request.files['imagen'].filename:
+        upload = request.files['imagen']
+
+    if upload:
+        meta, err = save_upload(upload, BUCKET, modes=('images','docs'))
         if err:
             return jsonify({'mensaje': f'Archivo no permitido ({err})'}), 400
         new_name = meta['stored_name']
         reemplazo = True
 
-    # Reglas de actualización del campo imagen
-    imagen_value = ('' if eliminar_imagen and not reemplazo else (new_name if reemplazo else None))
+    imagen_value = ('' if eliminar_archivo and not reemplazo else (new_name if reemplazo else None))
     actualizado = actualizar_anuncio(id_publicacion, titulo=titulo, descripcion=descripcion, imagen=imagen_value)
 
-    # Borrar archivo anterior si corresponde
-    if (reemplazo or eliminar_imagen) and old:
+    if (reemplazo or eliminar_archivo) and old:
         delete_file(BUCKET, old)
 
     return jsonify({
@@ -112,16 +120,3 @@ def editar_anuncio(id_publicacion):
         'id': actualizado.id_publicacion,
         'archivo': to_archivo_obj(actualizado.imagen)
     }), 200
-
-@anuncio_bp.route('/anuncios/<int:id_publicacion>', methods=['DELETE'])
-def borrar_anuncio(id_publicacion):
-    a = obtener_anuncio_por_id(id_publicacion)
-    if not a:
-        return jsonify({'mensaje': 'Anuncio no encontrado'}), 404
-    old = a.imagen
-    ok = eliminar_anuncio(id_publicacion)
-    if not ok:
-        return jsonify({'mensaje': 'No se pudo eliminar el anuncio'}), 400
-    if old:
-        delete_file(BUCKET, old)
-    return jsonify({'mensaje': 'Anuncio eliminado', 'id': id_publicacion}), 200

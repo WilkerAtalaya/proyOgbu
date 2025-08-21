@@ -19,7 +19,7 @@ def to_archivo_obj(stored_name: str | None):
         "original_name": stored_name.split('_', 1)[-1] if '_' in stored_name else stored_name,
         "size": None,  
         "mime": None,  
-        "url": file_url(BUCKET, stored_name, external=False)
+        "url": file_url(BUCKET, stored_name, external=True)
     } 
 
 @queja_bp.route('/quejas', methods=['POST'])

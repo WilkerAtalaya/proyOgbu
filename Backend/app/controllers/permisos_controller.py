@@ -71,7 +71,7 @@ def _to_archivo_obj(stored_name: str | None):
         "original_name": stored_name.split('_', 1)[-1] if '_' in stored_name else stored_name,
         "mime": None,
         "size": None,
-        "url": file_url(BUCKET_JUST, stored_name, external=False)
+        "url": file_url(BUCKET_JUST, stored_name, external=True)
     }
 
 def _serialize_salida(s: SalidaVivienda):
@@ -84,8 +84,6 @@ def _serialize_salida(s: SalidaVivienda):
         'motivo': s.motivo,
         'estado': s.estado,
         'Fecha_solicitada': _to_lima_iso(s.Fecha_solicitada),
-        # Legacy + homologado
-        'archivo_url': file_url(BUCKET_JUST, s.archivo_justificacion, external=False) if s.archivo_justificacion else None,
         'archivo': _to_archivo_obj(s.archivo_justificacion),
     }
 

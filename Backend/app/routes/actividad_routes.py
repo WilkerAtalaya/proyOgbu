@@ -18,7 +18,7 @@ def to_archivo_obj(stored_name: str | None):
         "original_name": stored_name.split('_', 1)[-1] if '_' in stored_name else stored_name,
         "mime": None,
         "size": None,
-        "url": file_url(BUCKET, stored_name, external=False)
+        "url": file_url(BUCKET, stored_name, external=True)
     }
 
 @actividad_bp.route('/actividades', methods=['POST'])
@@ -46,8 +46,6 @@ def ver_por_usuario(id_usuario):
         'fecha_actividad': a.fecha_actividad.isoformat(),
         'fecha_solicitud': a.fecha_solicitud.isoformat(),
         'estado': a.estado,
-        # Legacy (string) + homologado (objeto)
-        'archivo': file_url(BUCKET, a.archivo, external=False) if a.archivo else None,
         'archivo_obj': to_archivo_obj(a.archivo),
         'stock': a.stock,
         'motivo_cancelacion': a.motivo_cancelacion
@@ -67,7 +65,6 @@ def ver_todas():
         'fecha_solicitud': a.fecha_solicitud.isoformat(),
         'estado': a.estado,
         'motivo_cancelacion': a.motivo_cancelacion,
-        'archivo': file_url(BUCKET, a.archivo, external=False) if a.archivo else None,
         'archivo_obj': to_archivo_obj(a.archivo),
         'stock': a.stock,
     } for a in actividades])
@@ -92,7 +89,6 @@ def ver_aprobadas():
             'titulo': a.titulo,
             'tipo': a.tipo,
             'descripcion': a.descripcion,
-            'archivo': file_url(BUCKET, a.archivo, external=False) if a.archivo else None,
             'archivo_obj': to_archivo_obj(a.archivo),
             'stock': a.stock,
             'fecha_actividad': a.fecha_actividad.isoformat(),
@@ -122,7 +118,6 @@ def ver_inscritas_por_usuario(id_usuario):
         'descripcion': act.descripcion,
         'fecha_actividad': act.fecha_actividad.isoformat(),
         'estado_actividad': act.estado,
-        'archivo': file_url(BUCKET, act.archivo, external=False) if act.archivo else None,
         'archivo_obj': to_archivo_obj(act.archivo),
     } for (insc, act) in filas])
 

@@ -12,4 +12,12 @@ def get_file(bucket, filename):
     folder = os.path.join(root, bucket)
     if not os.path.isdir(folder):
         abort(404)
-    return send_from_directory(folder, filename)  # maneja 404 si no existe
+    return send_from_directory(folder, filename) 
+
+@files_bp.route('/download/<bucket>/<path:filename>')
+def download_file(bucket, filename):
+    root = storage_root()
+    folder = os.path.join(root, bucket)
+    if not os.path.isdir(folder):
+        abort(404)
+    return send_from_directory(folder, filename, as_attachment=True)
