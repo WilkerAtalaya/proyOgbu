@@ -8,7 +8,7 @@ class Cita(db.Model):
     id_alumno = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=False)
     motivo = db.Column(db.String(255), nullable=False)
     descripcion = db.Column(db.Text, nullable=False)
-    area = db.Column(db.String(100), nullable=False)  # Bienestar o Psicologia
+    area = db.Column(db.String(100), nullable=False)  
     fecha = db.Column(db.Date, nullable=False)
     horario = db.Column(db.String(50), nullable=False)
     estado = db.Column(db.String(50), default='Solicitado')

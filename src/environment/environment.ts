@@ -17,6 +17,8 @@ export const environment = {
       crearSolicitud: '/actividades',
       actualizar: '/actividades',
       eliminar: '/actividades',
+      inscribirse: '/actividades',
+      inscritas: '/actividades/inscritas'
     },
     quejas: {
       obtenerPorUsuario: '/quejas/usuario',
@@ -26,7 +28,9 @@ export const environment = {
     reconocimientos: {
       obtenerReconocimientos: '/reconocimientos',
       crearReconocimiento: '/reconocimientos',
-      obtenerCumpleanos: '/cumpleaños'
+      obtenerCumpleanos: '/cumpleaños',
+      buscarAlumnos: '/alumnos/buscar',
+      eliminarReconocimiento: '/reconocimientos'
     },
     permisos: {
       crearSalida: '/api/permisos/salida',
@@ -35,6 +39,8 @@ export const environment = {
       crearAreaComun: '/api/permisos/area-comun',
       obtenerAreaComunPorUsuario: '/api/permisos/area-comun/usuario',
       todasLasAreaComun: '/api/permisos/area-comun/admin',
+      actualizarEstadoSalida: '/api/permisos/salida',
+      actualizarEstadoAreaComun: '/api/permisos/area-comun',
     },
     citas: {
       obtenerSolicitadasPorUsuario: '/citas/alumno',

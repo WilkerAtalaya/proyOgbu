@@ -9,6 +9,8 @@ export class PermisosService {
   private urlAreaComunSalida: string
   private urlObtenerAreaComunPorUsuario: string
   private urlObtenerTodasLasAreaComun: string
+  private urlActualizarEstadoSalida: string
+  private urlActualizarEstadoAreaComun: string
 
   constructor() {
     this.urlCrearSalida = `${environment.baseUrlApi}${environment.endPoint.permisos.crearSalida}`
@@ -17,6 +19,8 @@ export class PermisosService {
     this.urlAreaComunSalida = `${environment.baseUrlApi}${environment.endPoint.permisos.crearAreaComun}`
     this.urlObtenerAreaComunPorUsuario = `${environment.baseUrlApi}${environment.endPoint.permisos.obtenerAreaComunPorUsuario}`
     this.urlObtenerTodasLasAreaComun = `${environment.baseUrlApi}${environment.endPoint.permisos.todasLasAreaComun}`
+    this.urlActualizarEstadoSalida = `${environment.baseUrlApi}${environment.endPoint.permisos.actualizarEstadoSalida}`
+    this.urlActualizarEstadoAreaComun = `${environment.baseUrlApi}${environment.endPoint.permisos.actualizarEstadoAreaComun}`
   }
 
   async crearPermisoSalida(body: Partial<Salida>): Promise<Salida> {
@@ -59,6 +63,18 @@ export class PermisosService {
     return axios
       .get<AreaComun[]>(this.urlObtenerTodasLasAreaComun)
       .then((res: { data: AreaComun[] }) => res.data)
+  }
+
+  async actualizarEstadoPermisoSalida(id: number, estado: string): Promise<any> {
+    return axios
+      .put(`${this.urlActualizarEstadoSalida}/${id}/estado`, { estado })
+      .then(res => res.data);
+  }
+
+  async actualizarEstadoPermisoAreaComun(id: number, estado: string): Promise<any> {
+    return axios
+      .put(`${this.urlActualizarEstadoAreaComun}/${id}/estado`, { estado })
+      .then(res => res.data);
   }
 }
 

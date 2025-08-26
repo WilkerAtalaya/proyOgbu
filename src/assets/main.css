@@ -42,16 +42,33 @@ a,
 }
 .v-table{
   background-color: transparent !important;
-  border: 1px solid #D9D9D9 !important;
   border-collapse: collapse !important; /* (opcional) para que los bordes no se dupliquen */
   overflow: hidden;
+  border-radius: 0 !important;
+  border: 1px solid #D9D9D9 !important;
 }
-
 .v-table thead {
-  border-radius: 20px !important;
-  background-color: white !important;
+  font-size: 18px;
   color: #163053;
-  font-weight: bold;
+  font-weight: 400;
+  border-radius: 0 !important;
+}
+.v-table th {
+  background-color: #D9D9D9 !important;
+  border-radius: 0 !important;
+}
+.v-table td {
+  color: #565656;
+  font-size: 16px;
+  font-weight: 400;
+  border: none !important;
+}
+.v-divider {
+  border: 1px solid white !important;
+}
+.v-data-table-footer {
+  background-color: transparent !important;
+  color: #565656 !important;
 }
 .data-table{
   background-color: transparent !important;
@@ -62,4 +79,35 @@ a,
 }
 .data-table .n-data-table .n-data-table-td{
   background-color: red !important;
+}
+.dp__input {
+    border-color: light-dark(rgb(118, 118, 118), rgb(133, 133, 133)) !important;
+    border-image: initial !important;
+}
+.dp__input::placeholder {
+  color: rgb(118, 118, 118) !important;
+}
+.dp__range_between{
+  background-color: #A8003852 !important;
+  color: white !important;
+  border: none !important;
+}
+.v-window {
+  overflow: visible !important;
+}
+.v-card {
+  overflow: visible !important;
+}
+.v-card-text {
+  padding: 16px 8px 16px !important;
+}
+.n-image-preview-container {
+  z-index: 3000 !important;
+}
+.v-card .n-image img {
+  width: 100%;
+  height: 200px;
+}
+.v-btn__content {
+  gap: 8px;
 }
