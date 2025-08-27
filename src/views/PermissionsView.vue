@@ -245,7 +245,6 @@
                       <i :class="getStatusIcon(solicitud.estado)"></i>
                       {{ solicitud.estado }}
                     </span>
-                    <span class="solicitud-id">ID: #{{ solicitud.id }}</span>
                   </div>
                   <p class="solicitud-motivo">{{ solicitud.motivo || 'Sin motivo especificado' }}</p>
                   <div class="solicitud-dates">
@@ -295,7 +294,6 @@
                       <i :class="getStatusIcon(reserva.estado)"></i>
                       {{ reserva.estado }}
                     </span>
-                    <span class="solicitud-id">ID: #{{ reserva.id }}</span>
                   </div>
                   <p class="solicitud-motivo">{{ reserva.motivo || 'Sin motivo especificado' }}</p>
                   <div class="solicitud-dates">
