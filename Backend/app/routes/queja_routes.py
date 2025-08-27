@@ -6,6 +6,7 @@ from app.controllers.queja_controller import (
 from datetime import datetime
 from app.files.service import save_upload, delete_file, file_url
 from app.models.queja import Queja
+from app.utils.date_utils import format_datetime_for_frontend, parse_date_from_frontend
 
 queja_bp = Blueprint('queja', __name__)
 BUCKET = 'quejas'  
@@ -59,9 +60,9 @@ def listar_quejas_usuario(id_usuario):
         'asunto': q.asunto,
         'motivo': q.motivo,
         'descripcion': q.descripcion,
-        'fecha': q.fecha.strftime('%d/%m/%Y'),
+        'fecha': format_datetime_for_frontend(q.fecha),
         'estado': q.estado,
-        'archivo': to_archivo_obj(q.prueba)   # ✳️ objeto estándar
+        'archivo': to_archivo_obj(q.prueba)
     } for q in quejas])
 
 
@@ -79,12 +80,16 @@ def listar_todas_quejas():
 
     if fecha_desde_str:
         try:
-            fecha_desde = datetime.strptime(fecha_desde_str, '%Y-%m-%d')
+            fecha_desde = parse_date_from_frontend(fecha_desde_str)
+            if not fecha_desde:
+                fecha_desde = datetime.strptime(fecha_desde_str, '%Y-%m-%d')
         except ValueError:
             pass
     if fecha_hasta_str:
         try:
-            fecha_hasta = datetime.strptime(fecha_hasta_str, '%Y-%m-%d')
+            fecha_hasta = parse_date_from_frontend(fecha_hasta_str)
+            if not fecha_hasta:
+                fecha_hasta = datetime.strptime(fecha_hasta_str, '%Y-%m-%d')
         except ValueError:
             pass
 
@@ -105,7 +110,7 @@ def listar_todas_quejas():
         'asunto': q.asunto,
         'motivo': q.motivo,
         'descripcion': q.descripcion,
-        'fecha': q.fecha.strftime('%d/%m/%Y'),
+        'fecha': format_datetime_for_frontend(q.fecha),
         'estado': q.estado,
         'archivo': to_archivo_obj(q.prueba)   
     } for q in quejas])

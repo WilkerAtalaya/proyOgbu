@@ -36,9 +36,10 @@ export function dateFormatV3(value) {
   return `${horas}:${minutos}.${segundos}`;
 }
 
-// Return: dd/mm/yyyy hh:mm para fechas ISO con timestamp
+// Return: dd/mm/yyyy hh:mm para fechas ISO UTC del backend (convierte a timezone local)
 export function dateFormatISO(value) {
   if (!value) return ''
+  
   const fecha = new Date(value)
   const dia = fecha.getDate().toString().padStart(2, '0')
   const mes = (fecha.getMonth() + 1).toString().padStart(2, '0')
@@ -46,4 +47,32 @@ export function dateFormatISO(value) {
   const horas = fecha.getHours().toString().padStart(2, '0')
   const minutos = fecha.getMinutes().toString().padStart(2, '0')
   return `${dia}/${mes}/${anio} ${horas}:${minutos}`
+}
+
+// Extrae solo la hora de un timestamp UTC (convierte a timezone local)
+export function extractTime(fechaISO) {
+  if (!fechaISO) return '00:00'
+  
+  const fecha = new Date(fechaISO)
+  const horas = fecha.getHours().toString().padStart(2, '0')
+  const minutos = fecha.getMinutes().toString().padStart(2, '0')
+  return `${horas}:${minutos}`
+}
+
+// Extrae solo la fecha de un timestamp UTC (convierte a timezone local)
+export function extractDate(fechaISO) {
+  if (!fechaISO) return ''
+  
+  const fecha = new Date(fechaISO)
+  const dia = fecha.getDate().toString().padStart(2, '0')
+  const mes = (fecha.getMonth() + 1).toString().padStart(2, '0')
+  const anio = fecha.getFullYear()
+  return `${dia}/${mes}/${anio}`
+}
+
+// Convierte timestamp UTC del backend a formato display en timezone local
+export function formatBackendDate(fechaBackend, includeTime = true) {
+  if (!fechaBackend) return ''
+  
+  return includeTime ? dateFormatISO(fechaBackend) : extractDate(fechaBackend)
 }

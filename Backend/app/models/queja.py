@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Queja(db.Model):
     __tablename__ = 'quejas'
@@ -10,6 +10,6 @@ class Queja(db.Model):
     motivo = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.Text, nullable=False)
     prueba = db.Column(db.String(255))  # Ruta o nombre de la imagen
-    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     estado = db.Column(db.String(50), default='Recibido')
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=False)

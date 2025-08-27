@@ -50,7 +50,7 @@
         <label class="field-label">Fecha del Reporte</label>
         <div class="info-field">
           <i class="fa-solid fa-calendar" style="color: #A37801; margin-right: 8px;"></i>
-          {{ reporte.fecha }}
+          {{ fechaFormateada }}
         </div>
       </div>
 
@@ -138,6 +138,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ContainerModal from '@/components/layout/ContainerModal.vue'
+import { formatBackendDate } from '@/util/functions.js'
 
 const props = defineProps({
   modelValue: {
@@ -162,6 +163,11 @@ const dialog = computed({
 })
 
 const procesando = ref(false)
+
+const fechaFormateada = computed(() => {
+  if (!props.reporte?.fecha) return 'Sin fecha'
+  return formatBackendDate(props.reporte.fecha, true)
+})
 
 const getEstadoCardClass = (estado) => {
   switch (estado?.toLowerCase()) {

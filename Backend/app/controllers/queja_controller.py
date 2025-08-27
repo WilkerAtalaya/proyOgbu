@@ -2,20 +2,23 @@ from app import db
 from app.models.queja import Queja
 from app.models.usuarios import Usuario
 from sqlalchemy import func
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import random
 
 def generar_codigo_reporte():
     return f"UNMSM-{random.randint(10000, 99999)}"
 
 def crear_queja(data):
+    fecha_utc = datetime.now(timezone.utc)
+    
     nueva = Queja(
         codigo_reporte=generar_codigo_reporte(),
         asunto=data.get("asunto"),
         motivo=data.get("motivo"),
         descripcion=data.get("descripcion"),
         prueba=data.get("prueba"),
-        id_usuario=data.get("id_usuario")
+        id_usuario=data.get("id_usuario"),
+        fecha=fecha_utc
     )
     db.session.add(nueva)
     db.session.commit()

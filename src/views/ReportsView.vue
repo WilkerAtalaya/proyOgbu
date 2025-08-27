@@ -284,6 +284,7 @@ import ModalQueja from './modal/ModalQueja.vue'
 import ModalDetalleReporte from './modal/ModalDetalleReporte.vue'
 import LoginService from '@/services/LoginService'
 import ContainerView from '@/components/layout/ContainerView.vue'
+import { formatBackendDate, extractTime, extractDate } from '@/util/functions.js'
 
 
 const data = ref([])
@@ -433,20 +434,23 @@ function getImageUrl(archivo) {
 
 function getDiaFecha(fecha) {
   if (!fecha) return ''
-  const date = new Date(fecha.split('/').reverse().join('-'))
+  const date = new Date(fecha)
   return date.getDate().toString().padStart(2, '0')
 }
 
 function getMesFecha(fecha) {
   if (!fecha) return ''
-  const date = new Date(fecha.split('/').reverse().join('-'))
+  const date = new Date(fecha)
   const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
   return meses[date.getMonth()]
 }
 
 function getHoraFecha(fecha) {
-  if (!fecha) return ''
-  return '00:00'
+  if (!fecha) return '00:00'
+  const date = new Date(fecha)
+  const horas = date.getHours().toString().padStart(2, '0')
+  const minutos = date.getMinutes().toString().padStart(2, '0')
+  return `${horas}:${minutos}`
 }
 
 function getEstadoReporteClass(estado) {
