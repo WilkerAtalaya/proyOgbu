@@ -119,7 +119,7 @@
                 <td>
                   <div class="fecha-info">
                     <i class="fas fa-calendar" style="color: #A37801; margin-right: 8px;"></i>
-                    {{ reporte.fecha }}
+                    {{ formatBackendDate(reporte.fecha, true) }}
                   </div>
                 </td>
                 <td>
@@ -549,7 +549,15 @@ function onEstadoActualizado() {
   chooseQuejas()
 }
 
-function onEstadoActualizadoDetalle({ id, estado }) {
+function onEstadoActualizadoDetalle({ id, estado, error }) {
+  if (error) {
+    onMostrarNotificacion({ 
+      mensaje: `Error al actualizar el estado del reporte`, 
+      tipo: 'error' 
+    })
+    return
+  }
+  
   const index = data.value.findIndex(item => item.id === id)
   if (index !== -1) {
     data.value[index].estado = estado

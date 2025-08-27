@@ -139,6 +139,7 @@
 import { ref, computed } from 'vue'
 import ContainerModal from '@/components/layout/ContainerModal.vue'
 import { formatBackendDate } from '@/util/functions.js'
+import QuejasService from '@/services/QuejasService'
 
 const props = defineProps({
   modelValue: {
@@ -245,6 +246,8 @@ const actualizarEstado = async (nuevoEstado) => {
   procesando.value = true
   
   try {
+    await QuejasService.actualizarEstadoQueja(props.reporte.id, nuevoEstado)
+    
     emit('estado-actualizado', {
       id: props.reporte.id,
       estado: nuevoEstado
@@ -255,6 +258,11 @@ const actualizarEstado = async (nuevoEstado) => {
     }, 500)
   } catch (error) {
     console.error('Error al actualizar estado:', error)
+    emit('estado-actualizado', {
+      id: props.reporte.id,
+      estado: nuevoEstado,
+      error: true
+    })
   } finally {
     procesando.value = false
   }
