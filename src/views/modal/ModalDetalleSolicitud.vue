@@ -199,19 +199,18 @@
         <v-card-text class="motivo-modal-content">
           <p class="motivo-descripcion">
             Estás a punto de denegar la solicitud "<strong>{{ solicitud.titulo }}</strong>". 
-            Por favor, proporciona un motivo para esta decisión:
+            Opcionalmente, puedes proporcionar un motivo para esta decisión:
           </p>
           
           <v-textarea
             v-model="motivoDenegacion"
-            label="Motivo"
-            placeholder="Explica las razones por las cuales se deniega esta solicitud..."
+            label="Motivo (Opcional)"
+            placeholder="Explica las razones por las cuales se deniega esta solicitud (opcional)..."
             variant="outlined"
             rows="4"
             counter="500"
             maxlength="500"
             class="motivo-textarea"
-            :rules="[v => !!v.trim() || 'El motivo es requerido']"
           >
             <template v-slot:prepend-inner>
               <i class="fa-solid fa-comment-dots" style="color: #666; margin-right: 8px; margin-top: 8px;"></i>
@@ -236,7 +235,7 @@
             color="#f44336"
             variant="flat"
             :loading="actualizandoEstado"
-            :disabled="!motivoDenegacion.trim() || actualizandoEstado"
+            :disabled="actualizandoEstado"
           >
             <i class="fa-solid fa-times-circle" style="margin-right: 8px;"></i>
             Confirmar Denegación
@@ -408,16 +407,12 @@ async function denegarSolicitud() {
 }
 
 async function confirmarDenegacion() {
-  if (!motivoDenegacion.value.trim()) {
-    mostrarNotificacion('Por favor, ingresa un motivo para la denegación', 'error')
-    return
-  }
-
   try {
     actualizandoEstado.value = true
     showMotivoModal.value = false
     
-    await ActividadesService.actualizarEstado(props.solicitud.id, 'Cancelado', motivoDenegacion.value.trim())
+    const motivo = motivoDenegacion.value.trim() || ''
+    await ActividadesService.actualizarEstado(props.solicitud.id, 'Cancelado', motivo)
     mostrarNotificacion('Solicitud cancelada exitosamente', 'warning')
     emit('estadoActualizado')
 
