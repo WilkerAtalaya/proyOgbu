@@ -906,7 +906,13 @@ async function loadSolicitudes() {
 
 async function loadActividadesAprobadas() {
   try {
-    const activities = await ActividadesService.obtenerActividadesAprobadas()
+    let activities
+    if (isAdmin) {
+      activities = await ActividadesService.obtenerActividadesAprobadas()
+    } else {
+      activities = await ActividadesService.obtenerActividadesDisponibles(user.value.id)
+    }
+    
     actividades.value = activities.map((a) => ({
       id: a.id,
       codigo: `UNMSM-${a.id}`,

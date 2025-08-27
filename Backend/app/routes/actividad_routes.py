@@ -96,6 +96,27 @@ def ver_aprobadas():
         })
     return jsonify(resp)
 
+@actividad_bp.route('/actividades/disponibles/<int:id_usuario>', methods=['GET'])
+def ver_actividades_disponibles(id_usuario):
+    """
+    Obtiene todas las actividades aprobadas en las que el usuario NO está inscrito
+    """
+    acts = listar_aprobadas(excluir_usuario_id=id_usuario)
+    resp = []
+    for a in acts:
+        cupos = a.stock - len(a.inscripciones)
+        resp.append({
+            'id': a.id_actividad,
+            'titulo': a.titulo,
+            'tipo': a.tipo,
+            'descripcion': a.descripcion,
+            'archivo_obj': to_archivo_obj(a.archivo),
+            'stock': a.stock,
+            'fecha_actividad': a.fecha_actividad.isoformat(),
+            'cupos_restantes': cupos
+        })
+    return jsonify(resp)
+
 @actividad_bp.route('/actividades/<int:id_actividad>/inscribirse', methods=['POST'])
 def inscribirse(id_actividad):
     id_usuario = (request.json or {}).get('id_usuario')

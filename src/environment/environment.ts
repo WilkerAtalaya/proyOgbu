@@ -13,6 +13,7 @@ export const environment = {
       obtenerTodas: '/actividades/admin',
       obtenerPorId: '/actividades',
       obtenerAprobadas: '/actividades/aprobadas',
+      obtenerDisponibles: '/actividades/disponibles',
       crearActividad: '/actividades/admin',
       crearSolicitud: '/actividades',
       actualizar: '/actividades',
