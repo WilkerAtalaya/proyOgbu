@@ -34,8 +34,10 @@ def crear_actividad_con_archivo(aprobado_por_admin=False):
     else:
         h = time.min
 
-    fecha_actividad_utc = datetime.combine(d, h).replace(tzinfo=timezone.utc).replace(tzinfo=None)
-    if d < date.today():
+    fecha_actividad_utc = datetime.combine(d, h)
+    
+    fecha_hoy_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+    if fecha_actividad_utc < fecha_hoy_utc:
         return jsonify({'error': 'La fecha de la actividad no puede estar en el pasado'}), 400
 
     # 3) validar stock

@@ -95,6 +95,7 @@ import ActividadesService from '@/services/ActividadesService'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import ContainerModal from '@/components/layout/ContainerModal.vue'
+import { convertLocalDateTimeToUTC } from '@/util/functions.js'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -297,37 +298,10 @@ async function submitComplaint() {
   formData.append('titulo', form.titulo)
   formData.append('descripcion', form.descripcion)
 
-  let fechaActividad = ''
-  let horaActividad = '00:00'
-
-  if (form.fecha_actividad) {
-    if (form.fecha_actividad instanceof Date) {
-      fechaActividad = form.fecha_actividad.toISOString().split('T')[0] // YYYY-MM-DD
-    } else if (typeof form.fecha_actividad === 'string') {
-      const [dia, mes, anio] = form.fecha_actividad.split('/')
-      if (dia && mes && anio) {
-        fechaActividad = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`
-      }
-    }
-  } else {
-    const today = new Date()
-    fechaActividad = today.toISOString().split('T')[0]
-  }
-
-  if (form.hora_actividad) {
-    if (form.hora_actividad instanceof Date) {
-      horaActividad = form.hora_actividad.toTimeString().slice(0, 5) // HH:MM
-    } else if (typeof form.hora_actividad === 'object' && form.hora_actividad.hours !== undefined) {
-      const hours = String(form.hora_actividad.hours).padStart(2, '0')
-      const minutes = String(form.hora_actividad.minutes || 0).padStart(2, '0')
-      horaActividad = `${hours}:${minutes}`
-    } else if (typeof form.hora_actividad === 'string' && form.hora_actividad.trim() !== '') {
-      horaActividad = form.hora_actividad
-    }
-  }
-
-  formData.append('fecha_actividad', fechaActividad)
-  formData.append('hora_actividad', horaActividad)
+  const { fecha_utc, hora_utc } = convertLocalDateTimeToUTC(form.fecha_actividad, form.hora_actividad)
+  
+  formData.append('fecha_actividad', fecha_utc)
+  formData.append('hora_actividad', hora_utc)
   formData.append('id_usuario', user.value.id)
   formData.append('stock', Number(form.stock))
 

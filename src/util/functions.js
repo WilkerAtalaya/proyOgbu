@@ -70,9 +70,61 @@ export function extractDate(fechaISO) {
   return `${dia}/${mes}/${anio}`
 }
 
-// Convierte timestamp UTC del backend a formato display en timezone local
+// Convierte timestamp del backend a formato display en timezone local
 export function formatBackendDate(fechaBackend, includeTime = true) {
   if (!fechaBackend) return ''
   
   return includeTime ? dateFormatISO(fechaBackend) : extractDate(fechaBackend)
+}
+
+// Convierte fecha y hora local del usuario a UTC para enviar al backend
+export function convertLocalDateTimeToUTC(fechaLocal, horaLocal = '00:00') {
+  if (!fechaLocal) return { fecha_utc: '', hora_utc: '00:00' }
+  
+  let fechaString = ''
+  
+  // Manejar diferentes formatos de fecha
+  if (fechaLocal instanceof Date) {
+    fechaString = fechaLocal.toISOString().split('T')[0] // YYYY-MM-DD
+  } else if (typeof fechaLocal === 'string') {
+    if (fechaLocal.includes('/')) {
+      // Formato dd/mm/yyyy
+      const [dia, mes, anio] = fechaLocal.split('/')
+      if (dia && mes && anio) {
+        fechaString = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`
+      }
+    } else {
+      // Asumir que ya está en formato YYYY-MM-DD
+      fechaString = fechaLocal
+    }
+  }
+  
+  if (!fechaString) return { fecha_utc: '', hora_utc: '00:00' }
+  
+  let horaString = '00:00'
+  if (horaLocal) {
+    if (horaLocal instanceof Date) {
+      horaString = horaLocal.toTimeString().slice(0, 5)
+    } else if (typeof horaLocal === 'object' && horaLocal.hours !== undefined) {
+      const hours = String(horaLocal.hours).padStart(2, '0')
+      const minutes = String(horaLocal.minutes || 0).padStart(2, '0')
+      horaString = `${hours}:${minutes}`
+    } else if (typeof horaLocal === 'string' && horaLocal.trim() !== '') {
+      horaString = horaLocal
+    }
+  }
+  
+  const fechaHoraLocalString = `${fechaString}T${horaString}:00`
+  
+  const fechaLocalCompleta = new Date(fechaHoraLocalString)
+  
+  const fechaUTC = new Date(fechaLocalCompleta.toISOString())
+  
+  const fechaUTCString = fechaUTC.toISOString().split('T')[0] // YYYY-MM-DD
+  const horaUTCString = fechaUTC.toISOString().split('T')[1].slice(0, 5) // HH:MM
+  
+  return {
+    fecha_utc: fechaUTCString,
+    hora_utc: horaUTCString
+  }
 }

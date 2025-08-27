@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Actividad(db.Model):
     __tablename__ = 'actividades'
@@ -10,7 +10,7 @@ class Actividad(db.Model):
     descripcion = db.Column(db.Text, nullable=False)
     fecha_actividad = db.Column(db.DateTime, nullable=False)
     archivo = db.Column(db.String(255))  
-    fecha_solicitud = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_solicitud = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     estado = db.Column(db.String(50), default='Pendiente')
     motivo_cancelacion = db.Column(db.Text, nullable=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=False)

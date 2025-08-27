@@ -5,6 +5,7 @@ from app.controllers.actividad_controller import (
     listar_actividades_inscritas_por_usuario, listar_inscritos_de_actividad
 )
 from app.files.service import file_url
+from app.utils.date_utils import format_datetime_for_frontend
 
 actividad_bp = Blueprint('actividad', __name__)
 BUCKET = 'actividades'
@@ -43,8 +44,8 @@ def ver_por_usuario(id_usuario):
         'tipo': a.tipo,
         'titulo': a.titulo,
         'descripcion': a.descripcion,
-        'fecha_actividad': a.fecha_actividad.isoformat(),
-        'fecha_solicitud': a.fecha_solicitud.isoformat(),
+        'fecha_actividad': format_datetime_for_frontend(a.fecha_actividad),
+        'fecha_solicitud': format_datetime_for_frontend(a.fecha_solicitud),
         'estado': a.estado,
         'archivo_obj': to_archivo_obj(a.archivo),
         'stock': a.stock,
@@ -61,8 +62,8 @@ def ver_todas():
         'tipo': a.tipo,
         'titulo': a.titulo,
         'descripcion': a.descripcion,
-        'fecha_actividad': a.fecha_actividad.isoformat(),
-        'fecha_solicitud': a.fecha_solicitud.isoformat(),
+        'fecha_actividad': format_datetime_for_frontend(a.fecha_actividad),
+        'fecha_solicitud': format_datetime_for_frontend(a.fecha_solicitud),
         'estado': a.estado,
         'motivo_cancelacion': a.motivo_cancelacion,
         'archivo_obj': to_archivo_obj(a.archivo),
@@ -91,7 +92,7 @@ def ver_aprobadas():
             'descripcion': a.descripcion,
             'archivo_obj': to_archivo_obj(a.archivo),
             'stock': a.stock,
-            'fecha_actividad': a.fecha_actividad.isoformat(),
+            'fecha_actividad': format_datetime_for_frontend(a.fecha_actividad),
             'cupos_restantes': cupos
         })
     return jsonify(resp)
@@ -112,7 +113,7 @@ def ver_actividades_disponibles(id_usuario):
             'descripcion': a.descripcion,
             'archivo_obj': to_archivo_obj(a.archivo),
             'stock': a.stock,
-            'fecha_actividad': a.fecha_actividad.isoformat(),
+            'fecha_actividad': format_datetime_for_frontend(a.fecha_actividad),
             'cupos_restantes': cupos
         })
     return jsonify(resp)
@@ -132,12 +133,12 @@ def ver_inscritas_por_usuario(id_usuario):
     filas = listar_actividades_inscritas_por_usuario(id_usuario)
     return jsonify([{
         'id_inscripcion': insc.id_inscripcion,
-        'fecha_registro': insc.fecha_registro.isoformat(),
+        'fecha_registro': format_datetime_for_frontend(insc.fecha_registro),
         'id_actividad': act.id_actividad,
         'titulo': act.titulo,
         'tipo': act.tipo,
         'descripcion': act.descripcion,
-        'fecha_actividad': act.fecha_actividad.isoformat(),
+        'fecha_actividad': format_datetime_for_frontend(act.fecha_actividad),
         'estado_actividad': act.estado,
         'archivo_obj': to_archivo_obj(act.archivo),
     } for (insc, act) in filas])
@@ -149,5 +150,5 @@ def ver_inscritos_de_actividad(id_actividad):
         'id_usuario': user.id_usuario,
         'nombre': user.nombre,
         'id_inscripcion': insc.id_inscripcion,
-        'fecha_registro': insc.fecha_registro.isoformat()
+        'fecha_registro': format_datetime_for_frontend(insc.fecha_registro)
     } for (insc, user) in filas])
