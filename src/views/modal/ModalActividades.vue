@@ -331,6 +331,11 @@ async function submitComplaint() {
   formData.append('id_usuario', user.value.id)
   formData.append('stock', Number(form.stock))
 
+  // Agregar archivo si fue seleccionado
+  if (selectedFile.value) {
+    formData.append('archivo', selectedFile.value)
+  }
+
   try {
     if (isAdmin) {
       await ActividadesService.crearActividad(formData)

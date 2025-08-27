@@ -121,7 +121,7 @@
               <div class="card-header">
                 <div v-if="actividad.archivo" class="card-image" @click="handleFileClick(actividad.archivo)"
                   style="cursor: pointer;">
-                  <n-image v-if="isImageFile(actividad.archivo)" :src="actividad.archivo" :alt="actividad.titulo"
+                  <n-image v-if="isImageFile(actividad.archivo)" :src="getImageUrl(actividad.archivo)" :alt="actividad.titulo"
                     object-fit="cover" :style="{ width: '100%', height: '160px', borderRadius: '0' }"
                     :preview-disabled="false" />
                   <div v-else-if="isPDFFile(actividad.archivo)" class="file-placeholder pdf-file">
@@ -614,25 +614,28 @@ onMounted(async () => {
 })
 
 function getImageUrl(archivo) {
-  return `${archivo}`
+  return archivo || ''
 }
 
-function isImageFile(archivo) {
-  if (!archivo) return false
+function isImageFile(fileUrl) {
+  if (!fileUrl) return false
+  const fileName = fileUrl.split('/').pop()
   const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg']
-  const extension = archivo.toLowerCase().substring(archivo.lastIndexOf('.'))
+  const extension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'))
   return imageExtensions.includes(extension)
 }
 
-function isPDFFile(archivo) {
-  if (!archivo) return false
-  return archivo.toLowerCase().endsWith('.pdf')
+function isPDFFile(fileUrl) {
+  if (!fileUrl) return false
+  const fileName = fileUrl.split('/').pop()
+  return fileName.toLowerCase().endsWith('.pdf')
 }
 
-function isWordFile(archivo) {
-  if (!archivo) return false
+function isWordFile(fileUrl) {
+  if (!fileUrl) return false
+  const fileName = fileUrl.split('/').pop()
   const wordExtensions = ['.doc', '.docx']
-  const extension = archivo.toLowerCase().substring(archivo.lastIndexOf('.'))
+  const extension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'))
   return wordExtensions.includes(extension)
 }
 
@@ -642,10 +645,10 @@ function handleFileClick(archivo) {
   }
 }
 
-function downloadFile(archivo) {
+function downloadFile(fileUrl) {
   const link = document.createElement('a')
-  link.href = getImageUrl(archivo)
-  link.download = archivo.split('/').pop() || 'archivo'
+  link.href = fileUrl
+  link.download = fileUrl.split('/').pop() || 'archivo'
   link.target = '_blank'
   document.body.appendChild(link)
   link.click()
@@ -872,7 +875,7 @@ async function loadSolicitudesPorUsuario() {
       tipo: a.tipo,
       stock: a.stock,
       estado: a.estado || 'Pendiente',
-      archivo: a.archivo,
+      archivo: a.archivo_obj?.url || null,
       motivo_cancelacion: a.motivo_cancelacion
     }))
   } catch (error) {
@@ -895,7 +898,7 @@ async function loadSolicitudes() {
       tipo: a.tipo,
       stock: a.stock,
       estado: a.estado || 'Pendiente',
-      archivo: a.archivo,
+      archivo: a.archivo_obj?.url || null,
       motivo_cancelacion: a.motivo_cancelacion,
       nombre_usuario: a.nombre_usuario
     }))
@@ -922,7 +925,7 @@ async function loadActividadesAprobadas() {
       tipo: a.tipo.toUpperCase(),
       stock: a.stock,
       cupos_restantes: a.cupos_restantes,
-      archivo: a.archivo,
+      archivo: a.archivo_obj?.url || null,
     }))
   } catch (error) {
     console.error(error)
@@ -941,7 +944,7 @@ async function loadActividadesInscritas() {
       fecha_actividad: a.fecha_actividad,
       fecha_registro: a.fecha_registro,
       estado_actividad: a.estado_actividad,
-      archivo: a.archivo,
+      archivo: a.archivo_obj?.url || null,
     }))
   } catch (error) {
     console.error('Error al cargar actividades inscritas:', error)
