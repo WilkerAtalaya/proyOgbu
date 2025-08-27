@@ -85,6 +85,8 @@ const dialog = computed({
   set: (val) => {
     if (!val) {
       resetForm()
+    } else if (val && props.editData) {
+      loadEditData()
     }
     emit('update:modelValue', val)
   }
@@ -117,13 +119,19 @@ const resetForm = () => {
   Object.keys(errors).forEach(key => errors[key] = '')
 }
 
-watch(() => props.editData, (newData) => {
-  if (newData) {
-    form.titulo = newData.titulo || ''
-    form.descripcion = newData.descripcion || ''
-    currentImageUrl.value = newData.imagen || ''
+const loadEditData = () => {
+  if (props.editData) {
+    form.titulo = props.editData.titulo || ''
+    form.descripcion = props.editData.descripcion || ''
+    currentImageUrl.value = props.editData.archivo?.url || ''
     imageRemoved.value = false
     selectedFile.value = null
+  }
+}
+
+watch(() => props.editData, (newData) => {
+  if (newData && props.modelValue) {
+    loadEditData()
   }
 }, { immediate: true })
 
@@ -212,7 +220,7 @@ async function submitPublicacion() {
         ...props.editData,
         titulo: form.titulo,
         descripcion: form.descripcion,
-        imagen: response.imagen_url || (imageRemoved.value ? '' : currentImageUrl.value)
+        archivo: response.archivo || (imageRemoved.value ? null : props.editData.archivo)
       })
       
       mostrarNotificacion('Publicación actualizada exitosamente', 'success')
@@ -229,8 +237,8 @@ async function submitPublicacion() {
         id_usuario: user.id,
         titulo: form.titulo,
         descripcion: form.descripcion,
-        imagen: response.imagen_url || '',
-        fecha_publicacion: new Date()
+        archivo: response.archivo || null,
+        fecha_publicacion: new Date().toISOString()
       })
       
       mostrarNotificacion('Publicación enviada exitosamente', 'success')

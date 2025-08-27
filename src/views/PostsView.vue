@@ -27,7 +27,7 @@
             <div class="post-title-section">
               <h3 class="post-title">{{ post.titulo }}</h3>
               <div class="post-meta">
-                <span class="post-date">{{ dateFormatV1(post.fecha_publicacion) }}</span>
+                <span class="post-date">{{ dateFormatISO(post.fecha_publicacion) }}</span>
               </div>
             </div>
             <div class="post-actions" v-if="isAdmin">
@@ -56,9 +56,9 @@
 
           <div class="post-content">
             <div class="post-description">{{ post.descripcion }}</div>
-            <div v-if="post.imagen" class="post-image-container">
+            <div v-if="post.archivo && post.archivo.url" class="post-image-container">
               <n-image 
-                :src="post.imagen" 
+                :src="post.archivo.url" 
                 alt="Imagen del anuncio"
                 object-fit="cover"
                 :style="{ width: '100%', height: 'auto', maxHeight: '400px', borderRadius: '12px' }"
@@ -92,8 +92,8 @@
 
 <script setup>
 import AnunciosService from '@/services/AnunciosService'
-import { dateFormatV1 } from '@/util/functions.js'
-import { ref, onMounted } from 'vue'
+import { dateFormatISO } from '@/util/functions.js'
+import { ref, onMounted, watch } from 'vue'
 import LoginService from '@/services/LoginService'
 import ModalPublicacion from './modal/ModalPublicacion.vue'
 import logo from '@/assets/OGBU-logo.png'
@@ -113,6 +113,12 @@ const snackbar = ref({
   color: 'success'
 })
 
+watch(() => modalStore.mostrarModalPublicacion, (isOpen) => {
+  if (!isOpen) {
+    editingPost.value = null
+  }
+})
+
 async function loadPublicaciones() {
   try {
     posts.value = await AnunciosService.listarAnuncios()
@@ -127,7 +133,6 @@ function agregarPublicacion() {
 
 function actualizarPublicacion() {
   loadPublicaciones()
-  editingPost.value = null
 }
 
 function onMostrarNotificacion({ mensaje, tipo }) {

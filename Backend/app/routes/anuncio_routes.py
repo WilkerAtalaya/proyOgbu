@@ -5,6 +5,7 @@ from app.controllers.anuncio_controller import (
 )
 from app.files.service import save_upload, delete_file, file_url
 from app.models.usuarios import Usuario
+from app.utils.date_utils import format_datetime_for_frontend
 from datetime import datetime
 
 anuncio_bp = Blueprint('anuncio', __name__)
@@ -57,7 +58,7 @@ def listar_anuncios():
         'titulo': a.titulo,
         'descripcion': a.descripcion,
         'archivo': to_archivo_obj(a.imagen),
-        'fecha_publicacion': a.fecha_publicacion.isoformat()
+        'fecha_publicacion': format_datetime_for_frontend(a.fecha_publicacion)
     } for a in anuncios])
 
 @anuncio_bp.route('/anuncios/<int:id_publicacion>', methods=['GET'])
@@ -70,7 +71,7 @@ def obtener_anuncio(id_publicacion):
         'titulo': a.titulo,
         'descripcion': a.descripcion,
         'archivo': to_archivo_obj(a.imagen),
-        'fecha_publicacion': a.fecha_publicacion.isoformat()
+        'fecha_publicacion': format_datetime_for_frontend(a.fecha_publicacion)
     })
 
 # -------------------- Crear / Editar / Eliminar (con permisos) --------------------

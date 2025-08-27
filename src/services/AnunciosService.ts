@@ -32,28 +32,37 @@ export class AnunciosService {
   }
 
   async actualizarAnuncio(id: number, anuncio: FormData): Promise<Anuncio> {
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
     return axios
       .put<Anuncio>(`${this.urlActualizar}/${id}`, anuncio, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          'X-User-Id': user.id?.toString()
         }
       })
       .then((res: { data: Anuncio }) => res.data)
   }
 
   async actualizarAnuncioParcial(id: number, anuncio: FormData): Promise<Anuncio> {
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
     return axios
       .patch<Anuncio>(`${this.urlActualizar}/${id}`, anuncio, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          'X-User-Id': user.id?.toString()
         }
       })
       .then((res: { data: Anuncio }) => res.data)
   }
 
   async eliminarAnuncio(id: number): Promise<void> {
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
     return axios
-      .delete(`${this.urlEliminar}/${id}`)
+      .delete(`${this.urlEliminar}/${id}`, {
+        headers: {
+          'X-User-Id': user.id?.toString()
+        }
+      })
       .then(() => {})
   }
 }

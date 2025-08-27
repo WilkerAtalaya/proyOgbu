@@ -1,6 +1,7 @@
 from app.models.anuncio import Publicacion
 from app import db
 from app.files.service import delete_file
+from datetime import datetime, timezone
 
 # Para limpiar archivo cuando se purgue el más antiguo
 BUCKET = 'anuncios'
@@ -16,11 +17,14 @@ def crear_anuncio(data):
             db.session.delete(ant)
             db.session.commit()
 
+    fecha_utc = datetime.now(timezone.utc)
+    
     nuevo = Publicacion(
         titulo=data.get('titulo'),
         descripcion=data.get('descripcion'),
         imagen=data.get('imagen'),  # guardamos SOLO el nombre almacenado
-        id_usuario=data.get('id_usuario')
+        id_usuario=data.get('id_usuario'),
+        fecha_publicacion=fecha_utc
     )
     db.session.add(nuevo)
     db.session.commit()
