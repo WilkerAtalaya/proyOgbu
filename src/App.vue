@@ -4,12 +4,12 @@
     <template v-if="showLayout">
       <n-layout class="base-layout" has-sider style="height: 100vh">
         <!-- Sidebar izquierdo -->
-        <n-layout-sider width="346px" content-style="padding: 32px; display: flex; flex-direction: column;">
-          <UserCard style="margin-bottom: 20px;" :user="user" />
-          <div style="flex: 1">
+        <n-layout-sider width="346px" content-style="padding: 32px; display: flex; flex-direction: column; height: 100vh;">
+          <UserCard style="margin-bottom: 20px; flex-shrink: 0;" :user="user" />
+          <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
             <SidebarMenu />
           </div>
-          <ButtonAction style="margin-top: 20px" label="Cerrar Sesión" @click="handleLogout" />
+          <ButtonAction style="margin-top: 20px; flex-shrink: 0;" label="Cerrar Sesión" @click="handleLogout" />
         </n-layout-sider>
 
         <!-- Contenido principal con fondo -->

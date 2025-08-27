@@ -1,21 +1,23 @@
 <template>
-  <div class="sidebar-container">
-    <n-card class="card-sidemenu">
-      <div 
-        v-for="option in menuOptions" 
-        :key="option.key"
-        class="menu-item" 
-        :class="{ active: route.path === option.key }"
-        @click="navigate(option.key)"
-      >
+  <div class="sidebar-menu-wrapper">
+    <div class="card-sidemenu">
+      <div class="menu-items-container">
         <div 
-          class="icon-container circular-icon"
+          v-for="option in menuOptions" 
+          :key="option.key"
+          class="menu-item" 
+          :class="{ active: route.path === option.key }"
+          @click="navigate(option.key)"
         >
-          <img :src="option.iconSrc" :alt="option.label" class="menu-icon-img" />
+          <div 
+            class="icon-container circular-icon"
+          >
+            <img :src="option.iconSrc" :alt="option.label" class="menu-icon-img" />
+          </div>
+          <span class="menu-label">{{ option.label }}</span>
         </div>
-        <span class="menu-label">{{ option.label }}</span>
       </div>
-    </n-card>
+    </div>
     
     <div v-if="route.path === '/anuncios' && isAdmin" class="action-buttons">
       <button 
@@ -88,10 +90,11 @@ function navigate(key) {
 </script>
 
 <style scoped>
-.sidebar-container {
+.sidebar-menu-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  height: 100%;
+  min-height: 0;
 }
 
 .card-sidemenu {
@@ -103,6 +106,18 @@ function navigate(key) {
   display: flex;
   flex-direction: column;
   box-shadow: 0px 10px 4px 0px #00000040;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.menu-items-container {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+  padding-right: 4px;
 }
 
 .menu-item {
@@ -112,6 +127,8 @@ function navigate(key) {
   transition: all 0.3s ease;
   border-radius: 25px;
   padding: 8px 12px;
+  flex-shrink: 0;
+  min-height: 53px;
 }
 
 .menu-item:not(:last-child) {
@@ -160,6 +177,8 @@ function navigate(key) {
   flex-direction: column;
   gap: 16px;
   width: 100%;
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 
 .action-button {
@@ -184,5 +203,24 @@ function navigate(key) {
 .action-button:active {
   transform: translateY(0);
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo personalizado para la barra de scroll de los menu items */
+.menu-items-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-items-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.menu-items-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.menu-items-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 </style>
