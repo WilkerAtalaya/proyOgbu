@@ -18,6 +18,8 @@ def _usuario_actual():
     if not uid:
         uid = request.args.get('id_usuario', type=int)
     if not uid:
+        uid = request.form.get('id_usuario', type=int)
+    if not uid:
         data = request.get_json(silent=True) or {}
         uid = data.get('id_usuario')
     return Usuario.query.get(uid) if uid else None
