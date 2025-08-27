@@ -20,6 +20,7 @@ export interface Actividad {
   estado?: string
   fecha_solicitud?: string
   motivo_cancelacion?: string | null
+  nombre_creador?: string
 }
 
 export interface ActividadInscrita {

@@ -104,7 +104,7 @@ def listar_aprobadas(excluir_usuario_id: int | None = None):
             row[0] for row in db.session.query(InscripcionActividad.id_actividad)
                                         .filter(InscripcionActividad.id_usuario == excluir_usuario_id).all()
         }
-        mostrables = [a for a in mostrables if a.id_actividad not in ids_inscritas]
+        mostrables = [a for a in mostrables if a.id_actividad not in ids_inscritas and a.id_usuario != excluir_usuario_id]
 
     mostrables.sort(key=lambda x: x.fecha_actividad)
     return mostrables

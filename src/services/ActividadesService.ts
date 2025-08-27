@@ -5,7 +5,6 @@ import axios from 'axios'
 export class ActividadesService {
   private urlObtenerPorUsuario: string
   private urlObtenerAprobadas: string
-  private urlObtenerDisponibles: string
   private urlObtenerTodas: string
   private urlObtenerPorId: string
   private urlCrearActividad: string
@@ -19,7 +18,6 @@ export class ActividadesService {
     this.urlObtenerPorUsuario = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerPorUsuario}`
     this.urlObtenerTodas = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerTodas}`
     this.urlObtenerAprobadas = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerAprobadas}`
-    this.urlObtenerDisponibles = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerDisponibles}`
     this.urlObtenerPorId = `${environment.baseUrlApi}${environment.endPoint.actividades.obtenerPorId}`
     this.urlCrearActividad = `${environment.baseUrlApi}${environment.endPoint.actividades.crearActividad}`
     this.urlCrearSolicitud = `${environment.baseUrlApi}${environment.endPoint.actividades.crearSolicitud}`
@@ -49,7 +47,7 @@ export class ActividadesService {
 
   async obtenerActividadesDisponibles(usuarioId: number): Promise<Actividad[]> {
     return axios
-      .get<Actividad[]>(`${this.urlObtenerDisponibles}/${usuarioId}`)
+      .get<Actividad[]>(`${this.urlObtenerAprobadas}?id_usuario=${usuarioId}`)
       .then((res: { data: Actividad[] }) => res.data)
   }
 

@@ -18,7 +18,151 @@
     </v-tabs>
     <v-tabs-window v-model="tab">
       <v-tabs-window-item :value="1">
-        <v-container fluid>
+        <v-container fluid v-if="isAdmin">
+          <div class="dashboard-cards mb-6 mt-6">
+            <div class="stat-card">
+              <div class="stat-icon blue">
+                <i class="fas fa-calendar-alt"></i>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Total Actividades</p>
+                <p class="stat-value">{{ actividades.length }}</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Con Cupos</p>
+                <p class="stat-value">{{ actividades.filter(a => (a.cupos_restantes || a.stock) > 0).length }}</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon red">
+                <i class="fas fa-user-times"></i>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Sin Cupos</p>
+                <p class="stat-value">{{ actividades.filter(a => (a.cupos_restantes || a.stock) <= 0).length }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="search-filter-section">
+            <div class="search-input-container">
+              <i class="fas fa-search search-icon"></i>
+              <input type="text" placeholder="Buscar por título o descripción..." class="search-input"
+                v-model="searchTermActividad" />
+            </div>
+            <div class="filter-tabs">
+              <button v-for="tipo in tiposActividadFiltro" :key="tipo.value"
+                @click="filtroTipoActividad = tipo.value"
+                :class="['filter-tab', { 'active': filtroTipoActividad === tipo.value }]">
+                {{ tipo.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="permisos-table-container">
+            <div class="table-wrapper">
+              <table class="permisos-table">
+                <thead>
+                  <tr>
+                    <th>Creador</th>
+                    <th>Actividad</th>
+                    <th>Tipo y Fecha</th>
+                    <th>Cupos</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="actividad in actividadesPaginadas" :key="actividad.id" class="table-row">
+                    <td>
+                      <div class="employee-info">
+                        <div class="avatar">
+                          {{ getInitials(actividad.nombre_creador) }}
+                        </div>
+                        <div class="employee-details">
+                          <div class="employee-name">{{ actividad.nombre_creador || 'No disponible' }}</div>
+                          <div class="employee-id">{{ actividad.codigo }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="actividad-info">
+                        <div class="actividad-titulo">{{ actividad.titulo }}</div>
+                        <div class="actividad-descripcion" :title="actividad.descripcion">
+                          {{ actividad.descripcion?.substring(0, 80) }}{{ actividad.descripcion?.length > 80 ? '...' : '' }}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="tipo-fecha-info">
+                        <div class="tipo-actividad">
+                          <i class="fas fa-tag" style="color: #53696D; margin-right: 8px;"></i>
+                          {{ actividad.tipo }}
+                        </div>
+                        <div class="fecha-actividad">
+                          <i class="fas fa-calendar" style="color: #A37801; margin-right: 8px;"></i>
+                          {{ formatFechaActividad(actividad.fecha) }}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="cupos-info" :class="{ 'cupos-criticos': (actividad.cupos_restantes || actividad.stock) < 10 }">
+                        <i class="fas fa-users" style="color: #53696D; margin-right: 8px;"></i>
+                        {{ actividad.cupos_restantes || actividad.stock }} / {{ actividad.stock }}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="actions">
+                        <button v-if="actividad.archivo" @click="downloadFile(actividad.archivo)"
+                          class="action-btn download" title="Descargar archivo">
+                          <i class="fas fa-download"></i>
+                        </button>
+                        <button @click="abrirDetalleActividad(actividad)" class="action-btn view" title="Ver detalles">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button @click="abrirModalInscritos(actividad)" class="action-btn view" title="Ver inscritos">
+                          <i class="fas fa-users"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="pagination-container">
+            <div class="pagination-info">
+              <span>Mostrar</span>
+              <select v-model="itemsPerPageActividad" class="items-select">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span>de {{ totalFilteredItemsActividad }} resultados</span>
+            </div>
+            <div class="pagination-controls">
+              <button @click="currentPageActividad = Math.max(currentPageActividad - 1, 1)"
+                :disabled="currentPageActividad === 1" class="pagination-btn">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <span class="pagination-text">
+                Página {{ currentPageActividad }} de {{ totalPagesActividad }}
+              </span>
+              <button @click="currentPageActividad = Math.min(currentPageActividad + 1, totalPagesActividad)"
+                :disabled="currentPageActividad === totalPagesActividad" class="pagination-btn">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </v-container>
+
+        <v-container fluid v-else>
           <div class="actividades-grid">
             <div v-for="(actividad, index) in actividades" :key="index" class="actividad-card">
               <div class="card-header">
@@ -43,6 +187,12 @@
                 <div v-else class="image-placeholder">
                   <i class="fa-solid fa-calendar-days" style="font-size: 48px; color: #53696D;"></i>
                 </div>
+                
+                <div class="creador-overlay">
+                  <i class="fa-solid fa-user"></i>
+                  <span>{{ actividad.nombre_creador || 'No disponible' }}</span>
+                </div>
+                
                 <div class="tipo-badge">{{ actividad.tipo }}</div>
               </div>
 
@@ -79,7 +229,7 @@
               </div>
 
               <div class="card-footer">
-                <v-btn v-if="!isAdmin" @click="inscribirseDirecto(actividad)" color="#53696D" variant="flat" block
+                <v-btn @click="inscribirseDirecto(actividad)" color="#53696D" variant="flat" block
                   class="btn-inscribirse"
                   :disabled="(actividad.cupos_restantes || actividad.stock) <= 0 || inscribiendose[actividad.id]"
                   :loading="inscribiendose[actividad.id]">
@@ -92,19 +242,7 @@
                   </template>
                 </v-btn>
 
-                <v-btn v-else @click="abrirDetalleActividad(actividad)" color="#A37801" variant="outlined" block
-                  class="btn-ver-detalle">
-                  <i class="fa-solid fa-eye" style="margin-right: 8px; font-size: 16px;"></i>
-                  Ver detalle
-                </v-btn>
-
-                <v-btn v-if="isAdmin" @click="abrirModalInscritos(actividad)" color="#53696D" variant="outlined" block
-                  class="btn-ver-inscritos" style="margin-top: 8px;">
-                  <i class="fa-solid fa-users" style="margin-right: 8px; font-size: 16px;"></i>
-                  Ver Inscritos
-                </v-btn>
-
-                <v-btn v-if="!isAdmin" @click="abrirDetalleActividad(actividad)" variant="text" size="small"
+                <v-btn @click="abrirDetalleActividad(actividad)" variant="text" size="small"
                   class="btn-mas-info" color="#53696D">
                   <i class="fa-solid fa-info-circle" style="margin-right: 4px; font-size: 14px;"></i>
                   Más información
@@ -501,6 +639,11 @@ const filtroEstadoActividades = ref('Todos')
 const currentPageActividades = ref(1)
 const itemsPerPageActividades = ref(10)
 
+const searchTermActividad = ref('')
+const filtroTipoActividad = ref('Todos')
+const currentPageActividad = ref(1)
+const itemsPerPageActividad = ref(10)
+
 const filtrosActividades = [
   { label: 'Todos', value: 'Todos' },
   { label: 'Pendientes', value: 'Pendiente' },
@@ -508,6 +651,15 @@ const filtrosActividades = [
   { label: 'Finalizadas', value: 'Finalizado' },
   { label: 'Canceladas', value: 'Cancelado' }
 ]
+
+const tiposActividadFiltro = computed(() => {
+  const tipos = new Set(actividades.value.map(a => a.tipo))
+  const filtros = [{ label: 'Todos', value: 'Todos' }]
+  tipos.forEach(tipo => {
+    filtros.push({ label: tipo, value: tipo })
+  })
+  return filtros
+})
 
 const snackbar = ref({
   show: false,
@@ -558,6 +710,39 @@ const solicitudesPaginadas = computed(() => {
   const start = (currentPageActividades.value - 1) * itemsPerPageActividades.value
   const end = start + itemsPerPageActividades.value
   return solicitudesFiltradasAdmin.value.slice(start, end)
+})
+
+const actividadesFiltradas = computed(() => {
+  let filtered = actividades.value
+
+  if (searchTermActividad.value) {
+    const searchTerm = searchTermActividad.value.toLowerCase()
+    filtered = filtered.filter(actividad =>
+      actividad.titulo?.toLowerCase().includes(searchTerm) ||
+      actividad.descripcion?.toLowerCase().includes(searchTerm) ||
+      actividad.tipo?.toLowerCase().includes(searchTerm)
+    )
+  }
+
+  if (filtroTipoActividad.value !== 'Todos') {
+    filtered = filtered.filter(actividad => 
+      actividad.tipo === filtroTipoActividad.value
+    )
+  }
+
+  return filtered
+})
+
+const totalFilteredItemsActividad = computed(() => actividadesFiltradas.value.length)
+
+const totalPagesActividad = computed(() =>
+  Math.ceil(totalFilteredItemsActividad.value / itemsPerPageActividad.value)
+)
+
+const actividadesPaginadas = computed(() => {
+  const start = (currentPageActividad.value - 1) * itemsPerPageActividad.value
+  const end = start + itemsPerPageActividad.value
+  return actividadesFiltradas.value.slice(start, end)
 })
 
 function getInitials(name) {
@@ -759,7 +944,8 @@ function abrirDetalleActividad(actividad) {
     descripcion: actividad.descripcion,
     stock: actividad.stock,
     cupos_restantes: actividad.cupos_restantes || actividad.stock,
-    archivo: actividad.archivo
+    archivo: actividad.archivo,
+    nombre_creador: actividad.nombre_creador
   }
   showModalDetalle.value = true
 }
@@ -926,6 +1112,7 @@ async function loadActividadesAprobadas() {
       stock: a.stock,
       cupos_restantes: a.cupos_restantes,
       archivo: a.archivo_obj?.url || null,
+      nombre_creador: a.nombre_creador
     }))
   } catch (error) {
     console.error(error)
@@ -1224,6 +1411,29 @@ async function loadActividadesInscritas() {
   font-weight: 500;
   opacity: 0.8;
   margin-top: 2px;
+}
+
+.creador-overlay {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.creador-overlay:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translateY(-1px);
 }
 
 .cupos-card {
@@ -2086,6 +2296,51 @@ async function loadActividadesInscritas() {
   color: #111827;
   display: flex;
   align-items: center;
+}
+
+.cupos-info.cupos-criticos {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.codigo-actividad {
+  font-size: 12px;
+  color: #111827;
+}
+
+.employee-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: #A37801;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 16px;
+}
+
+.employee-details {
+  flex: 1;
+}
+
+.employee-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.employee-id {
+  font-size: 12px;
+  color: #111827;
 }
 
 .motivo-cancelacion-small {

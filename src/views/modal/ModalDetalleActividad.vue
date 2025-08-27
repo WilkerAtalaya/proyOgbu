@@ -8,6 +8,16 @@
         </div>
       </div>
 
+      <div v-if="actividad.nombre_creador" class="mb-4">
+        <label style="font-size: 18px; color: black; font-weight: 400; margin-bottom: 8px; display: block;">
+          Creada por
+        </label>
+        <div class="info-field">
+          <i class="fa-solid fa-user" style="color: #71C82F; margin-right: 8px;"></i>
+          {{ actividad.nombre_creador }}
+        </div>
+      </div>
+
       <div v-if="actividad.archivo" class="mb-4">
         <label style="font-size: 18px; color: black; font-weight: 400; margin-bottom: 8px; display: block;">
           {{ isImageFile(actividad.archivo) ? 'Imagen de la actividad' : 'Archivo de la actividad' }}
