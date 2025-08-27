@@ -2,7 +2,7 @@ from flask import jsonify, g
 from app.models.usuarios import Usuario
 from app import db
 from app.models.cita import Cita
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy import or_
 from app.files.service import save_upload  # usamos el servicio, pero el BUCKET vive aquí
 
@@ -342,23 +342,38 @@ def adjuntar_evidencia_reprog(id_cita, file_storage, user=None):
     return jsonify({'mensaje': 'Evidencia cargada', 'url': meta['url']}), 201
 
 # --------- Agenda pública (anonimizada) ----------
-def agenda_publica(area, desde, hasta):
+def agenda_publica(area=None, desde=None, hasta=None):
     """
-    Devuelve SOLO slots ocupados (Aprobado/Reprogramado) sin datos personales.
-    Las solicitudes PENDIENTES NO bloquean agenda pública.
+    Vista pública de agenda:
+    - Por defecto: todas las citas Aprobadas/Reprogramadas con fecha >= hoy.
+    - Filtros opcionales: area, desde, hasta.
+    - Sin datos personales.
     """
-    if area not in AREAS:
+    # Validación de área solo si se pasa
+    if area and area not in AREAS:
         return jsonify({'error': 'Área inválida. Use: Psicología o Trabajo Social'}), 400
+
+    hoy = date.today()
     q = (Cita.query
-         .filter(Cita.area == area,
-                 Cita.estado.in_(['Aprobado', 'Reprogramado']),
-                 Cita.fecha >= desde,
-                 Cita.fecha <= hasta)
-         .order_by(Cita.fecha.asc(), Cita.horario.asc())
-         .all())
-    data = [{'fecha': c.fecha.strftime('%Y-%m-%d'),
-             'horario': c.horario,
-             'disponible': False} for c in q]
+         .filter(Cita.estado.in_(['Aprobado', 'Reprogramado']),
+                 Cita.fecha >= hoy))
+
+    if area:
+        q = q.filter(Cita.area == area)
+    if desde:
+        q = q.filter(Cita.fecha >= desde)
+    if hasta:
+        q = q.filter(Cita.fecha <= hasta)
+
+    q = q.order_by(Cita.fecha.asc(), Cita.horario.asc()).all()
+
+    data = [{
+        'fecha'    : c.fecha.strftime('%Y-%m-%d'),
+        'horario'  : c.horario,
+        'area'     : c.area,          
+        'disponible': False
+    } for c in q]
+
     return jsonify(data), 200
 
 def filtrar_citas(estado_lista, user=None, **filtros):

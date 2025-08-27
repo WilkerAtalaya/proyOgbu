@@ -193,12 +193,23 @@ def subir_evidencia_reprog_route(id_cita):
 # Agenda pública anonimizada
 @cita_bp.route('/citas/agenda-publica', methods=['GET'])
 def ver_agenda_publica():
-    area = request.args.get('area')
-    if not area:
-        return jsonify({'error': 'area es requerida'}), 400
-    try:
-        desde = datetime.strptime(request.args.get('desde'), '%Y-%m-%d').date()
-        hasta = datetime.strptime(request.args.get('hasta'), '%Y-%m-%d').date()
-    except Exception:
-        return jsonify({'error': 'Fechas inválidas (use YYYY-MM-DD)'}), 400
-    return agenda_publica(area, desde, hasta)
+    # Todos los filtros son OPCIONALES
+    area = request.args.get('area')  # 'Psicología' | 'Trabajo Social' | None
+
+    # Parseo opcional de fechas
+    def _to_date(s):
+        try:
+            return datetime.strptime(s, '%Y-%m-%d').date() if s else None
+        except Exception:
+            return None
+
+    desde = _to_date(request.args.get('desde'))
+    hasta = _to_date(request.args.get('hasta'))
+
+    # Si enviaron una fecha con formato inválido, devolvemos 400
+    if request.args.get('desde') and not desde:
+        return jsonify({'error': 'desde inválida (use YYYY-MM-DD)'}), 400
+    if request.args.get('hasta') and not hasta:
+        return jsonify({'error': 'hasta inválida (use YYYY-MM-DD)'}), 400
+
+    return agenda_publica(area=area, desde=desde, hasta=hasta)
