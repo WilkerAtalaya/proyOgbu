@@ -220,15 +220,12 @@ const getFileName = (archivo) => {
   return archivo.split('/').pop() || archivo
 }
 
-const downloadFile = (fileName) => {
-  if (!fileName) return
-  
-  const baseUrl = 'http://localhost:5000/uploads/quejas/'
-  const fileUrl = baseUrl + fileName
+const downloadFile = (fileUrl) => {
+  if (!fileUrl) return
   
   const link = document.createElement('a')
   link.href = fileUrl
-  link.download = fileName
+  link.download = fileUrl.split('/').pop()
   link.target = '_blank'
   
   document.body.appendChild(link)

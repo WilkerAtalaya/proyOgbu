@@ -392,15 +392,12 @@ function getStatusIconReporte(estado) {
   }
 }
 
-function downloadFile(fileName) {
-  if (!fileName) return
-  
-  const baseUrl = 'http://localhost:5000/uploads/quejas/'
-  const fileUrl = baseUrl + fileName
+function downloadFile(fileUrl) {
+  if (!fileUrl) return
   
   const link = document.createElement('a')
   link.href = fileUrl
-  link.download = fileName
+  link.download = fileUrl.split('/').pop()
   link.target = '_blank'
   
   document.body.appendChild(link)
@@ -408,29 +405,30 @@ function downloadFile(fileName) {
   document.body.removeChild(link)
 }
 
-function isImageFile(fileName) {
-  if (!fileName) return false
+function isImageFile(fileUrl) {
+  if (!fileUrl) return false
+  const fileName = fileUrl.split('/').pop()
   const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
   return imageExtensions.some(ext => fileName.toLowerCase().endsWith(ext))
 }
 
-function isPDFFile(fileName) {
-  if (!fileName) return false
+function isPDFFile(fileUrl) {
+  if (!fileUrl) return false
+  // Extraer el nombre del archivo de la URL
+  const fileName = fileUrl.split('/').pop()
   return fileName.toLowerCase().endsWith('.pdf')
 }
 
-function isWordFile(fileName) {
-  if (!fileName) return false
+function isWordFile(fileUrl) {
+  if (!fileUrl) return false
+  // Extraer el nombre del archivo de la URL
+  const fileName = fileUrl.split('/').pop()
   const wordExtensions = ['.doc', '.docx']
   return wordExtensions.some(ext => fileName.toLowerCase().endsWith(ext))
 }
 
 function getImageUrl(archivo) {
-  if (!archivo) return ''
-  // si ya es una URL absoluta, úsela tal cual
-  if (/^https?:\/\//i.test(archivo)) return archivo
-  // si es solo nombre/relativo, prepéndalo al endpoint público
-  return `${environment.baseUrlApi}/uploads/quejas/${archivo}`
+  return archivo || ''
 }
 
 function getDiaFecha(fecha) {
@@ -510,7 +508,7 @@ async function loadQuejasPorUsuario() {
       fecha: a.fecha,
       estado: a.estado,
       descripcion: a.descripcion,
-      prueba: a.prueba
+      prueba: a.archivo?.url || null
     }))
   } catch (error) {
     console.error(error)
@@ -528,7 +526,7 @@ async function loadQuejas() {
       fecha: a.fecha,
       estado: a.estado,
       descripcion: a.descripcion,
-      prueba: a.prueba
+      prueba: a.archivo?.url || null
     }))
   } catch (error) {
     console.error(error)

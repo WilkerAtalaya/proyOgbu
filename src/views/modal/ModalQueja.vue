@@ -265,7 +265,7 @@ async function submitComplaint() {
       estado: 'Recibido',
       fecha: currentDate(), 
       motivo: form.motivo,     
-      prueba: ''
+      prueba: response.archivo?.url || null
     })
     
     emit('actualizarEstado')
