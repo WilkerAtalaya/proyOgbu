@@ -45,7 +45,7 @@
           <div v-if="isAdmin" class="action-column">
             <button 
               class="delete-button"
-              @click="eliminarReconocimiento(index)"
+              @click="confirmarEliminacion(reconocimiento, index)"
             >
               ✕
             </button>
@@ -54,11 +54,25 @@
       </n-list-item>
     </n-list>
   </n-card>
+  
   <ModalReconocimiento
     v-model="modalStore.mostrarModalReconocimiento"
     :mode="false"
     @agregarReconocimiento="agregarReconocimiento"
     @mostrar-notificacion="onMostrarNotificacion"
+  />
+  
+  <ConfirmationModal
+    v-model="showConfirmModal"
+    title="Eliminar Reconocimiento"
+    :message="`¿Estás seguro de que deseas eliminar el reconocimiento de ${reconocimientoToDelete?.nombre}? Esta acción no se puede deshacer.`"
+    confirm-text="Eliminar"
+    cancel-text="Cancelar"
+    confirm-color="#e74c3c"
+    icon="fas fa-exclamation-triangle"
+    icon-color="#e74c3c"
+    @confirm="confirmarEliminacionReconocimiento"
+    @cancel="cancelarEliminacion"
   />
   
   <v-snackbar 
@@ -84,6 +98,7 @@ import ReconocimientosService from '@/services/ReconocimientosService'
 import LoginService from '@/services/LoginService'
 import { onMounted, ref } from 'vue'
 import ModalReconocimiento from './ModalReconocimiento.vue'
+import ConfirmationModal from './ConfirmationModal.vue'
 import { modalStore } from '@/stores/modalStore'
 
 const router = useRouter()
@@ -97,6 +112,10 @@ const snackbar = ref({
   message: '',
   color: 'success'
 })
+
+const showConfirmModal = ref(false)
+const reconocimientoToDelete = ref(null)
+const indexToDelete = ref(null)
 
 async function loadReconocimientos() {
   try {
@@ -140,6 +159,38 @@ function onMostrarNotificacion({ mensaje, tipo }) {
     message: mensaje,
     color: tipo
   }
+}
+
+function confirmarEliminacion(reconocimiento, index) {
+  reconocimientoToDelete.value = reconocimiento
+  indexToDelete.value = index
+  showConfirmModal.value = true
+}
+
+async function confirmarEliminacionReconocimiento() {
+  try {
+    await ReconocimientosService.eliminarReconocimiento(reconocimientoToDelete.value.id)
+    await loadReconocimientos()
+    
+    onMostrarNotificacion({ 
+      mensaje: 'Reconocimiento eliminado exitosamente', 
+      tipo: 'success' 
+    })
+  } catch (error) {
+    console.error('Error al eliminar reconocimiento:', error)
+    onMostrarNotificacion({ 
+      mensaje: 'Error al eliminar el reconocimiento. Por favor, inténtalo de nuevo.', 
+      tipo: 'error' 
+    })
+  } finally {
+    reconocimientoToDelete.value = null
+    indexToDelete.value = null
+  }
+}
+
+function cancelarEliminacion() {
+  reconocimientoToDelete.value = null
+  indexToDelete.value = null
 }
 
 async function eliminarReconocimiento(index) {
