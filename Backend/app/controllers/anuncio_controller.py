@@ -1,11 +1,18 @@
 from app.models.anuncio import Publicacion
 from app import db
+from app.files.service import delete_file
+
+# Para limpiar archivo cuando se purgue el más antiguo
+BUCKET = 'anuncios'
 
 def crear_anuncio(data):
+    # Mantener máximo 15 anuncios (borra el más antiguo y su archivo)
     total_anuncios = Publicacion.query.count()
     if total_anuncios >= 15:
         ant = Publicacion.query.order_by(Publicacion.fecha_publicacion.asc()).first()
         if ant:
+            if ant.imagen:
+                delete_file(BUCKET, ant.imagen)
             db.session.delete(ant)
             db.session.commit()
 
@@ -42,6 +49,8 @@ def eliminar_anuncio(id_publicacion: int):
     a = Publicacion.query.get(id_publicacion)
     if not a:
         return None
+    if a.imagen:
+        delete_file(BUCKET, a.imagen)
     db.session.delete(a)
     db.session.commit()
     return True
