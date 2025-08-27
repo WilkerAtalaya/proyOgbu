@@ -219,7 +219,7 @@ const getEstadoColor = (estado) => {
 }
 
 const puedeActualizar = (estado) => {
-  return estado !== 'Resuelto' && estado !== 'Cerrado'
+  return estado !== 'Cerrado'
 }
 
 const getFileName = (archivo) => {
