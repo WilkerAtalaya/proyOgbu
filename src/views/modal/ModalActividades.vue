@@ -58,8 +58,8 @@
 
       <div class="mb-4">
         <label style="font-size: 18px; color: black; font-weight: 400;"> Cantidad de Participantes </label>
-        <v-text-field v-model="form.stock" type="number" min="0" variant="outlined" density="comfortable" hide-details
-          class="custom-input" :error="!!errors.stock"></v-text-field>
+        <v-text-field v-model="form.stock" type="number" min="1" max="500" step="1" variant="outlined" density="comfortable" hide-details
+          class="custom-input" :error="!!errors.stock" placeholder="Ingrese entre 1 y 500 participantes"></v-text-field>
         <span v-if="errors.stock" class="error-message">{{ errors.stock }}</span>
       </div>
 
@@ -173,8 +173,17 @@ function validateField(field, value) {
       errors.titulo = ''
       return true
     case 'stock':
-      if (!value || value === '' || Number(value) <= 0) {
-        errors.stock = 'El stock debe ser mayor a 0'
+      if (!value || value === '') {
+        errors.stock = 'La cantidad de participantes es obligatoria'
+        return false
+      }
+      const stockNumber = Number(value)
+      if (isNaN(stockNumber) || !Number.isInteger(stockNumber)) {
+        errors.stock = 'La cantidad debe ser un número entero'
+        return false
+      }
+      if (stockNumber < 1 || stockNumber > 500) {
+        errors.stock = 'La cantidad debe estar entre 1 y 500 participantes'
         return false
       }
       errors.stock = ''
@@ -182,6 +191,16 @@ function validateField(field, value) {
     case 'fecha_actividad':
       if (!value) {
         errors.fecha_actividad = 'La fecha de actividad es obligatoria'
+        return false
+      }
+      // Validar que la fecha no sea en el pasado
+      const today = new Date()
+      today.setHours(0, 0, 0, 0) // Ignorar la hora para comparar solo fechas
+      const selectedDate = new Date(value)
+      selectedDate.setHours(0, 0, 0, 0)
+      
+      if (selectedDate < today) {
+        errors.fecha_actividad = 'La fecha de la actividad no puede ser en el pasado'
         return false
       }
       errors.fecha_actividad = ''
@@ -325,7 +344,18 @@ async function submitComplaint() {
     }, 500)
   } catch (error) {
     console.error('Error al crear actividad:', error)
-    mostrarNotificacion('Error al enviar la actividad. Por favor, inténtalo de nuevo.', 'error')
+    
+    let mensajeError = 'Error al enviar la actividad. Por favor, inténtalo de nuevo.'
+    
+    if (error.response && error.response.data && error.response.data.error) {
+      mensajeError = error.response.data.error
+    } else if (error.response && error.response.data && error.response.data.message) {
+      mensajeError = error.response.data.message
+    } else if (error.message) {
+      mensajeError = error.message
+    }
+    
+    mostrarNotificacion(mensajeError, 'error')
   }
 }
 </script>
