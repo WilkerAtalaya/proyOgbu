@@ -52,10 +52,6 @@
                         />
                       </div>
                     </div>
-                    <div v-if="form.fechaSalida && form.fechaRegreso" class="duration-info">
-                      <i class="fas fa-clock duration-icon"></i>
-                      Duración: {{ calculateDays(form.fechaSalida, form.fechaRegreso) }} días
-                    </div>
                   </div>
 
                   <div class="form-group">
@@ -465,7 +461,7 @@
                   <td>
                     <div class="date-info">
                       <div class="date-range">
-                        {{ dateFormatV2(permiso.fecha_salida) }} - {{ dateFormatV2(permiso.fecha_regreso) }}
+                        {{ extractDate(permiso.fecha_salida) }} - {{ extractDate(permiso.fecha_regreso) }}
                       </div>
                       <div class="date-requested" v-if="permiso.Fecha_solicitada">
                         Solicitado: {{ dateFormatISO(permiso.Fecha_solicitada) }}
@@ -700,7 +696,7 @@
 </template>
 <script setup>
 import { ref, reactive, onMounted, computed, watch } from 'vue'
-import { dateFormatV2, dateFormatISO } from '@/util/functions.js'
+import { dateFormatV2, dateFormatISO, convertLocalDateTimeToUTC, extractDate } from '@/util/functions.js'
 import LoginService from '@/services/LoginService'
 import PermisosService from '@/services/PermisosService'
 import VueDatePicker from '@vuepic/vue-datepicker'
@@ -1141,18 +1137,13 @@ async function submitSolicitudVivienda() {
   isSubmittingSalida.value = true
 
   try {
-    const fechaDesde = form.fechaSalida instanceof Date
-      ? form.fechaSalida.toISOString().slice(0, 10)
-      : form.fechaSalida
-
-    const fechaHasta = form.fechaRegreso instanceof Date
-      ? form.fechaRegreso.toISOString().slice(0, 10)
-      : form.fechaRegreso
+    const fechaSalidaUTC = convertLocalDateTimeToUTC(form.fechaSalida)
+    const fechaRegresoUTC = convertLocalDateTimeToUTC(form.fechaRegreso)
 
     const formData = new FormData()
     formData.append('id_usuario', user.value.id)
-    formData.append('fecha_salida', fechaDesde)
-    formData.append('fecha_regreso', fechaHasta)
+    formData.append('fecha_salida', fechaSalidaUTC.iso_utc)
+    formData.append('fecha_regreso', fechaRegresoUTC.iso_utc)
     formData.append('motivo', form.motivo)
 
     if (selectedFileSalida.value) {

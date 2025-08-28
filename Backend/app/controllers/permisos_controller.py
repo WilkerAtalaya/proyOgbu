@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from app.models.permisos import SalidaVivienda, ReservaAreaComun, db
 from app.models.usuarios import Usuario
 from app.files.service import save_upload, file_url
+from app.utils.date_utils import format_datetime_for_frontend
 
 LIMA_TZ = ZoneInfo('America/Lima')
 BUCKET_JUST = 'justificacion'  # bucket único para justificantes
@@ -25,25 +26,52 @@ def crear_salida_vivienda():
         form = request.form
         file = request.files.get('archivo')  # archivo único (opcional)
         id_usuario = int(form['id_usuario'])
-        fecha_salida = datetime.strptime(form['fecha_salida'], '%Y-%m-%d').date()
-        fecha_regreso = datetime.strptime(form['fecha_regreso'], '%Y-%m-%d').date()
+        
+        fecha_salida_raw = form['fecha_salida']
+        fecha_regreso_raw = form['fecha_regreso']
+        
+        try:
+            fecha_salida = datetime.fromisoformat(fecha_salida_raw.replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Formato de fecha_salida inválido. Debe ser ISO UTC (ej: 2025-09-01T05:00:00.000Z)'}), 400
+            
+        try:
+            fecha_regreso = datetime.fromisoformat(fecha_regreso_raw.replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Formato de fecha_regreso inválido. Debe ser ISO UTC (ej: 2025-09-02T05:00:00.000Z)'}), 400
+            
         motivo = form.get('motivo')
     else:
         data = request.get_json(force=True, silent=True) or {}
         file = None
         id_usuario = int(data['id_usuario'])
-        fecha_salida = datetime.strptime(data['fecha_salida'], '%Y-%m-%d').date()
-        fecha_regreso = datetime.strptime(data['fecha_regreso'], '%Y-%m-%d').date()
+        
+        fecha_salida_raw = data['fecha_salida']
+        fecha_regreso_raw = data['fecha_regreso']
+        
+        try:
+            fecha_salida = datetime.fromisoformat(fecha_salida_raw.replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Formato de fecha_salida inválido. Debe ser ISO UTC (ej: 2025-09-01T05:00:00.000Z)'}), 400
+            
+        try:
+            fecha_regreso = datetime.fromisoformat(fecha_regreso_raw.replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Formato de fecha_regreso inválido. Debe ser ISO UTC (ej: 2025-09-02T05:00:00.000Z)'}), 400
+            
         motivo = data.get('motivo')
 
-    if (fecha_regreso - fecha_salida).days > 10 and not motivo:
+    if (fecha_regreso.date() - fecha_salida.date()).days > 10 and not motivo:
         return jsonify({'error': 'Debe ingresar un motivo si su salida es mayor a 10 días.'}), 400
 
+    fecha_solicitud_utc = datetime.now(timezone.utc)
+    
     salida = SalidaVivienda(
         id_usuario=id_usuario,
         fecha_salida=fecha_salida,
         fecha_regreso=fecha_regreso,
-        motivo=motivo
+        motivo=motivo,
+        Fecha_solicitada=fecha_solicitud_utc  # Guardar en UTC 0
     )
 
     # Guardar archivo si vino
@@ -79,11 +107,11 @@ def _serialize_salida(s: SalidaVivienda):
         'id': s.id,
         'id_usuario': s.id_usuario,
         'nombre_usuario': s.usuario.nombre if s.usuario else None,
-        'fecha_salida': s.fecha_salida.strftime('%Y-%m-%d'),
-        'fecha_regreso': s.fecha_regreso.strftime('%Y-%m-%d'),
+        'fecha_salida': format_datetime_for_frontend(s.fecha_salida),
+        'fecha_regreso': format_datetime_for_frontend(s.fecha_regreso),
         'motivo': s.motivo,
         'estado': s.estado,
-        'Fecha_solicitada': _to_lima_iso(s.Fecha_solicitada),
+        'Fecha_solicitada': format_datetime_for_frontend(s.Fecha_solicitada),
         'archivo': _to_archivo_obj(s.archivo_justificacion),
     }
 
@@ -173,7 +201,12 @@ def crear_reserva_area_comun():
         return jsonify({'error': 'Ya tiene una reserva para ese lugar en esa fecha.'}), 409
 
     r = ReservaAreaComun(
-        id_usuario=id_usuario, lugar=lugar, fecha=fecha, horario=horario, motivo=motivo
+        id_usuario=id_usuario, 
+        lugar=lugar, 
+        fecha=fecha, 
+        horario=horario, 
+        motivo=motivo,
+        Fecha_solicitada=datetime.now(timezone.utc)
     )
     db.session.add(r)
     db.session.commit()
@@ -190,7 +223,7 @@ def _serialize_reserva(r: ReservaAreaComun):
         'horario': r.horario,
         'estado': r.estado,
         'motivo': r.motivo,
-        'Fecha_solicitada': _to_lima_iso(r.Fecha_solicitada),
+        'Fecha_solicitada': format_datetime_for_frontend(r.Fecha_solicitada),
     }
 
 def listar_reservas_area_comun(id_usuario=None):

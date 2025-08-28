@@ -7,8 +7,8 @@ class SalidaVivienda(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=False)
-    fecha_salida = db.Column(db.Date, nullable=False)
-    fecha_regreso = db.Column(db.Date, nullable=False)
+    fecha_salida = db.Column(db.DateTime(timezone=True), nullable=False)
+    fecha_regreso = db.Column(db.DateTime(timezone=True), nullable=False)
     motivo = db.Column(db.Text, nullable=True)
     estado = db.Column(db.String(20), default='En revisión')  # En revisión, Aprobado, Denegado
     archivo_justificacion = db.Column(db.String(255))         # guardamos el nombre/relativo del archivo

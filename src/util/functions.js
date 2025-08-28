@@ -79,13 +79,16 @@ export function formatBackendDate(fechaBackend, includeTime = true) {
 
 // Convierte fecha y hora local del usuario a UTC para enviar al backend
 export function convertLocalDateTimeToUTC(fechaLocal, horaLocal = '00:00') {
-  if (!fechaLocal) return { fecha_utc: '', hora_utc: '00:00' }
+  if (!fechaLocal) return { fecha_utc: '', hora_utc: '00:00', iso_utc: '', timestamp_utc: null }
   
   let fechaString = ''
   
   // Manejar diferentes formatos de fecha
   if (fechaLocal instanceof Date) {
-    fechaString = fechaLocal.toISOString().split('T')[0] // YYYY-MM-DD
+    const year = fechaLocal.getFullYear()
+    const month = String(fechaLocal.getMonth() + 1).padStart(2, '0')
+    const day = String(fechaLocal.getDate()).padStart(2, '0')
+    fechaString = `${year}-${month}-${day}`
   } else if (typeof fechaLocal === 'string') {
     if (fechaLocal.includes('/')) {
       // Formato dd/mm/yyyy
@@ -99,7 +102,7 @@ export function convertLocalDateTimeToUTC(fechaLocal, horaLocal = '00:00') {
     }
   }
   
-  if (!fechaString) return { fecha_utc: '', hora_utc: '00:00' }
+  if (!fechaString) return { fecha_utc: '', hora_utc: '00:00', iso_utc: '', timestamp_utc: null }
   
   let horaString = '00:00'
   if (horaLocal) {
@@ -114,17 +117,23 @@ export function convertLocalDateTimeToUTC(fechaLocal, horaLocal = '00:00') {
     }
   }
   
-  const fechaHoraLocalString = `${fechaString}T${horaString}:00`
+  const [year, month, day] = fechaString.split('-').map(Number)
+  const [hours, minutes] = horaString.split(':').map(Number)
   
-  const fechaLocalCompleta = new Date(fechaHoraLocalString)
+  const fechaLocalCompleta = new Date(year, month - 1, day, hours, minutes, 0, 0)
   
-  const fechaUTC = new Date(fechaLocalCompleta.toISOString())
+  const timestampUTC = fechaLocalCompleta.getTime()
+  
+  const fechaUTC = new Date(timestampUTC)
   
   const fechaUTCString = fechaUTC.toISOString().split('T')[0] // YYYY-MM-DD
   const horaUTCString = fechaUTC.toISOString().split('T')[1].slice(0, 5) // HH:MM
+  const isoUTCString = fechaUTC.toISOString() // Formato ISO completo
   
   return {
     fecha_utc: fechaUTCString,
-    hora_utc: horaUTCString
+    hora_utc: horaUTCString,
+    iso_utc: isoUTCString,
+    timestamp_utc: timestampUTC
   }
 }
