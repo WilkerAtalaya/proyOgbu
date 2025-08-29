@@ -1,4 +1,7 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
+from zoneinfo import ZoneInfo
+
+LIMA_TZ = ZoneInfo("America/Lima")
 
 def get_current_utc_time():
     """
@@ -9,26 +12,32 @@ def get_current_utc_time():
     """
     return datetime.now(timezone.utc)
 
-def format_datetime_for_frontend(dt):
+def format_datetime_for_frontend(dt, tz: ZoneInfo = LIMA_TZ, iso: bool = True, assume_naive: str = "utc"):
     """
-    Convierte datetime a timestamp ISO en UTC con indicador 'Z' para que el frontend sepa que es UTC
-    
-    Args:
-        dt: datetime object (UTC from database)
-    
-    Returns:
-        str: timestamp en formato ISO UTC (ej: "2025-08-27T15:30:00Z")
+    assume_naive: "utc" (por defecto) o "lima"
+      - "utc": si dt es naive, se interpreta como UTC y luego se convierte a tz
+      - "lima": si dt es naive, se interpreta como hora de Lima directamente
     """
-    if not dt:
-        return ''
-    
-    # Si el datetime no tiene timezone info, asumimos que es UTC
+    if dt is None:
+        return None
+
+    if isinstance(dt, str):
+        try:
+            dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+        except Exception:
+            return dt
+
+    if isinstance(dt, date) and not isinstance(dt, datetime):
+        dt = datetime.combine(dt, datetime.min.time())
+
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    
-    # Convertir a UTC y enviar con 'Z' para indicar que es UTC
-    utc_time = dt.astimezone(timezone.utc)
-    return utc_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+        if assume_naive.lower() == "lima":
+            dt = dt.replace(tzinfo=tz)  # << interpretar naive como Lima
+        else:
+            dt = dt.replace(tzinfo=timezone.utc)
+
+    local = dt.astimezone(tz)
+    return local.isoformat(timespec="seconds") if iso else local.strftime("%Y-%m-%d %H:%M:%S")
 
 def parse_date_from_frontend(date_str):
     """

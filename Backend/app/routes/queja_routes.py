@@ -60,7 +60,7 @@ def listar_quejas_usuario(id_usuario):
         'asunto': q.asunto,
         'motivo': q.motivo,
         'descripcion': q.descripcion,
-        'fecha': format_datetime_for_frontend(q.fecha),
+        'fecha': format_datetime_for_frontend(q.fecha, assume_naive="lima"), 
         'estado': q.estado,
         'archivo': to_archivo_obj(q.prueba)
     } for q in quejas])
@@ -110,7 +110,7 @@ def listar_todas_quejas():
         'asunto': q.asunto,
         'motivo': q.motivo,
         'descripcion': q.descripcion,
-        'fecha': format_datetime_for_frontend(q.fecha),
+        'fecha': format_datetime_for_frontend(q.fecha, assume_naive="lima"),
         'estado': q.estado,
         'archivo': to_archivo_obj(q.prueba)   
     } for q in quejas])

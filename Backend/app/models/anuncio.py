@@ -8,5 +8,8 @@ class Publicacion(db.Model):
     descripcion = db.Column(db.Text, nullable=False)
     titulo = db.Column(db.String(150), nullable=False)
     imagen = db.Column(db.String(255))
-    fecha_publicacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    fecha_publicacion = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc))
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=False)

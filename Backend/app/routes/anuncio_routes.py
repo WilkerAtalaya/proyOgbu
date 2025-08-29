@@ -58,7 +58,7 @@ def listar_anuncios():
         'titulo': a.titulo,
         'descripcion': a.descripcion,
         'archivo': to_archivo_obj(a.imagen),
-        'fecha_publicacion': format_datetime_for_frontend(a.fecha_publicacion)
+        'fecha_publicacion': format_datetime_for_frontend(a.fecha_publicacion, assume_naive="lima")
     } for a in anuncios])
 
 @anuncio_bp.route('/anuncios/<int:id_publicacion>', methods=['GET'])
@@ -71,7 +71,7 @@ def obtener_anuncio(id_publicacion):
         'titulo': a.titulo,
         'descripcion': a.descripcion,
         'archivo': to_archivo_obj(a.imagen),
-        'fecha_publicacion': format_datetime_for_frontend(a.fecha_publicacion)
+        'fecha_publicacion': format_datetime_for_frontend(a.fecha_publicacion, assume_naive="lima")
     })
 
 # -------------------- Crear / Editar / Eliminar (con permisos) --------------------

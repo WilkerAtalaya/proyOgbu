@@ -1,7 +1,7 @@
 import uuid
 from flask import request, jsonify, url_for, redirect
 from sqlalchemy import desc
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from zoneinfo import ZoneInfo
 
 from app.models.permisos import SalidaVivienda, ReservaAreaComun, db
@@ -15,8 +15,24 @@ BUCKET_JUST = 'justificacion'  # bucket único para justificantes
 def _to_lima_iso(dt):
     if dt is None:
         return None
+
+    # 1) Si viene como string ISO (p. ej. desde otra capa), intente parsearlo
+    if isinstance(dt, str):
+        try:
+            dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+        except Exception:
+            # Si no se puede parsear, devuélvalo tal cual para no romper
+            return dt
+
+    # 2) Si es un date puro, conviértalo a datetime a las 00:00
+    if isinstance(dt, date) and not isinstance(dt, datetime):
+        dt = datetime.combine(dt, datetime.min.time())
+
+    # 3) Si es datetime naive, asuma UTC (usted guarda en UTC)
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
+
+    # 4) Convierta a Lima y retorne ISO con segundos
     return dt.astimezone(LIMA_TZ).isoformat(timespec='seconds')
 
 # ========== SALIDA DE VIVIENDA ==========
@@ -107,11 +123,11 @@ def _serialize_salida(s: SalidaVivienda):
         'id': s.id,
         'id_usuario': s.id_usuario,
         'nombre_usuario': s.usuario.nombre if s.usuario else None,
-        'fecha_salida': format_datetime_for_frontend(s.fecha_salida),
-        'fecha_regreso': format_datetime_for_frontend(s.fecha_regreso),
+        'fecha_salida': _to_lima_iso(s.fecha_salida),   
+        'fecha_regreso': _to_lima_iso(s.fecha_regreso),  
         'motivo': s.motivo,
         'estado': s.estado,
-        'Fecha_solicitada': format_datetime_for_frontend(s.Fecha_solicitada),
+        'Fecha_solicitada': _to_lima_iso(s.Fecha_solicitada),  
         'archivo': _to_archivo_obj(s.archivo_justificacion),
     }
 
