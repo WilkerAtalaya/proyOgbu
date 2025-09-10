@@ -37,6 +37,7 @@ def create_app():
     from app.routes.cita_routes import cita_bp
     from app.routes.asistencia_routes import asistencia_bp
     from app.files.routes import files_bp
+    from app.routes.administrar_usuario_router import administrar_usuario_bp
 
 
     app.register_blueprint(usuarios_bp)
@@ -48,4 +49,5 @@ def create_app():
     app.register_blueprint(cita_bp)
     app.register_blueprint(asistencia_bp)
     app.register_blueprint(files_bp)
+    app.register_blueprint(administrar_usuario_bp)
     return app
