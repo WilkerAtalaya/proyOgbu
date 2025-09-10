@@ -7,7 +7,7 @@ from app import db
 usuarios_bp = Blueprint("usuarios", __name__)
 
 @usuarios_bp.route("/usuarios", methods=["GET"])
-def listar_usuarios():
+def listar_usuarios_publico():
     usuarios = Usuario.query.all()
     return jsonify([{
         "id": u.id_usuario,
@@ -22,7 +22,7 @@ def cumpleaños_hoy():
     resultado = [{
         'id': u.id_usuario,
         'nombre': u.nombre,
-        'fecha_cumpleaños': u.fecha_cumpleaños.isoformat()
+        'fecha_cumpleaños': u.fecha_cumpleaños.isoformat() if u.fecha_cumpleaños else None
     } for u in usuarios]
     return jsonify(resultado)
 
@@ -42,18 +42,9 @@ def login():
         "rol": usuario.rol
     }), 200
 
-
-# === NUEVO: Cambiar contraseña desde el login ===
+# Cambiar contraseña desde login
 @usuarios_bp.route('/cambiar-contraseña', methods=['POST'])
 def cambiar_contraseña():
-    """
-    Body esperado (JSON):
-    {
-        "correo": "user@dominio.com",
-        "contraseña_actual": "Actual123",
-        "nueva_contraseña": "Nueva123!"
-    }
-    """
     data = request.get_json() or {}
     correo = data.get('correo')
     actual = data.get('contraseña_actual')
@@ -66,7 +57,6 @@ def cambiar_contraseña():
     if not usuario or not check_password_hash(usuario.contraseña, actual):
         return jsonify({"mensaje": "Usuario no encontrado o contraseña actual incorrecta."}), 401
 
-    # Validaciones mínimas (ajuste según su política)
     if len(nueva) < 8:
         return jsonify({"mensaje": "La nueva contraseña debe tener al menos 8 caracteres."}), 400
     if nueva == actual:
