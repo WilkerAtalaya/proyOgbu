@@ -25,7 +25,7 @@ def create_app():
     migrate.init_app(app, db)
 
     # Importación de modelos (para que SQLAlchemy los registre)
-    from app.models import usuarios, anuncio, reconocimiento, queja, actividad, permisos, cita, asistencia, inscripcion
+    from app.models import usuarios, anuncio, reconocimiento, queja, actividad, permisos, cita, asistencia, inscripcion, area, motivo_cita
 
     # Registro de Blueprints
     from app.routes.usuarios import usuarios_bp
@@ -38,6 +38,8 @@ def create_app():
     from app.routes.asistencia_routes import asistencia_bp
     from app.files.routes import files_bp
     from app.routes.administrar_usuario_router import administrar_usuario_bp
+    from app.routes.area_citas_routes import area_bp
+    from app.routes.motivo_cita_routes import motivo_cita_bp
 
 
     app.register_blueprint(usuarios_bp)
@@ -50,4 +52,6 @@ def create_app():
     app.register_blueprint(asistencia_bp)
     app.register_blueprint(files_bp)
     app.register_blueprint(administrar_usuario_bp)
+    app.register_blueprint(area_bp)
+    app.register_blueprint(motivo_cita_bp)
     return app
