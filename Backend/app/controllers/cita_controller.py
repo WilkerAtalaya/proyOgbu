@@ -2,6 +2,8 @@ from flask import jsonify, g
 from app.models.usuarios import Usuario
 from app import db
 from app.models.cita import Cita
+from app.models.area import Area
+from app.models.motivo_cita import MotivoCita
 from datetime import datetime, date
 from sqlalchemy import or_
 from app.files.service import save_upload  # usamos el servicio, pero el BUCKET vive aquí
@@ -20,17 +22,25 @@ ROL_A_AREA = {
     'social': 'Trabajo Social',
 }
 
-# Mapeo motivo -> área
-MOTIVO_A_AREA = {
-    'Salud Mental': 'Psicología',
-    'Rendimiento Académico': 'Trabajo Social',
-    'Psicosocial': 'Trabajo Social',
-}
+def _area_valida(nombre_area: str) -> bool:
+    if not nombre_area:
+        return False
+    return db.session.query(Area.id_area).filter(Area.area == nombre_area).first() is not None
 
 def _area_por_motivo(motivo: str):
+    """
+    Busca el área a partir del motivo en la tabla motivo_cita.
+    Retorna el nombre del área (p.ej., 'Psicología') o None si no existe.
+    """
     if not motivo:
         return None
-    return MOTIVO_A_AREA.get(motivo.strip())
+    row = (
+        db.session.query(Area.area)
+        .join(MotivoCita, MotivoCita.id_area == Area.id_area)
+        .filter(MotivoCita.motivo.ilike(motivo.strip()))
+        .first()
+    )
+    return row[0] if row else None
 
 # ------- Helpers -------
 def _get_user(user_id=None):
@@ -58,7 +68,7 @@ def _aplicar_scope_por_rol(query, user):
     return query
 
 def _validar_area_creacion(user, area_solicitada):
-    if area_solicitada not in AREAS:
+    if not _area_valida(area_solicitada):
         return False, 'Área inválida. Use: Psicología o Trabajo Social'
     if _es_staff_area(user):
         area_permitida = _area_del_staff(user)
@@ -350,7 +360,7 @@ def agenda_publica(area=None, desde=None, hasta=None):
     - Sin datos personales.
     """
     # Validación de área solo si se pasa
-    if area and area not in AREAS:
+    if area and not _area_valida(area):
         return jsonify({'error': 'Área inválida. Use: Psicología o Trabajo Social'}), 400
 
     hoy = date.today()
