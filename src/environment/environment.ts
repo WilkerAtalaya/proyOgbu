@@ -3,7 +3,6 @@ export const environment = {
   endPoint: {
     login: {
       crear: '/login',
-      cambiarContrasena: '/cambiar-contraseña',
     },
     anuncios: {
       listar: '/anuncios',
@@ -49,6 +48,13 @@ export const environment = {
       obtenerCulminadas: '/citas/culminadas',
       consultar: '/citas',
       crear: '/citas',
+      getBusySchedules: '/citas/agenda-publica',
+    },
+    area:{
+      getAreas: '/areas',
+    },
+    reasons:{
+      getReasons: '/motivos-cita'
     },
     asistencia: {
       obtenerFechasMarcadasPorUsuario: '/asistencia/fechas',

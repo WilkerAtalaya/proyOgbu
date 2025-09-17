@@ -1,0 +1,24 @@
+.custom-input :deep(.v-field) {
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.custom-input :deep(.v-field--focused) {
+  background-color: white;
+}
+
+.upload-area {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.upload-area:hover {
+  border-color: #e91e63;
+  background-color: #fce4ec;
+}
+
+:deep(.dp__theme_light) {
+  --dp-primary-color: #e91e63;
+  --dp-primary-text-color: #fff;
+}

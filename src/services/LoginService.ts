@@ -3,11 +3,9 @@ import axios from 'axios'
 
 export class LoginService {
   private urlLogin: string
-  private urlCambiarContrasena: string
 
   constructor() {
     this.urlLogin = `${environment.baseUrlApi}${environment.endPoint.login.crear}`
-    this.urlCambiarContrasena = `${environment.baseUrlApi}${environment.endPoint.login.cambiarContrasena}`
   }
 
   async login(credentials: any) {
@@ -40,37 +38,6 @@ export class LoginService {
         success: false,
         data: null,
         message: error || 'Error al iniciar sesión',
-      }
-    }
-  }
-
-  async cambiarContrasena(datos: { correo: string, contraseña_actual: string, nueva_contraseña: string }) {
-    try {
-      const response = await fetch(`${this.urlCambiarContrasena}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datos),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      return {
-        success: true,
-        data: data,
-        message: 'Contraseña cambiada exitosamente',
-      }
-    } catch (error) {
-      console.error('Error al cambiar contraseña:', error)
-      return {
-        success: false,
-        data: null,
-        message: (error as Error).message || 'Error al cambiar la contraseña',
       }
     }
   }
