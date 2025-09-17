@@ -44,11 +44,10 @@ const router = createRouter({
     {
       path: '/citas',
       name: 'citas',
-      component: () => import('../views/SessionsView/ListSessions.vue'),
+      component: () => import('../views/SessionsView.vue'),
     },
   ],
 })
-
 // Guard de navegación para proteger rutas
 router.beforeEach((to, from, next) => {
   const isAuthenticated = LoginService.isAuthenticated()

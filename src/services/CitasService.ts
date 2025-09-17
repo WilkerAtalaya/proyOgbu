@@ -8,9 +8,6 @@ export class CitasService {
   private urlObtenerCulminadas: string
   private urlConsultar: string
   private urlCrear: string
-  private urlGetBusySchedules: string
-  private urlGetAreas: string
-  private urlGetReasons: string
 
   constructor() {
     this.urlObtenerSolicitadasPorUsuario = `${environment.baseUrlApi}${environment.endPoint.citas.obtenerSolicitadasPorUsuario}`
@@ -18,9 +15,6 @@ export class CitasService {
     this.urlObtenerCulminadas = `${environment.baseUrlApi}${environment.endPoint.citas.obtenerCulminadas}`
     this.urlConsultar = `${environment.baseUrlApi}${environment.endPoint.citas.consultar}`
     this.urlCrear = `${environment.baseUrlApi}${environment.endPoint.citas.crear}`
-    this.urlGetBusySchedules = `${environment.baseUrlApi}${environment.endPoint.citas.getBusySchedules}`
-    this.urlGetAreas = `${environment.baseUrlApi}${environment.endPoint.area.getAreas}`
-    this.urlGetReasons = `${environment.baseUrlApi}${environment.endPoint.reasons.getReasons}`
   }
 
   async obtenerCitasSolicitadasPorUsuario(usuarioId: number): Promise<CitaAlumno[]> {
@@ -50,23 +44,15 @@ export class CitasService {
   }
 
   async obtenerCitaPorId(id: number): Promise<CitaAdmin> {
-    return axios.get<CitaAdmin>(`${this.urlConsultar}/${id}`).then((res) => res.data)
+    return axios
+      .get<CitaAdmin>(`${this.urlConsultar}/${id}`)
+      .then(res => res.data);
   }
 
-  async crearCita(body: Partial<CitaAdmin>): Promise<CitaAdmin> {
-    return axios.post<CitaAdmin>(this.urlCrear, body).then((res) => res.data)
-  }
-
-  async getBusySchedules(params: any): Promise<CitaAdmin[]> {
-    return axios.get<CitaAdmin[]>(this.urlGetBusySchedules, { params }).then((res) => res.data)
-  }
-
-  async getAreas(): Promise<any[]> {
-    return axios.get<any[]>(`${this.urlGetAreas}`).then((res) => res.data)
-  }
-
-  async getReasons(): Promise<any[]> {
-    return axios.get<any[]>(`${this.urlGetReasons}`).then((res) => res.data)
+   async crearCita(body: Partial<CitaAdmin>): Promise<CitaAdmin> {
+    return axios
+      .post<CitaAdmin>(this.urlCrear, body)
+      .then(res => res.data);
   }
 }
 
