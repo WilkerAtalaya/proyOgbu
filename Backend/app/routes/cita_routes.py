@@ -14,9 +14,9 @@ from app.controllers.cita_controller import (
     agenda_publica,
     ESTADOS_PENDIENTES,
     ESTADOS_CULMINADAS,
-    adjuntar_evidencia_reprog,   # << nuevo
+    adjuntar_evidencia_reprog,
 )
-from app.files.service import file_url  # solo para construir URLs en respuestas
+from app.files.service import file_url
 
 cita_bp = Blueprint('cita', __name__)
 
@@ -41,7 +41,8 @@ def _formato_admin(c):
         'id_alumno' : c.id_alumno,
         'nombre'    : c.alumno.nombre,
         'motivo'    : c.motivo,
-        'area'      : c.area,
+        'area_id'   : c.area_id,
+        'area'      : c.area_rel.area if c.area_rel else None,
         'fecha'     : c.fecha.strftime('%Y-%m-%d'),
         'horario'   : c.horario,
         'estado'    : c.estado
@@ -52,6 +53,7 @@ def _extraer_filtros():
         'id_alumno' : request.args.get('id_alumno', type=int),
         'nombre'    : request.args.get('nombre'),
         'area'      : request.args.get('area'),
+        'area_id'   : request.args.get('area_id', type=int),
         'fecha'     : request.args.get('fecha',
                        type=lambda d: datetime.strptime(d, '%Y-%m-%d').date() if d else None),
         'desde'     : request.args.get('desde',
@@ -86,7 +88,8 @@ def ver_citas_alumno(id_alumno):
         'id_alumno' : c.id_alumno,
         'motivo'    : c.motivo,
         'descripcion': c.descripcion,
-        'area'      : c.area,
+        'area_id'   : c.area_id,
+        'area'      : c.area_rel.area if c.area_rel else None,
         'fecha'     : c.fecha.strftime('%Y-%m-%d'),
         'horario'   : c.horario,
         'estado'    : c.estado,
@@ -126,7 +129,8 @@ def ver_detalle_cita(id_cita):
             'nombre'    : c.alumno.nombre,
             'motivo'    : c.motivo,
             'descripcion': c.descripcion,
-            'area'      : c.area,
+            'area_id'   : c.area_id,
+            'area'      : c.area_rel.area if c.area_rel else None,
             'fecha'     : c.fecha.strftime('%Y-%m-%d'),
             'horario'   : c.horario,
             'estado'    : c.estado,
@@ -188,17 +192,14 @@ def subir_evidencia_reprog_route(id_cita):
     user = _usuario_actual()
     if not user:
         return jsonify({'error': 'Usuario no identificado'}), 401
-    # archivo en form-data con key 'file'
     file = request.files.get('file')
     return adjuntar_evidencia_reprog(id_cita, file, user=user)
 
 # Agenda pública anonimizada
 @cita_bp.route('/citas/agenda-publica', methods=['GET'])
 def ver_agenda_publica():
-    # Todos los filtros son OPCIONALES
-    area = request.args.get('area')  # 'Psicología' | 'Trabajo Social' | None
-
-    # Parseo opcional de fechas
+    area_id = request.args.get('area_id', type=int)
+    area = request.args.get('area') 
     def _to_date(s):
         try:
             return datetime.strptime(s, '%Y-%m-%d').date() if s else None
@@ -208,10 +209,9 @@ def ver_agenda_publica():
     desde = _to_date(request.args.get('desde'))
     hasta = _to_date(request.args.get('hasta'))
 
-    # Si enviaron una fecha con formato inválido, devolvemos 400
     if request.args.get('desde') and not desde:
         return jsonify({'error': 'desde inválida (use YYYY-MM-DD)'}), 400
     if request.args.get('hasta') and not hasta:
         return jsonify({'error': 'hasta inválida (use YYYY-MM-DD)'}), 400
 
-    return agenda_publica(area=area, desde=desde, hasta=hasta)
+    return agenda_publica(area=area, desde=desde, hasta=hasta, area_id=area_id)
