@@ -11,49 +11,161 @@
 
     <div class="login-panel">
       <div class="login-form">
-        <h2 class="login-title">Iniciar Sesión</h2>
-        
-        <form @submit.prevent="handleLogin">
-          <div class="input-group">
-            <input
-              v-model="form.username"
-              type="text"
-              placeholder="Usuario"
-              class="login-input"
-              :class="{ 'error': usernameError }"
-              @blur="markUsernameTouched"
-              required
-            />
-            <div v-if="usernameError" class="error-message">{{ usernameError }}</div>
-          </div>
+        <div v-if="!showChangePassword">
+          <h2 class="login-title">Iniciar Sesión</h2>
           
-          <div class="input-group">
-            <div class="password-input-container">
+          <form @submit.prevent="handleLogin">
+            <div class="input-group">
               <input
-                v-model="form.password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="Contraseña"
+                v-model="form.username"
+                type="text"
+                placeholder="Usuario"
                 class="login-input"
-                :class="{ 'error': passwordError }"
-                @blur="markPasswordTouched"
+                :class="{ 'error': usernameError }"
+                @blur="markUsernameTouched"
                 required
               />
-              <button 
-                type="button" 
-                @click="showPassword = !showPassword"
-                class="password-toggle-btn"
-              >
-                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-              </button>
+              <div v-if="usernameError" class="error-message">{{ usernameError }}</div>
             </div>
-            <div v-if="passwordError" class="error-message">{{ passwordError }}</div>
+            
+            <div class="input-group">
+              <div class="password-input-container">
+                <input
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="Contraseña"
+                  class="login-input"
+                  :class="{ 'error': passwordError }"
+                  @blur="markPasswordTouched"
+                  required
+                />
+                <button 
+                  type="button" 
+                  @click="showPassword = !showPassword"
+                  class="password-toggle-btn"
+                >
+                  <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                </button>
+              </div>
+              <div v-if="passwordError" class="error-message">{{ passwordError }}</div>
+            </div>
+            
+            <button type="submit" class="login-button" :disabled="loading">
+              <span v-if="loading" class="spinner"></span>
+              {{ loading ? 'Ingresando...' : 'Ingresar' }}
+            </button>
+          </form>
+
+          <div class="forgot-password">
+            <button 
+              type="button" 
+              @click="showChangePassword = true"
+              class="forgot-password-btn"
+            >
+              ¿Quieres cambiar tu contraseña?
+            </button>
           </div>
+        </div>
+
+        <div v-else>
+          <h2 class="login-title">Cambiar Contraseña</h2>
           
-          <button type="submit" class="login-button" :disabled="loading">
-            <span v-if="loading" class="spinner"></span>
-            {{ loading ? 'Ingresando...' : 'Ingresar' }}
-          </button>
-        </form>
+          <form @submit.prevent="handleChangePassword">
+            <div class="input-group">
+              <input
+                v-model="changePasswordForm.correo"
+                type="email"
+                placeholder="Correo electrónico"
+                class="login-input"
+                :class="{ 'error': emailError }"
+                @blur="markEmailTouched"
+                required
+              />
+              <div v-if="emailError" class="error-message">{{ emailError }}</div>
+            </div>
+            
+            <div class="input-group">
+              <div class="password-input-container">
+                <input
+                  v-model="changePasswordForm.contraseña_actual"
+                  :type="showCurrentPassword ? 'text' : 'password'"
+                  placeholder="Contraseña actual"
+                  class="login-input"
+                  :class="{ 'error': currentPasswordError }"
+                  @blur="markCurrentPasswordTouched"
+                  required
+                />
+                <button 
+                  type="button" 
+                  @click="showCurrentPassword = !showCurrentPassword"
+                  class="password-toggle-btn"
+                >
+                  <i :class="showCurrentPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                </button>
+              </div>
+              <div v-if="currentPasswordError" class="error-message">{{ currentPasswordError }}</div>
+            </div>
+
+            <div class="input-group">
+              <div class="password-input-container">
+                <input
+                  v-model="changePasswordForm.nueva_contraseña"
+                  :type="showNewPassword ? 'text' : 'password'"
+                  placeholder="Nueva contraseña"
+                  class="login-input"
+                  :class="{ 'error': newPasswordError }"
+                  @blur="markNewPasswordTouched"
+                  required
+                />
+                <button 
+                  type="button" 
+                  @click="showNewPassword = !showNewPassword"
+                  class="password-toggle-btn"
+                >
+                  <i :class="showNewPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                </button>
+              </div>
+              <div v-if="newPasswordError" class="error-message">{{ newPasswordError }}</div>
+            </div>
+
+            <div class="input-group">
+              <div class="password-input-container">
+                <input
+                  v-model="confirmPassword"
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  placeholder="Confirmar nueva contraseña"
+                  class="login-input"
+                  :class="{ 'error': confirmPasswordError }"
+                  @blur="markConfirmPasswordTouched"
+                  required
+                />
+                <button 
+                  type="button" 
+                  @click="showConfirmPassword = !showConfirmPassword"
+                  class="password-toggle-btn"
+                >
+                  <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                </button>
+              </div>
+              <div v-if="confirmPasswordError" class="error-message">{{ confirmPasswordError }}</div>
+            </div>
+            
+            <button type="submit" class="login-button" :disabled="loadingChangePassword">
+              <span v-if="loadingChangePassword" class="spinner"></span>
+              {{ loadingChangePassword ? 'Cambiando...' : 'Cambiar Contraseña' }}
+            </button>
+          </form>
+
+          <div class="back-to-login">
+            <button 
+              type="button" 
+              @click="goBackToLogin"
+              class="back-to-login-btn"
+            >
+              Volver al inicio de sesión
+            </button>
+          </div>
+        </div>
       </div>
       
       <div class="gbu-logo">
@@ -83,14 +195,31 @@ const router = useRouter()
 const showPassword = ref(false)
 const loading = ref(false)
 
+const showChangePassword = ref(false)
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+const loadingChangePassword = ref(false)
+const confirmPassword = ref('')
+
 const touched = reactive({
   username: false,
   password: false,
+  email: false,
+  currentPassword: false,
+  newPassword: false,
+  confirmPassword: false,
 })
 
 const form = reactive({
   username: '',
   password: '',
+})
+
+const changePasswordForm = reactive({
+  correo: '',
+  contraseña_actual: '',
+  nueva_contraseña: '',
 })
 
 const usernameError = computed(() => {
@@ -103,6 +232,31 @@ const passwordError = computed(() => {
   return form.password ? '' : 'Este campo es requerido'
 })
 
+const emailError = computed(() => {
+  if (!touched.email) return ''
+  if (!changePasswordForm.correo) return 'Este campo es requerido'
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(changePasswordForm.correo) ? '' : 'Formato de correo inválido'
+})
+
+const currentPasswordError = computed(() => {
+  if (!touched.currentPassword) return ''
+  return changePasswordForm.contraseña_actual ? '' : 'Este campo es requerido'
+})
+
+const newPasswordError = computed(() => {
+  if (!touched.newPassword) return ''
+  if (!changePasswordForm.nueva_contraseña) return 'Este campo es requerido'
+  if (changePasswordForm.nueva_contraseña.length < 6) return 'La contraseña debe tener al menos 6 caracteres'
+  return ''
+})
+
+const confirmPasswordError = computed(() => {
+  if (!touched.confirmPassword) return ''
+  if (!confirmPassword.value) return 'Este campo es requerido'
+  return confirmPassword.value === changePasswordForm.nueva_contraseña ? '' : 'Las contraseñas no coinciden'
+})
+
 const markUsernameTouched = () => {
   touched.username = true
 }
@@ -111,11 +265,39 @@ const markPasswordTouched = () => {
   touched.password = true
 }
 
+const markEmailTouched = () => {
+  touched.email = true
+}
+
+const markCurrentPasswordTouched = () => {
+  touched.currentPassword = true
+}
+
+const markNewPasswordTouched = () => {
+  touched.newPassword = true
+}
+
+const markConfirmPasswordTouched = () => {
+  touched.confirmPassword = true
+}
+
 const snackbar = reactive({
   show: false,
   message: '',
   color: 'success',
 })
+
+const goBackToLogin = () => {
+  showChangePassword.value = false
+  changePasswordForm.correo = ''
+  changePasswordForm.contraseña_actual = ''
+  changePasswordForm.nueva_contraseña = ''
+  confirmPassword.value = ''
+  touched.email = false
+  touched.currentPassword = false
+  touched.newPassword = false
+  touched.confirmPassword = false
+}
 
 const handleLogin = async () => {
   touched.username = true
@@ -157,6 +339,59 @@ const handleLogin = async () => {
     snackbar.show = true
   } finally {
     loading.value = false
+  }
+}
+
+const handleChangePassword = async () => {
+  touched.email = true
+  touched.currentPassword = true
+  touched.newPassword = true
+  touched.confirmPassword = true
+  
+  if (!changePasswordForm.correo || !changePasswordForm.contraseña_actual || 
+      !changePasswordForm.nueva_contraseña || !confirmPassword.value) {
+    snackbar.message = 'Por favor completa todos los campos'
+    snackbar.color = 'error'
+    snackbar.show = true
+    return
+  }
+
+  if (emailError.value || currentPasswordError.value || newPasswordError.value || confirmPasswordError.value) {
+    snackbar.message = 'Por favor corrige los errores en el formulario'
+    snackbar.color = 'error'
+    snackbar.show = true
+    return
+  }
+
+  loadingChangePassword.value = true
+
+  try {
+    const result = await LoginService.cambiarContrasena({
+      correo: changePasswordForm.correo,
+      contraseña_actual: changePasswordForm.contraseña_actual,
+      nueva_contraseña: changePasswordForm.nueva_contraseña,
+    })
+
+    if (result.success) {
+      snackbar.message = 'Contraseña cambiada exitosamente'
+      snackbar.color = 'success'
+      snackbar.show = true
+
+      setTimeout(() => {
+        goBackToLogin()
+      }, 2000)
+    } else {
+      snackbar.message = result.message || 'Error al cambiar la contraseña'
+      snackbar.color = 'error'
+      snackbar.show = true
+    }
+  } catch (error) {
+    console.error('Error al cambiar contraseña:', error)
+    snackbar.message = 'Error de conexión. Verifica tu conexión a internet.'
+    snackbar.color = 'error'
+    snackbar.show = true
+  } finally {
+    loadingChangePassword.value = false
   }
 }
 </script>
@@ -301,6 +536,46 @@ const handleLogin = async () => {
   cursor: not-allowed;
 }
 
+.forgot-password {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.forgot-password-btn {
+  background: none;
+  border: none;
+  color: #F2F2F2;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.forgot-password-btn:hover {
+  color: #ddd;
+}
+
+.back-to-login {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.back-to-login-btn {
+  background: none;
+  border: 1px solid #F2F2F2;
+  color: #F2F2F2;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.back-to-login-btn:hover {
+  background: #F2F2F2;
+  color: #333;
+}
+
 .spinner {
   width: 16px;
   height: 16px;
@@ -374,6 +649,15 @@ const handleLogin = async () => {
     font-size: 32px;
   }
   
+  .forgot-password-btn,
+  .back-to-login-btn {
+    font-size: 13px;
+  }
+  
+  .back-to-login-btn {
+    padding: 8px 16px;
+  }
+  
   .gbu-logo {
     position: fixed;
     bottom: 30px;
@@ -396,6 +680,15 @@ const handleLogin = async () => {
   
   .login-title {
     font-size: 28px;
+  }
+  
+  .forgot-password-btn,
+  .back-to-login-btn {
+    font-size: 12px;
+  }
+  
+  .back-to-login-btn {
+    padding: 6px 12px;
   }
   
   .gbu-logo {
