@@ -12,7 +12,10 @@ class Cita(db.Model):
     # Datos de la cita
     motivo = db.Column(db.String(255), nullable=False, default='Salud Mental')
     descripcion = db.Column(db.Text, nullable=True)  # opcional por confidencialidad
-    area = db.Column(db.String(100), nullable=False)  # 'Psicología' | 'Trabajo Social'
+
+    # >>> Cambia de 'area' (String) a 'area_id' (FK)
+    area_id = db.Column(db.Integer, db.ForeignKey('areas.id_area'), nullable=False)
+
     fecha = db.Column(db.Date, nullable=False)
     horario = db.Column(db.String(50), nullable=False)
     estado = db.Column(db.String(50), default='Solicitado')  # Solicitado|Aprobado|Reprogramado|Atendido|Ausente
@@ -38,7 +41,9 @@ class Cita(db.Model):
     creador = db.relationship('Usuario', foreign_keys=[id_usuario])
     solicitante_reprog = db.relationship('Usuario', foreign_keys=[reprog_solicitada_por])
 
-    # Índices/constraints de tabla
+    # Área relacionada (para leer el nombre fácilmente: c.area_rel.area)
+    area_rel = db.relationship('Area', lazy='joined')
+
     __table_args__ = (
-        db.UniqueConstraint('area', 'fecha', 'horario', name='uq_citas_area_fecha_horario'),
+        db.UniqueConstraint('area_id', 'fecha', 'horario', name='uq_citas_areaid_fecha_horario'),
     )

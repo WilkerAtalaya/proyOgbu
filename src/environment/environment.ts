@@ -3,6 +3,7 @@ export const environment = {
   endPoint: {
     login: {
       crear: '/login',
+      cambiarContrasena: '/cambiar-contraseña',
     },
     anuncios: {
       listar: '/anuncios',
