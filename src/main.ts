@@ -2,10 +2,13 @@ import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { aliases, fa } from 'vuetify/iconsets/fa'
+import { aliases as faAliases, fa } from 'vuetify/iconsets/fa'
+import { aliases as mdiAliases, mdi } from 'vuetify/iconsets/mdi' // 👈 importa mdi
 import naive from 'naive-ui'
 import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/js/all.js'
+import '@mdi/font/css/materialdesignicons.css'
+
 import App from './App.vue'
 import router from './router'
 
@@ -18,10 +21,14 @@ const vuetify = createVuetify({
   components,
   directives,
   icons: {
-    defaultSet: 'fa',
-    aliases,
+    defaultSet: 'mdi',
+    aliases: {
+      ...faAliases,
+      ...mdiAliases,
+    },
     sets: {
       fa,
+      mdi,
     },
   },
 })

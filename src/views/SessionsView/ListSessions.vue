@@ -224,6 +224,7 @@
                         placeholder="Buscar por nombre o motivo..."
                         class="search-input"
                         v-model="filters.search"
+                        clearable
                       />
                     </div>
                   </v-col>
@@ -239,7 +240,6 @@
                       density="compact"
                       hide-details
                       clearable
-                      class="filter-item"
                     />
                   </v-col>
 
@@ -250,14 +250,15 @@
                       placeholder="Fecha"
                       format="dd/MM/yyyy"
                       value-format="yyyy-MM-dd"
-                      class="filter-item w-full"
+                      class="w-full"
+                      clearable
                     />
                   </v-col>
                 </v-row>
 
                 <div class="filter-tabs">
                   <button
-                    v-for="tab in statusFilter"
+                    v-for="tab in statusFilterByTab"
                     :key="tab.value"
                     @click="filters.status = tab.value"
                     :class="['filter-tab', { active: filters.status === tab.value }]"
@@ -415,18 +416,50 @@
 
             <v-tabs-window-item value="completed">
               <div class="search-filter-section">
-                <div class="search-input-container">
-                  <i class="fas fa-search search-icon"></i>
-                  <input
-                    type="text"
-                    placeholder="Buscar por nombre o motivo..."
-                    class="search-input"
-                    v-model="filters.search"
-                  />
-                </div>
+                <v-row align="center" dense class="mb-5">
+                  <v-col cols="12" md="12" lg="6">
+                    <div class="search-input-container">
+                      <i class="fas fa-search search-icon"></i>
+                      <input
+                        type="text"
+                        placeholder="Buscar por nombre o motivo..."
+                        class="search-input"
+                        v-model="filters.search"
+                        clearable
+                      />
+                    </div>
+                  </v-col>
+
+                  <v-col cols="12" md="6" lg="3">
+                    <v-select
+                      v-model="filters.area_id"
+                      :items="listAreas"
+                      item-title="area"
+                      item-value="id_area"
+                      placeholder="Filtrar por especialista"
+                      variant="solo"
+                      density="compact"
+                      hide-details
+                      clearable
+                    />
+                  </v-col>
+
+                  <v-col cols="12" md="6" lg="3">
+                    <n-date-picker
+                      v-model:value="filters.fecha"
+                      type="date"
+                      placeholder="Fecha"
+                      format="dd/MM/yyyy"
+                      value-format="yyyy-MM-dd"
+                      class="w-full"
+                      clearable
+                    />
+                  </v-col>
+                </v-row>
+
                 <div class="filter-tabs">
                   <button
-                    v-for="tab in statusFilter"
+                    v-for="tab in statusFilterByTab"
                     :key="tab.value"
                     @click="filters.status = tab.value"
                     :class="['filter-tab', { active: filters.status === tab.value }]"
@@ -590,7 +623,7 @@ const {
   totalPages,
   pagination,
   filters,
-  statusFilter,
+  statusFilterByTab,
   clearFilters,
   form,
   submitCita,

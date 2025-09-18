@@ -18,14 +18,13 @@ export function useSessionList() {
   const isAdmin = LoginService.isAdmin()
   const user = ref(LoginService.getCurrentUser())
 
+  /* ************ Pestañas ************ */
   const studentTabActive = ref('appointment-list')
-  const adminTabActive = ref('pending')
+  const adminTabActive = ref<'pending' | 'completed'>('pending')
+
   const showModalNewSession = ref(false)
 
   const appointments = ref<any[]>([])
-  // const selectedFilterTab = ref('todos')
-  const currentPage = ref(1)
-  const itemsPerPage = ref(10)
 
   /* ************ STUDENT PROFILE ************ */
 
@@ -63,20 +62,23 @@ export function useSessionList() {
     attend: false,
   })
 
-  const filters = ref({
+  const currentPage = ref(1)
+  const itemsPerPage = ref(10)
+
+  const filters = ref<any>({
     area_id: null as number | null,
-    fecha: null,
+    fecha: null as string | null,
     search: '',
     status: 'todos',
   })
 
   const statusFilter = [
     { value: 'todos', label: 'Todos' },
-    { value: 'solicitados', label: 'Solicitados' },
-    { value: 'aprobados', label: 'Aprobados' },
-    { value: 'reprogramados', label: 'Reprogramados' },
-    // { value: 'atendidos', label: 'Atendidos' },
-    // { value: 'ausentes', label: 'Ausentes' },
+    { tab: 'pending', value: 'solicitados', label: 'Solicitados' },
+    { tab: 'pending', value: 'aprobados', label: 'Aprobados' },
+    { tab: 'pending', value: 'reprogramados', label: 'Reprogramados' },
+    { tab: 'completed', value: 'atendidos', label: 'Atendidos' },
+    { tab: 'completed', value: 'ausentes', label: 'Ausentes' },
   ]
 
   // const columnsAlumno = [
@@ -120,11 +122,10 @@ export function useSessionList() {
   const loadAppointments = async () => {
     try {
       if (isAdmin) {
-        if (adminTabActive.value === 'pending') {
-          appointments.value = await CitasService.obtenerCitasPendientes(getFilters())
-        } else {
-          appointments.value = await CitasService.obtenerCitasCulminadas(getFilters())
-        }
+        appointments.value =
+          adminTabActive.value === 'pending'
+            ? await CitasService.obtenerCitasPendientes(getFilters())
+            : await CitasService.obtenerCitasCulminadas(getFilters())
       } else {
         appointments.value = await CitasService.obtenerCitasSolicitadasPorUsuario(user.value.id)
       }
@@ -205,9 +206,7 @@ export function useSessionList() {
   }
 
   function clearFilters() {
-    filters.value.area_id = null
-    filters.value.fecha = null
-    // handleBuscar()
+    filters.value = { area_id: null, fecha: null, search: '', status: 'todos' }
   }
 
   function openModalNewSession() {
@@ -240,13 +239,19 @@ export function useSessionList() {
     }
   }
 
+  const statusFilterByTab = computed(() =>
+    statusFilter.filter(
+      (s) => !s.tab || s.tab === adminTabActive.value, // incluye "Todos" siempre
+    ),
+  )
+
   const matchesFilters = (ap: any) => {
     const search = filters.value.search.toLowerCase()
 
     const matchesSearch =
       ap.nombre?.toLowerCase().includes(search) || ap.motivo?.toLowerCase().includes(search)
 
-    const matchesArea = !filters.value.area_id || ap.area === filters.value.area_id
+    const matchesArea = !filters.value.area_id || ap.area_id === filters.value.area_id
 
     const matchesFecha =
       !filters.value.fecha ||
@@ -254,9 +259,13 @@ export function useSessionList() {
 
     const matchesTab =
       filters.value.status === 'todos' ||
-      (filters.value.status === 'solicitados' && ap.estado === 'Solicitado') ||
-      (filters.value.status === 'aprobados' && ap.estado === 'Aprobado') ||
-      (filters.value.status === 'reprogramados' && ap.estado === 'Reprogramado')
+      (adminTabActive.value === 'pending' &&
+        ((filters.value.status === 'solicitados' && ap.estado === 'Solicitado') ||
+          (filters.value.status === 'aprobados' && ap.estado === 'Aprobado') ||
+          (filters.value.status === 'reprogramados' && ap.estado === 'Reprogramado'))) ||
+      (adminTabActive.value === 'completed' &&
+        ((filters.value.status === 'atendidos' && ap.estado === 'Atendido') ||
+          (filters.value.status === 'ausentes' && ap.estado === 'Ausente')))
 
     return matchesSearch && matchesArea && matchesFecha && matchesTab
   }
@@ -276,6 +285,11 @@ export function useSessionList() {
   // Total de páginas
   const totalPages = computed(() => {
     return Math.ceil(totalFilteredItems.value / itemsPerPage.value)
+  })
+
+  watch(adminTabActive, () => {
+    clearFilters() // 🔥 limpia filtros al cambiar de pestaña
+    loadAppointments()
   })
 
   watch(
@@ -323,7 +337,7 @@ export function useSessionList() {
     totalPages,
     pagination: ref({ pageSize: 7 }),
     filters,
-    statusFilter,
+    statusFilterByTab,
     clearFilters,
     form,
     submitCita,
