@@ -11,7 +11,7 @@ class Cita(db.Model):
 
     # Datos de la cita
     motivo = db.Column(db.String(255), nullable=False, default='Salud Mental')
-    descripcion = db.Column(db.Text, nullable=True)  # opcional por confidencialidad
+    descripcion = db.Column(db.Text, nullable=True) 
 
     # >>> Cambia de 'area' (String) a 'area_id' (FK)
     area_id = db.Column(db.Integer, db.ForeignKey('areas.id_area'), nullable=False)
