@@ -92,7 +92,7 @@
 
 <script setup>
 import AnunciosService from '@/services/AnunciosService'
-import { dateFormatISO } from '@/util/functions.js'
+import { dateFormatISO } from '@/shared/util/functions.js'
 import { ref, onMounted, watch } from 'vue'
 import LoginService from '@/services/LoginService'
 import ModalPublicacion from './modal/ModalPublicacion.vue'

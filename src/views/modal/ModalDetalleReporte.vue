@@ -138,7 +138,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ContainerModal from '@/components/layout/ContainerModal.vue'
-import { formatBackendDate } from '@/util/functions.js'
+import { formatBackendDate } from '@/shared/util/functions.js'
 import QuejasService from '@/services/QuejasService'
 
 const props = defineProps({

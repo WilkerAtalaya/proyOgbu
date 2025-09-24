@@ -54,7 +54,7 @@
 
 <script setup>
 import { computed, watch } from 'vue'
-import { dateFormatV2, dateFormatV3 } from '@/util/functions.js'
+import { dateFormatV2, dateFormatV3 } from '@/shared/util/functions.js'
 
 const props = defineProps({
   modelValue: Boolean,

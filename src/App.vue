@@ -4,12 +4,19 @@
     <template v-if="showLayout">
       <n-layout class="base-layout" has-sider style="height: 100vh">
         <!-- Sidebar izquierdo -->
-        <n-layout-sider width="346px" content-style="padding: 32px; display: flex; flex-direction: column; height: 100vh;">
-          <UserCard style="margin-bottom: 20px; flex-shrink: 0;" :user="user" />
-          <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+        <n-layout-sider
+          width="346px"
+          content-style="padding: 32px; display: flex; flex-direction: column; height: 100vh;"
+        >
+          <UserCard style="margin-bottom: 20px; flex-shrink: 0" :user="user" />
+          <div style="flex: 1; display: flex; flex-direction: column; min-height: 0">
             <SidebarMenu />
           </div>
-          <ButtonAction style="margin-top: 20px; flex-shrink: 0;" label="Cerrar Sesión" @click="handleLogout" />
+          <ButtonAction
+            style="margin-top: 20px; flex-shrink: 0"
+            label="Cerrar Sesión"
+            @click="handleLogout"
+          />
         </n-layout-sider>
 
         <!-- Contenido principal con fondo -->
@@ -29,6 +36,11 @@
           </n-layout-header>
         </n-layout-sider> -->
       </n-layout>
+
+      <v-snackbar v-model="snackbar" :color="color" timeout="3000" location="bottom">
+        <v-icon class="me-2" size="20">{{ iconByType }}</v-icon>
+        {{ message }}
+      </v-snackbar>
     </template>
 
     <!-- Layout para login y páginas públicas -->
@@ -41,6 +53,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { snackbar, message, color } from '@/shared/composables/useNotifier';
 
 import logo from '@/assets/OGBU-logo.png'
 import SidebarMenu from '@/components/layout/SidebarMenu.vue'

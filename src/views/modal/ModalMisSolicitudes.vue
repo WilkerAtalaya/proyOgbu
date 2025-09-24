@@ -89,7 +89,7 @@
 </template>
 
 <script setup>
-import { currentDate } from '@/util/functions.js'
+import { currentDate } from '@/shared/util/functions.js'
 import { ref, reactive, watch, computed } from 'vue'
 
 const props = defineProps({

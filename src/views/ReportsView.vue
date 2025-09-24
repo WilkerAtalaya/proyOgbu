@@ -284,7 +284,7 @@ import ModalQueja from './modal/ModalQueja.vue'
 import ModalDetalleReporte from './modal/ModalDetalleReporte.vue'
 import LoginService from '@/services/LoginService'
 import ContainerView from '@/components/layout/ContainerView.vue'
-import { formatBackendDate, extractTime, extractDate } from '@/util/functions.js'
+import { formatBackendDate, extractTime, extractDate } from '@/shared/util/functions.js'
 
 
 const data = ref([])

@@ -128,7 +128,7 @@
 </template>
 
 <script setup>
-import { currentDate } from '@/util/functions.js'
+import { currentDate } from '@/shared/util/functions.js'
 import { ref, reactive, watch, computed } from 'vue'
 import QuejasService from '@/services/QuejasService'
 import LoginService from '@/services/LoginService'

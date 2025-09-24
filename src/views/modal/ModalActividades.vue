@@ -95,7 +95,7 @@ import ActividadesService from '@/services/ActividadesService'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import ContainerModal from '@/components/layout/ContainerModal.vue'
-import { convertLocalDateTimeToUTC } from '@/util/functions.js'
+import { convertLocalDateTimeToUTC } from '@/shared/util/functions.js'
 
 const props = defineProps({
   modelValue: Boolean,

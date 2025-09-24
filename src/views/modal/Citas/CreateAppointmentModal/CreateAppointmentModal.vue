@@ -2,13 +2,11 @@
   <v-dialog v-model="dialog" max-width="500px" persistent>
     <v-card class="pa-4 rounded-xl">
       <v-card-title class="d-flex justify-space-between align-center pa-0 mb-4">
-        <h2 class="text-h5 font-weight-bold text-pink">
-          {{ type === 'form' ? 'Formulario de actividad' : 'Agendar Cita' }}
-        </h2>
+        <h2 class="text-h5 font-weight-bold text-pink">Agendar Cita</h2>
         <v-btn icon="fa-solid fa-xmark" variant="text" color="primary" @click="dialog = false" />
       </v-card-title>
 
-      <v-form ref="formRef" @submit.prevent="submitComplaint">
+      <v-form ref="formRef" @submit.prevent="handleSubmit">
         <div class="mb-4">
           <label class="text-body-2 font-weight-medium mb-2 d-block">Motivo</label>
           <v-select
@@ -91,14 +89,6 @@
           </v-col>
         </v-row>
 
-        <div>
-          <n-checkbox
-            v-if="type === 'form'"
-            v-model:checked="item.participa"
-            label="Participaré en esta actividad"
-          />
-        </div>
-
         <div class="d-flex justify-center">
           <v-btn
             type="submit"
@@ -115,41 +105,27 @@
   </v-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { watch, computed } from 'vue'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
-import { useCreateAppointmentModal } from './create-appointment'
-import './create-appointment.scss'
+import { useCreateAppointmentModal } from './create-appointment-modal'
+import './CreateAppointmentModal.scss'
 
-const props = defineProps({
-  modelValue: Boolean,
-  item: Object,
-  type: String,
-})
+const props = defineProps<{
+  modelValue: boolean
+}>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'saved'): void
+}>()
 
 const dialog = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 })
 
-const { form, formRef, reasonList, hoursList, endHoursList, rules, resetEndTime, submitComplaint } =
+const { form, formRef, reasonList, hoursList, endHoursList, rules, resetEndTime, handleSubmit } =
   useCreateAppointmentModal(emit)
-
-watch(
-  () => props.item,
-  (val) => {
-    if (val) {
-      // form.numero = val.numero || ''
-      // form.asunto = val.tipo || ''
-      // form.titulo = val.titulo || ''
-      form.date = val.date || ''
-      form.estado = val.estado || ''
-      form.description = val.description || ''
-    }
-  },
-  { immediate: true },
-)
 </script>

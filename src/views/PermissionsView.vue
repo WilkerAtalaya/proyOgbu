@@ -696,7 +696,7 @@
 </template>
 <script setup>
 import { ref, reactive, onMounted, computed, watch } from 'vue'
-import { dateFormatV2, dateFormatISO, convertLocalDateTimeToUTC, extractDate } from '@/util/functions.js'
+import { dateFormatV2, dateFormatISO, convertLocalDateTimeToUTC, extractDate } from '@/shared/util/functions.js'
 import LoginService from '@/services/LoginService'
 import PermisosService from '@/services/PermisosService'
 import VueDatePicker from '@vuepic/vue-datepicker'

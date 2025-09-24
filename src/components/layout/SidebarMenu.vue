@@ -77,11 +77,11 @@ const menuOptions = [
     key: '/citas',
     iconSrc: citaIcon,
   },
-  {
-    label: 'Asistencia',
-    key: '/asistencia',
-    iconSrc: asistenciaIcon,
-  },
+  // {
+  //   label: 'Asistencia',
+  //   key: '/asistencia',
+  //   iconSrc: asistenciaIcon,
+  // },
 ]
 
 function navigate(key) {

@@ -25,7 +25,7 @@
         </div> -->
 
       <!-- Vista para Estudiantes -->
-      <template v-if="!isAdmin">
+      <template v-if="isStudent">
         <v-tabs v-model="studentTabActive" class="mb-4" align-tabs="start" color="#A37801">
           <v-tab value="appointment-list" class="custom-tab">
             <h3 :class="{ 'active-tab-text': studentTabActive === 'appointment-list' }">Citas</h3>
@@ -55,20 +55,24 @@
                 <v-card class="pa-2" rounded="xl">
                   <v-card-title>{{ appointment.area }}</v-card-title>
                   <v-card-subtitle>{{ appointment.motivo }}</v-card-subtitle>
-                  <v-card-text>
-                    <v-chip color="primary">{{ appointment.fecha }}</v-chip>
-                    <v-chip color="secondary">{{ appointment.horario }}</v-chip>
+                  <v-card-text class="ma-2 pa-2">
+                    <v-row>
+                      <v-col cols="12">
+                        <div>{{ appointment.descripcion }}</div>
+                      </v-col>
+                    </v-row>
+
+                    <v-row>
+                      <v-col cols="12" sm="12" md="12" lg="5">
+                        <v-chip color="primary">{{ dateFormatV2(appointment.fecha) }}</v-chip>
+                      </v-col>
+                      <v-col cols="12" sm="12" md="12" lg="7">
+                        <v-chip color="secondary">{{ appointment.horario }}</v-chip>
+                      </v-col>
+                    </v-row>
                   </v-card-text>
                   <v-card-actions class="justify-center">
-                    <!-- <v-list>
-                      <v-list-item link>
-                        <v-list-item-title>PLANIFICADO</v-list-item-title>
-                      </v-list-item>
-                      <v-list-item link>
-                        <v-list-item-title>NO PLANIFICADO</v-list-item-title>
-                      </v-list-item>
-                    </v-list> -->
-                    <v-chip variant="flat" :color="getStatusColor(appointment.estado)">{{
+                    <v-chip variant="flat" :color="getStatusColor(appointment.estado)" size="large">{{
                       appointment.estado
                     }}</v-chip>
                   </v-card-actions>
@@ -133,9 +137,10 @@
                   :items="listAreas"
                   item-title="area"
                   item-value="id_area"
-                  label="Filtrar por Área"
-                  variant="outlined"
+                  placeholder="Filtrar por Área"
+                  variant="solo"
                   density="compact"
+                  clearable
                 />
               </v-col>
 
@@ -145,9 +150,10 @@
                   :items="['fecha 1', 'fecha 2']"
                   item-title="name"
                   item-value="id"
-                  label="Filtrar por Fecha"
-                  variant="outlined"
+                  placeholder="Filtrar por Fecha"
+                  variant="solo"
                   density="compact"
+                  clearable
                 />
               </v-col>
             </v-row>
@@ -328,6 +334,7 @@
                   <table class="appointment-table">
                     <thead>
                       <tr>
+                        <th>ID</th>
                         <th>Nombre</th>
                         <th>Especialista</th>
                         <th>Fecha</th>
@@ -343,10 +350,13 @@
                         class="table-row"
                       >
                         <td>
+                          <div class="appointment-id">{{ appointment.id }}</div>
+                        </td>
+                        <td>
                           <div class="appointment-info">
                             <div class="appointment-details">
-                              <div class="appointment-name">{{ appointment.nombre || '' }}</div>
-                              <div class="appointment-id">{{ appointment.motivo || '' }}</div>
+                              <div class="appointment-bold">{{ appointment.nombre || '' }}</div>
+                              <div class="appointment-reason">{{ appointment.motivo || '' }}</div>
                             </div>
                           </div>
                         </td>
@@ -354,10 +364,10 @@
                           <div class="duration">{{ appointment.area }}</div>
                         </td>
                         <td>
-                          <div class="appointment-name">{{ dateFormatV2(appointment.fecha) }}</div>
+                          <div class="appointment-bold">{{ dateFormatV2(appointment.fecha) }}</div>
                         </td>
                         <td>
-                          <div class="appointment-name">{{ appointment.horario }}</div>
+                          <div class="appointment-bold">{{ appointment.horario }}</div>
                         </td>
                         <td>
                           <v-chip variant="flat" :color="getStatusColor(appointment.estado)">{{
@@ -365,14 +375,32 @@
                           }}</v-chip>
                         </td>
                         <td>
-                          <div class="actions">
+                          <div class="d-flex justify-center ga-1">
                             <!-- <button v-if="permiso.archivo_justificacion" @click="downloadFile(permiso.archivo_justificacion)" 
                               class="action-btn download" title="Descargar archivo">
                               <i class="fas fa-download"></i>
-                            </button>
-                            <button @click="viewDetails(permiso)" class="action-btn view" title="Ver detalles">
-                              <i class="fas fa-eye"></i>
-                            </button> -->
+                            </button>-->
+                            <v-btn
+                              @click="handleDetail(appointment.id)"
+                              icon
+                              size="small"
+                              variant="outlined"
+                              class="action-btn view"
+                              title="Ver detalles"
+                            >
+                              <v-icon size="18">mdi-eye</v-icon>
+                            </v-btn>
+                            <v-btn
+                              v-if="appointment.estado == AppointmentStatus.APROBADO"
+                              @click="openModalReschedule(appointment.id)"
+                              icon
+                              size="small"
+                              variant="outlined"
+                              class="action-btn view"
+                              title="Reprogramar cita"
+                            >
+                              <v-icon size="18">mdi-calendar-arrow-right</v-icon>
+                            </v-btn>
                           </div>
                         </td>
                       </tr>
@@ -491,7 +519,7 @@
                         <td>
                           <div class="appointment-info">
                             <div class="appointment-details">
-                              <div class="appointment-name">{{ appointment.nombre || '' }}</div>
+                              <div class="appointment-bold">{{ appointment.nombre || '' }}</div>
                               <div class="appointment-id">{{ appointment.motivo || '' }}</div>
                             </div>
                           </div>
@@ -500,10 +528,10 @@
                           <div class="duration">{{ appointment.area }}</div>
                         </td>
                         <td>
-                          <div class="appointment-name">{{ dateFormatV2(appointment.fecha) }}</div>
+                          <div class="appointment-bold">{{ dateFormatV2(appointment.fecha) }}</div>
                         </td>
                         <td>
-                          <div class="appointment-name">{{ appointment.horario }}</div>
+                          <div class="appointment-bold">{{ appointment.horario }}</div>
                         </td>
                         <td>
                           <v-chip variant="flat" :color="getStatusColor(appointment.estado)">{{
@@ -580,33 +608,38 @@
             </n-tab-pane>
           </n-tabs> -->
         </div>
-
-        <n-modal v-model:show="modalVisible" preset="dialog" title="Detalle de Cita">
-          <template #default>
-            <div style="background-color: white; padding: 16px; border-radius: 6px">
-              <p><strong>Fecha:</strong> {{ dateFormatV2(citaSeleccionada?.fecha) }}</p>
-              <p><strong>Horario:</strong> {{ citaSeleccionada?.horario }}</p>
-              <p><strong>Área:</strong> {{ citaSeleccionada?.area }}</p>
-              <p><strong>Nombre:</strong> {{ citaSeleccionada?.nombre }}</p>
-              <p><strong>Estado:</strong> {{ citaSeleccionada?.estado }}</p>
-            </div>
-          </template>
-        </n-modal>
       </template>
     </div>
   </ContainerView>
 
-  <ModalCitas v-model="showModalNewSession" :item="selectedItem" />
+  <CreateAppointmentModal v-model="showModalNewSession" @saved="loadAppointments" />
+
+  <DetailAppointmentModal
+    v-model="showModalDetail"
+    :appointment="appointmentToView"
+    :is-student="isStudent"
+    @update-status="updateAppointmentStatus"
+  />
+
+  <RescheduleAppointmentModal
+    v-model="showModalReschedule"
+    :appointment-id="selectedAppointmentId"
+  />
+
 </template>
 
 <script setup lang="ts">
 import './list-sessions.scss'
 import { useSessionList } from './list-sessions'
-import ModalCitas from '../modal/ModalCitas/CreateAppointment.vue'
+import CreateAppointmentModal from '../modal/Citas/CreateAppointmentModal/CreateAppointmentModal.vue'
+import RescheduleAppointmentModal from '../modal/Citas/RescheduleAppointmentModal/RescheduleAppointmentModal.vue'
+import DetailAppointmentModal from '../modal/Citas/DetailAppointmentModal/DetailAppointmentModal.vue'
 import ContainerView from '@/components/layout/ContainerView.vue'
+import { AppointmentStatus } from '@/shared/enums/appointment-status.enum'
 
 const {
   isAdmin,
+  isStudent,
   user,
   listAreas,
   listReasons,
@@ -631,11 +664,16 @@ const {
   selectedSlot,
   dateFormatV2,
   dataTableInst,
-  modalVisible,
-  citaSeleccionada,
-  selectedItem,
+  handleDetail,
+  showModalDetail,
+  appointmentToView,
+  selectedAppointmentId,
   showModalNewSession,
   openModalNewSession,
+  showModalReschedule,
+  openModalReschedule,
   getStatusColor,
+  updateAppointmentStatus,
+  snackbar,
 } = useSessionList()
 </script>

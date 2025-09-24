@@ -1,4 +1,4 @@
-declare module '@/util/functions' {
+declare module '@/shared/util/functions' {
   export function dateFormatV1(value: string | number | Date): string;
   export function currentDate(): string;
   export function dateFormatDB(fecha: string): string;

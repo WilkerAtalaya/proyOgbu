@@ -1,4 +1,3 @@
-import { dateFormatV2 } from '@/util/functions'
 import {
   defineComponent,
   ref,
@@ -9,13 +8,18 @@ import {
   watch,
   computed,
 } from 'vue'
+import { dateFormatV2 } from '@/shared/util/functions'
 import { NButton, NModal, NInput, NSelect, NDataTable } from 'naive-ui'
+import { notify } from '@/shared/composables/useNotifier'
+import { NotificationType } from '@/shared/enums/notification.enum'
 import CitasService from '@/services/CitasService'
 import LoginService from '@/services/LoginService'
-import type { CitaAdmin, CitaAlumno } from '@/models/Cita'
+import type { Cita } from '@/models/Cita'
+import { UserRole } from '@/shared/enums/role.enum'
 
 export function useSessionList() {
   const isAdmin = LoginService.isAdmin()
+  const isStudent = LoginService.getUserRole() == UserRole.STUDENT
   const user = ref(LoginService.getCurrentUser())
 
   /* ************ Pestañas ************ */
@@ -23,6 +27,7 @@ export function useSessionList() {
   const adminTabActive = ref<'pending' | 'completed'>('pending')
 
   const showModalNewSession = ref(false)
+  const snackbar = reactive({ show: false, message: '', color: 'success' })
 
   const appointments = ref<any[]>([])
 
@@ -49,18 +54,11 @@ export function useSessionList() {
   })
 
   /* ************ ADMIN PROFILE ************ */
-  const modalVisible = ref(false)
-  const citaSeleccionada = ref<any>(null)
+  const showModalDetail = ref(false)
+  const showModalReschedule = ref(false)
+  const appointmentToView = ref<Cita | null>(null)
   const form = ref({ motivo: '', descripcion: '', area: '' })
-  const selectedItem = ref({
-    numero: '',
-    asunto: '',
-    motivo: '',
-    fecha: '',
-    estado: '',
-    descripcion: '',
-    attend: false,
-  })
+  const selectedAppointmentId = ref<number | null>(null)
 
   const currentPage = ref(1)
   const itemsPerPage = ref(10)
@@ -121,13 +119,13 @@ export function useSessionList() {
 
   const loadAppointments = async () => {
     try {
-      if (isAdmin) {
+      if (isStudent) {
+        appointments.value = await CitasService.obtenerCitasSolicitadasPorUsuario(user.value.id)
+      } else {
         appointments.value =
           adminTabActive.value === 'pending'
             ? await CitasService.obtenerCitasPendientes(getFilters())
             : await CitasService.obtenerCitasCulminadas(getFilters())
-      } else {
-        appointments.value = await CitasService.obtenerCitasSolicitadasPorUsuario(user.value.id)
       }
     } catch (error) {
       console.error('Error al cargar citas:', error)
@@ -157,31 +155,35 @@ export function useSessionList() {
     }
   }
 
-  async function handleConsultar(row: any) {
-    const data = await loadCita(row)
-    citaSeleccionada.value = data
-    modalVisible.value = true
+  async function handleDetail(appointmentId: number) {
+    const data = await loadCita(appointmentId)
+    appointmentToView.value = data
+    showModalDetail.value = true
   }
 
-  async function handleAprobar(row: any) {
-    console.log('mi row', row)
-    const data = await loadCita(row)
-    citaSeleccionada.value = data
-    modalVisible.value = true
+  async function openModalReschedule(appointmentId: number) {
+    selectedAppointmentId.value = appointmentId
+    showModalReschedule.value = true
   }
 
-  async function handleReprogramar(row: any) {
-    console.log('mi row', row)
-    const data = await loadCita(row)
-    citaSeleccionada.value = data
-    modalVisible.value = true
-  }
+  async function updateAppointmentStatus(status: string) {
+    try {
+      if (!appointmentToView.value) return true
 
-  async function handleDetalle(row: any) {
-    console.log('mi row', row)
-    const data = await loadCita(row)
-    citaSeleccionada.value = data
-    modalVisible.value = true
+      const params = { id_usuario: user.value.id }
+      const newStatus = { estado: status }
+      const response = await CitasService.updateStatus(
+        appointmentToView.value.id,
+        newStatus,
+        params,
+      )
+      console.log(response)
+
+      notify('Estado de cita actualizado correctamente.', NotificationType.SUCCESS)
+      loadAppointments()
+    } catch (error) {
+      notify('Error al actualizar estado de la cita.', NotificationType.ERROR)
+    }
   }
 
   const submitCita = () => {
@@ -189,9 +191,9 @@ export function useSessionList() {
     showModal.value = false
   }
 
-  async function loadCita(row: any) {
-    console.log('rowID', row)
-    const items = await CitasService.obtenerCitaPorId(row.id)
+  async function loadCita(appointmentId: number) {
+    const params = { id_usuario: user.value.id }
+    const items = await CitasService.obtenerCitaPorId(appointmentId, params)
     return items
   }
 
@@ -210,30 +212,21 @@ export function useSessionList() {
   }
 
   function openModalNewSession() {
-    selectedItem.value = {
-      numero: '',
-      asunto: '',
-      motivo: '',
-      fecha: '',
-      estado: '',
-      descripcion: '',
-      attend: false,
-    }
     showModalNewSession.value = true
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Solicitado':
-        return 'yellow'
+        return 'indigo'
       case 'Aprobado':
         return 'success'
       case 'Reprogramado':
-        return 'deep-orange'
+        return 'warning'
       case 'Atendido':
-        return 'primary'
+        return 'teal'
       case 'Ausente':
-        return 'error'
+        return 'grey'
       default:
         return 'secondary'
     }
@@ -321,6 +314,7 @@ export function useSessionList() {
 
   return {
     isAdmin,
+    isStudent,
     user,
     listAreas,
     listReasons,
@@ -345,11 +339,16 @@ export function useSessionList() {
     selectedSlot,
     dateFormatV2,
     dataTableInst: ref(null),
-    modalVisible,
-    citaSeleccionada,
-    selectedItem,
+    handleDetail,
+    showModalDetail,
+    appointmentToView,
+    selectedAppointmentId,
     showModalNewSession,
     openModalNewSession,
+    showModalReschedule,
+    openModalReschedule,
     getStatusColor,
+    updateAppointmentStatus,
+    snackbar,
   }
 }

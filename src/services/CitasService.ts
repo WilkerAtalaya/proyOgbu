@@ -1,5 +1,5 @@
 import { environment } from '@/environment/environment'
-import type { CitaAlumno, CitaAdmin } from '@/models/Cita'
+import type { Cita } from '@/models/Cita'
 import axios from 'axios'
 
 export class CitasService {
@@ -11,6 +11,8 @@ export class CitasService {
   private urlGetBusySchedules: string
   private urlGetAreas: string
   private urlGetReasons: string
+  private urlUpdateStatus: string
+  private urlReschedule: string
 
   constructor() {
     this.urlObtenerSolicitadasPorUsuario = `${environment.baseUrlApi}${environment.endPoint.citas.obtenerSolicitadasPorUsuario}`
@@ -21,44 +23,58 @@ export class CitasService {
     this.urlGetBusySchedules = `${environment.baseUrlApi}${environment.endPoint.citas.getBusySchedules}`
     this.urlGetAreas = `${environment.baseUrlApi}${environment.endPoint.area.getAreas}`
     this.urlGetReasons = `${environment.baseUrlApi}${environment.endPoint.reasons.getReasons}`
+    this.urlUpdateStatus = `${environment.baseUrlApi}${environment.endPoint.citas.updateStatus}`
+    this.urlReschedule = `${environment.baseUrlApi}${environment.endPoint.citas.reschedule}`
   }
 
-  async obtenerCitasSolicitadasPorUsuario(usuarioId: number): Promise<CitaAlumno[]> {
+  async obtenerCitasSolicitadasPorUsuario(usuarioId: number): Promise<Cita[]> {
     return axios
-      .get<CitaAlumno[]>(`${this.urlObtenerSolicitadasPorUsuario}/${usuarioId}`)
-      .then((res: { data: CitaAlumno[] }) => res.data)
+      .get<Cita[]>(`${this.urlObtenerSolicitadasPorUsuario}/${usuarioId}`)
+      .then((res: { data: Cita[] }) => res.data)
   }
 
-  async obtenerCitasPendientes(params: Record<string, any>): Promise<CitaAdmin[]> {
+  async obtenerCitasPendientes(params: Record<string, any>): Promise<Cita[]> {
     const query = new URLSearchParams(params).toString()
     return axios
-      .get<CitaAdmin[]>(`${this.urlObtenerPendientes}?${query}`)
-      .then((res: { data: CitaAdmin[] }) => res.data)
+      .get<Cita[]>(`${this.urlObtenerPendientes}?${query}`)
+      .then((res: { data: Cita[] }) => res.data)
   }
 
-  async obtenerCitasCulminadas(params: Record<string, any>): Promise<CitaAdmin[]> {
+  async obtenerCitasCulminadas(params: Record<string, any>): Promise<Cita[]> {
     const query = new URLSearchParams(params).toString()
     return axios
-      .get<CitaAdmin[]>(`${this.urlObtenerCulminadas}?${query}`)
-      .then((res: { data: CitaAdmin[] }) => res.data)
+      .get<Cita[]>(`${this.urlObtenerCulminadas}?${query}`)
+      .then((res: { data: Cita[] }) => res.data)
   }
 
-  async consultarCita(citaId: number): Promise<CitaAdmin[]> {
+  async consultarCita(citaId: number): Promise<Cita[]> {
     return axios
-      .get<CitaAdmin[]>(`${this.urlConsultar}/${citaId}`)
-      .then((res: { data: CitaAdmin[] }) => res.data)
+      .get<Cita[]>(`${this.urlConsultar}/${citaId}`)
+      .then((res: { data: Cita[] }) => res.data)
   }
 
-  async obtenerCitaPorId(id: number): Promise<CitaAdmin> {
-    return axios.get<CitaAdmin>(`${this.urlConsultar}/${id}`).then((res) => res.data)
+  async obtenerCitaPorId(id: number, params: any): Promise<Cita> {
+    return axios.get<Cita>(`${this.urlConsultar}/${id}`, { params }).then((res) => res.data)
   }
 
-  async crearCita(body: Partial<CitaAdmin>): Promise<CitaAdmin> {
-    return axios.post<CitaAdmin>(this.urlCrear, body).then((res) => res.data)
+  async crearCita(body: Partial<Cita>): Promise<Cita> {
+    return axios.post<Cita>(this.urlCrear, body).then((res) => res.data)
   }
 
-  async getBusySchedules(params: any): Promise<CitaAdmin[]> {
-    return axios.get<CitaAdmin[]>(this.urlGetBusySchedules, { params }).then((res) => res.data)
+  async updateStatus(id: number, body: Partial<Cita>, params: any): Promise<any> {
+    return axios
+      .put<Cita>(`${this.urlUpdateStatus}/${id}/estado`, body, { params })
+      .then((res) => res.data)
+  }
+
+  async rescheduleAppointment(id: number, body: Partial<Cita>, params: any): Promise<any> {
+    return axios
+      .put<Cita>(`${this.urlReschedule}/${id}/reprogramar`, body, { params })
+      .then((res) => res.data)
+  }
+
+  async getBusySchedules(params: any): Promise<Cita[]> {
+    return axios.get<Cita[]>(this.urlGetBusySchedules, { params }).then((res) => res.data)
   }
 
   async getAreas(): Promise<any[]> {

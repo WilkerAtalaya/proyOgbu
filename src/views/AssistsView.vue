@@ -64,7 +64,7 @@ import { ref, reactive, computed, onMounted, h, resolveComponent } from 'vue'
 import { NDataTable, NButton } from 'naive-ui'
 import AsistenciaService from '@/services/AsistenciaService'
 import LoginService from '@/services/LoginService'
-import { dateFormatV1, dateFormatV2, dateFormatV3 } from '@/util/functions.js'
+import { dateFormatV1, dateFormatV2, dateFormatV3 } from '@/shared/util/functions.js'
 import ModalAsistencia from './modal/ModalAsistencia.vue'
 
 const selectedYear = ref('2024')

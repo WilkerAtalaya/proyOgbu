@@ -19,19 +19,19 @@ export const environment = {
       actualizar: '/actividades',
       eliminar: '/actividades',
       inscribirse: '/actividades',
-      inscritas: '/actividades/inscritas'
+      inscritas: '/actividades/inscritas',
     },
     quejas: {
       obtenerPorUsuario: '/quejas/usuario',
       listar: '/quejas',
-      crear: '/quejas'
+      crear: '/quejas',
     },
     reconocimientos: {
       obtenerReconocimientos: '/reconocimientos',
       crearReconocimiento: '/reconocimientos',
       obtenerCumpleanos: '/cumpleaños',
       buscarAlumnos: '/alumnos/buscar',
-      eliminarReconocimiento: '/reconocimientos'
+      eliminarReconocimiento: '/reconocimientos',
     },
     permisos: {
       crearSalida: '/api/permisos/salida',
@@ -50,17 +50,18 @@ export const environment = {
       consultar: '/citas',
       crear: '/citas',
       getBusySchedules: '/citas/agenda-publica',
+      updateStatus: '/citas',
+      reschedule: '/citas',
     },
-    area:{
+    area: {
       getAreas: '/areas',
     },
-    reasons:{
-      getReasons: '/motivos-cita'
+    reasons: {
+      getReasons: '/motivos-cita',
     },
     asistencia: {
       obtenerFechasMarcadasPorUsuario: '/asistencia/fechas',
-      obtenerDetallePorFechaYUsuario: '/asistencia/detalle'
-    }
-
+      obtenerDetallePorFechaYUsuario: '/asistencia/detalle',
+    },
   },
 }
