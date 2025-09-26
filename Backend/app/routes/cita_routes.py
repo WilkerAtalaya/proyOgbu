@@ -12,6 +12,36 @@ from app.files.service import file_url
 
 cita_bp = Blueprint('cita', __name__)
 
+def _reprog_json(c):
+    return {
+        "fecha": c.reprog_fecha.strftime("%Y-%m-%d") if c.reprog_fecha else None,
+        "horario": c.reprog_horario,
+        "solicitada_por": c.reprog_solicitada_por,
+        "solicitada_por_nombre": c.solicitante_reprog.nombre if c.solicitante_reprog else None,
+        "estado": c.reprog_estado,
+        "pendiente_para": c.reprog_pendiente_para,
+        "motivo": c.reprog_motivo,
+        "evidencia_url": file_url(c.reprog_evid_bucket, c.reprog_evid_name) if c.reprog_evid_name else None,
+    }
+
+def _cita_json(c, *, incluir_nombre=False):
+    data = {
+        "id": c.id_cita,
+        "id_alumno": c.id_alumno,
+        "motivo": c.motivo,
+        "descripcion": c.descripcion,
+        "area_id": c.area_id,
+        "area": c.area_rel.area if c.area_rel else None,
+        "fecha": c.fecha.strftime("%Y-%m-%d"),
+        "horario": c.horario,
+        "estado": c.estado,
+        "fecha_creacion": c.fecha_creacion.strftime("%Y-%m-%d %H:%M:%S"),
+        "reprog": _reprog_json(c),
+    }
+    if incluir_nombre:
+        data["nombre"] = c.alumno.nombre
+    return data
+
 @cita_bp.before_request
 def antes_de_cada_peticion():
     """Se ejecuta automáticamente antes de cada request a las rutas de citas"""
@@ -71,76 +101,36 @@ def registrar_cita():
 
 @cita_bp.route('/citas/alumno/<int:id_alumno>', methods=['GET'])
 def ver_citas_alumno(id_alumno):
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     user = _usuario_actual()
     if user and getattr(user, 'rol', None) == 'alumno' and user.id_usuario != id_alumno:
         return jsonify({'error': 'No autorizado'}), 403
-        
+
     citas = obtener_citas_por_alumno(id_alumno, user=user)
-    return jsonify([{
-        'id': c.id_cita,
-        'id_alumno': c.id_alumno,
-        'motivo': c.motivo,
-        'descripcion': c.descripcion,
-        'area_id': c.area_id,
-        'area': c.area_rel.area if c.area_rel else None,
-        'fecha': c.fecha.strftime('%Y-%m-%d'),
-        'horario': c.horario,
-        'estado': c.estado,
-        'fecha_creacion': c.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
-        'reprog': {
-            'estado': c.reprog_estado,
-            'pendiente_para': c.reprog_pendiente_para,
-            'motivo': c.reprog_motivo,
-            'evidencia_url': file_url(c.reprog_evid_bucket, c.reprog_evid_name) if c.reprog_evid_name else None
-        }
-    } for c in citas])
+    return jsonify([_cita_json(c) for c in citas])
 
 @cita_bp.route('/citas/pendientes', methods=['GET'])
 def ver_pendientes():
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     citas = filtrar_citas(ESTADOS_PENDIENTES, user=_usuario_actual(), **_extraer_filtros())
-    return jsonify([{
-        'id': c.id_cita,
-        'id_alumno': c.id_alumno,
-        'nombre': c.alumno.nombre,
-        'motivo': c.motivo,
-        'area_id': c.area_id,
-        'area': c.area_rel.area if c.area_rel else None,
-        'fecha': c.fecha.strftime('%Y-%m-%d'),
-        'horario': c.horario,
-        'estado': c.estado,
-        'fecha_creacion': c.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S')
-    } for c in citas])
+    return jsonify([_cita_json(c, incluir_nombre=True) for c in citas])
+
 
 @cita_bp.route('/citas/culminadas', methods=['GET'])
 def ver_culminadas():
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     citas = filtrar_citas(ESTADOS_CULMINADAS, user=_usuario_actual(), **_extraer_filtros())
-    return jsonify([{
-        'id': c.id_cita,
-        'id_alumno': c.id_alumno,
-        'nombre': c.alumno.nombre,
-        'motivo': c.motivo,
-        'area_id': c.area_id,
-        'area': c.area_rel.area if c.area_rel else None,
-        'fecha': c.fecha.strftime('%Y-%m-%d'),
-        'horario': c.horario,
-        'estado': c.estado,
-        'fecha_creacion': c.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S')
-    } for c in citas])
+    return jsonify([_cita_json(c, incluir_nombre=True) for c in citas])
+
 
 @cita_bp.route('/citas/<int:id_cita>/estado', methods=['PUT'])
 def cambiar_estado(id_cita):
@@ -158,33 +148,15 @@ def cambiar_estado(id_cita):
 
 @cita_bp.route('/citas/<int:id_cita>', methods=['GET'])
 def ver_detalle_cita(id_cita):
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     c = obtener_cita(id_cita, user=_usuario_actual())
     if c:
-        return jsonify({
-            'id': c.id_cita,
-            'id_alumno': c.id_alumno,
-            'nombre': c.alumno.nombre,
-            'motivo': c.motivo,
-            'descripcion': c.descripcion,
-            'area_id': c.area_id,
-            'area': c.area_rel.area if c.area_rel else None,
-            'fecha': c.fecha.strftime('%Y-%m-%d'),
-            'horario': c.horario,
-            'estado': c.estado,
-            'fecha_creacion': c.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
-            'reprog': {
-                'estado': c.reprog_estado,
-                'pendiente_para': c.reprog_pendiente_para,
-                'motivo': c.reprog_motivo,
-                'evidencia_url': file_url(c.reprog_evid_bucket, c.reprog_evid_name) if c.reprog_evid_name else None
-            }
-        })
+        return jsonify(_cita_json(c, incluir_nombre=True))
     return jsonify({'error': 'No encontrada o sin permisos'}), 404
+
 
 # Reprogramación por staff (crea propuesta al Alumno)
 @cita_bp.route('/citas/<int:id_cita>/reprogramar', methods=['PUT'])
