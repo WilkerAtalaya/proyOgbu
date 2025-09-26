@@ -7,7 +7,6 @@ from app.models.usuarios import Usuario                  # <- importa Usuario
 motivo_cita_bp = Blueprint('motivo_cita', __name__)
 
 def _usuario_actual():
-    """Obtiene el usuario desde g.current_user o id_usuario en args/form/json."""
     if hasattr(g, 'current_user') and g.current_user:
         return g.current_user
     uid = request.args.get('id_usuario', type=int)
@@ -20,21 +19,12 @@ def _usuario_actual():
 
 @motivo_cita_bp.route('/motivos-cita', methods=['GET'])
 def listar_motivos():
-    """
-    Parámetros opcionales:
-    - q:       texto para buscar por 'motivo' (ilike)
-    - area:    nombre exacto del área (p.ej. Psicología)
-    - id_area: id numérico de área
-    - id_usuario: (opcional) si pertenece a un rol de área, limita por esa área
-    """
     q = MotivoCita.query.join(Area, MotivoCita.id_area == Area.id_area)
 
-    # --- Filtro por rol/área del usuario logeado (si aplica) ---
     user = _usuario_actual()
-    if user and user.rol_area_id:                     # psicología / trabajo social
+    if user and user.rol_area_id:                     
         q = q.filter(MotivoCita.id_area == user.rol_area_id)
     else:
-        # Si no es staff de un área, permiten filtros manuales de área
         id_area = request.args.get('id_area', type=int)
         if id_area:
             q = q.filter(MotivoCita.id_area == id_area)
