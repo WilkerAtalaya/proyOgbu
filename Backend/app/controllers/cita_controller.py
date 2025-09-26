@@ -412,10 +412,8 @@ def adjuntar_evidencia_reprog(id_cita, file_storage, user=None):
 
 # --------- Agenda pública (anonimizada) ----------
 def agenda_publica(area=None, fecha=None, area_id=None):
-    if not fecha:
-        return jsonify({'error': 'El parámetro "fecha" es obligatorio (YYYY-MM-DD)'}), 400
 
-    # Normalizar área
+    # Normalizar área -> obtener _area_id
     _area_id = None
     if area_id:
         if not _area_valida_por_id(area_id):
@@ -426,23 +424,33 @@ def agenda_publica(area=None, fecha=None, area_id=None):
         if not _area_id:
             return jsonify({'error': 'Área inválida'}), 400
 
-    # SOLO la fecha exacta indicada
-    q = Cita.query.filter(
-        Cita.estado.in_(['Aprobado', 'Reprogramado']),
-        Cita.fecha == fecha
-    )
+    # Base: estados permitidos
+    q = Cita.query.filter(Cita.estado.in_(['Aprobado', 'Reprogramado']))
+
+    # Fecha opcional
+    if fecha:
+        q = q.filter(Cita.fecha == fecha)
+    else:
+        q = q.filter(Cita.fecha >= date.today())
+
+    # Área opcional
     if _area_id:
         q = q.filter(Cita.area_id == _area_id)
 
-    q = q.order_by(Cita.horario.asc()).all()
+    # Orden
+    if fecha:
+        q = q.order_by(Cita.horario.asc())
+    else:
+        q = q.order_by(Cita.fecha.asc(), Cita.horario.asc())
 
+    items = q.all()
     data = [{
         'fecha': c.fecha.strftime('%Y-%m-%d'),
         'horario': c.horario,
         'area_id': c.area_id,
         'area': c.area_rel.area if c.area_rel else None,
         'disponible': False
-    } for c in q]
+    } for c in items]
 
     return jsonify(data), 200
 

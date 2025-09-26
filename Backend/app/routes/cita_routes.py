@@ -272,12 +272,11 @@ def ver_agenda_publica():
     area = request.args.get('area')
     fecha_str = request.args.get('fecha')
 
-    if not fecha_str:
-        return jsonify({'error': 'Debe enviar el parámetro "fecha" (YYYY-MM-DD)'}), 400
-
-    try:
-        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-    except ValueError:
-        return jsonify({'error': 'fecha inválida (use YYYY-MM-DD)'}), 400
+    fecha = None
+    if fecha_str:
+        try:
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'error': 'fecha inválida (use YYYY-MM-DD)'}), 400
 
     return agenda_publica(area=area, fecha=fecha, area_id=area_id)
