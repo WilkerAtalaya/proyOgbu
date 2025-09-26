@@ -411,8 +411,10 @@ def adjuntar_evidencia_reprog(id_cita, file_storage, user=None):
     return jsonify({'mensaje': 'Evidencia cargada', 'url': meta['url']}), 201
 
 # --------- Agenda pública (anonimizada) ----------
-def agenda_publica(area=None, desde=None, hasta=None, area_id=None):
-    """ Vista pública de agenda: - Por defecto: todas las citas Aprobadas/Reprogramadas con fecha >= hoy. - Filtros opcionales: area_id (preferido), area (nombre), desde, hasta. - Sin datos personales. """
+def agenda_publica(area=None, fecha=None, area_id=None):
+    if not fecha:
+        return jsonify({'error': 'El parámetro "fecha" es obligatorio (YYYY-MM-DD)'}), 400
+
     # Normalizar área
     _area_id = None
     if area_id:
@@ -424,23 +426,21 @@ def agenda_publica(area=None, desde=None, hasta=None, area_id=None):
         if not _area_id:
             return jsonify({'error': 'Área inválida'}), 400
 
-    hoy = date.today()
-    q = (Cita.query
-         .filter(Cita.estado.in_(['Aprobado', 'Reprogramado']), Cita.fecha >= hoy))
+    # SOLO la fecha exacta indicada
+    q = Cita.query.filter(
+        Cita.estado.in_(['Aprobado', 'Reprogramado']),
+        Cita.fecha == fecha
+    )
     if _area_id:
         q = q.filter(Cita.area_id == _area_id)
-    if desde:
-        q = q.filter(Cita.fecha >= desde)
-    if hasta:
-        q = q.filter(Cita.fecha <= hasta)
 
-    q = q.order_by(Cita.fecha.asc(), Cita.horario.asc()).all()
+    q = q.order_by(Cita.horario.asc()).all()
 
     data = [{
-        'fecha' : c.fecha.strftime('%Y-%m-%d'),
-        'horario' : c.horario,
-        'area_id' : c.area_id,
-        'area' : c.area_rel.area if c.area_rel else None,
+        'fecha': c.fecha.strftime('%Y-%m-%d'),
+        'horario': c.horario,
+        'area_id': c.area_id,
+        'area': c.area_rel.area if c.area_rel else None,
         'disponible': False
     } for c in q]
 
