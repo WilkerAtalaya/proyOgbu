@@ -6,11 +6,16 @@ from app.controllers.cita_controller import (
     obtener_citas_por_alumno, filtrar_citas, reprogramar_cita,
     solicitar_reprogramacion, confirmar_reprogramacion, 
     agenda_publica, ESTADOS_PENDIENTES, ESTADOS_CULMINADAS,
-    adjuntar_evidencia_reprog, _es_admin
+    adjuntar_evidencia_reprog, _es_admin, _actualizar_citas_vencidas
 )
 from app.files.service import file_url
 
 cita_bp = Blueprint('cita', __name__)
+
+@cita_bp.before_request
+def antes_de_cada_peticion():
+    """Se ejecuta automáticamente antes de cada request a las rutas de citas"""
+    _actualizar_citas_vencidas()
 
 def _verificar_acceso_admin():
     """Verifica si el usuario es admin y deniega acceso"""
@@ -86,6 +91,7 @@ def ver_citas_alumno(id_alumno):
         'fecha': c.fecha.strftime('%Y-%m-%d'),
         'horario': c.horario,
         'estado': c.estado,
+        'fecha_creacion': c.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
         'reprog': {
             'estado': c.reprog_estado,
             'pendiente_para': c.reprog_pendiente_para,
@@ -111,7 +117,8 @@ def ver_pendientes():
         'area': c.area_rel.area if c.area_rel else None,
         'fecha': c.fecha.strftime('%Y-%m-%d'),
         'horario': c.horario,
-        'estado': c.estado
+        'estado': c.estado,
+        'fecha_creacion': c.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S')
     } for c in citas])
 
 @cita_bp.route('/citas/culminadas', methods=['GET'])
@@ -131,7 +138,8 @@ def ver_culminadas():
         'area': c.area_rel.area if c.area_rel else None,
         'fecha': c.fecha.strftime('%Y-%m-%d'),
         'horario': c.horario,
-        'estado': c.estado
+        'estado': c.estado,
+        'fecha_creacion': c.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S')
     } for c in citas])
 
 @cita_bp.route('/citas/<int:id_cita>/estado', methods=['PUT'])
@@ -168,6 +176,7 @@ def ver_detalle_cita(id_cita):
             'fecha': c.fecha.strftime('%Y-%m-%d'),
             'horario': c.horario,
             'estado': c.estado,
+            'fecha_creacion': c.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S'),
             'reprog': {
                 'estado': c.reprog_estado,
                 'pendiente_para': c.reprog_pendiente_para,

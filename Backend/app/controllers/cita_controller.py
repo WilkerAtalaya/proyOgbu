@@ -1,5 +1,6 @@
 from flask import jsonify, g
 from app.models.usuarios import Usuario
+from app.models.rol import Rol
 from app import db
 from app.models.cita import Cita
 from app.models.area import Area
@@ -12,15 +13,9 @@ from app.files.service import save_upload
 BUCKET = 'citas'
 
 # --- Constantes / roles ---
-ROLES = ('alumno', 'admin', 'psicologia', 'social')
 ESTADOS_PENDIENTES = ['Solicitado', 'Aprobado', 'Reprogramado']
 ESTADOS_CULMINADAS = ['Atendido', 'Ausente']
 
-# Mapeo lógico de rol -> nombre de área
-ROL_A_AREA_NOMBRE = {
-    'psicologia': 'Psicología',
-    'social': 'Trabajo Social',
-}
 
 # Área y motivo por defecto
 AREA_POR_DEFECTO = 'Psicología'
@@ -69,19 +64,19 @@ def _get_user(user_id=None):
     return None
 
 def _es_admin(user):
-    return user and user.rol == 'admin'
+    return bool(user and user.rol_slug == 'admin')
 
 def _es_alumno(user):
-    return user and user.rol == 'alumno'
+    return bool(user and user.rol_slug == 'alumno')
 
 def _es_staff_area(user):
-    return user and user.rol in ROL_A_AREA_NOMBRE
+    return bool(user and user.rol_area_id)
 
 def _area_id_del_staff(user):
-    nombre = ROL_A_AREA_NOMBRE.get(user.rol)
-    return _area_id_por_nombre(nombre) if nombre else None
+    return user.rol_area_id if user else None
 
 def _aplicar_scope_por_rol(query, user):
+    # Admin ya no tiene acceso a citas
     if _es_admin(user):
         return query.filter(Cita.id_cita == -1)  # Retorna consulta vacía
     
@@ -95,6 +90,7 @@ def _validar_area_creacion(user, area_id_solicitada: int):
     if not _area_valida_por_id(area_id_solicitada):
         return False, 'Área inválida. Use un area_id existente'
     
+    # Admin ya no puede crear citas
     if _es_admin(user):
         return False, 'El rol admin ya no tiene permisos para crear citas'
     
@@ -107,6 +103,7 @@ def _validar_area_creacion(user, area_id_solicitada: int):
     return True, None
 
 def _puede_ver_cita(user, cita: Cita):
+    # Admin ya no puede ver citas
     if _es_admin(user):
         return False
         
@@ -125,7 +122,22 @@ def _puede_modificar_cita(user, cita: Cita):
     if _es_staff_area(user):
         return cita.area_id == _area_id_del_staff(user)
         
-    return False  
+    return False  # alumnos NO modifican directo
+
+def _actualizar_citas_vencidas():
+    """Actualiza automáticamente citas aprobadas/reprogramadas cuya fecha ya pasó a estado 'Ausente'"""
+    hoy = date.today()
+    citas_vencidas = Cita.query.filter(
+        Cita.estado.in_(['Aprobado', 'Reprogramado']),
+        Cita.fecha < hoy
+    ).all()
+    
+    if citas_vencidas:
+        for cita in citas_vencidas:
+            cita.estado = 'Ausente'
+        db.session.commit()
+        print(f"Actualizadas {len(citas_vencidas)} citas a estado 'Ausente'")
+
 
 # ------------- Casos de uso ----------------
 def crear_cita(data):
@@ -224,24 +236,36 @@ def crear_cita(data):
     }), 201
 
 def obtener_citas_por_alumno(id_alumno, user=None):
+    # Actualizar citas vencidas antes de consultar
+    _actualizar_citas_vencidas()
+    
     user = user or _get_user()
-    q = Cita.query.filter_by(id_alumno=id_alumno).order_by(Cita.fecha.desc())
+    q = Cita.query.filter_by(id_alumno=id_alumno).order_by(Cita.fecha_creacion.desc())
     q = _aplicar_scope_por_rol(q, user)
     return q.all()
 
 def obtener_citas_pendientes(user=None):
+    # Actualizar citas vencidas antes de consultar
+    _actualizar_citas_vencidas()
+    
     user = user or _get_user()
     q = Cita.query.filter(Cita.estado.in_(ESTADOS_PENDIENTES))
     q = _aplicar_scope_por_rol(q, user)
-    return q.order_by(Cita.fecha.asc(), Cita.horario.asc()).all()
+    return q.order_by(Cita.fecha_creacion.desc()).all()
 
 def obtener_citas_culminadas(user=None):
+    # Actualizar citas vencidas antes de consultar
+    _actualizar_citas_vencidas()
+    
     user = user or _get_user()
     q = Cita.query.filter(Cita.estado.in_(ESTADOS_CULMINADAS))
     q = _aplicar_scope_por_rol(q, user)
-    return q.order_by(Cita.fecha.desc(), Cita.horario.asc()).all()
+    return q.order_by(Cita.fecha_creacion.desc()).all()
 
 def obtener_cita(id_cita, user=None):
+    # Actualizar citas vencidas antes de consultar
+    _actualizar_citas_vencidas()
+    
     user = user or _get_user()
     c = Cita.query.get(id_cita)
     if c and _puede_ver_cita(user, c):
@@ -423,6 +447,9 @@ def agenda_publica(area=None, desde=None, hasta=None, area_id=None):
     return jsonify(data), 200
 
 def filtrar_citas(estado_lista, user=None, **filtros):
+    # Actualizar citas vencidas antes de consultar
+    _actualizar_citas_vencidas()
+    
     user = user or _get_user()
     consulta = Cita.query.join(Cita.alumno).join(Cita.area_rel).filter(Cita.estado.in_(estado_lista))
 
@@ -453,9 +480,7 @@ def filtrar_citas(estado_lista, user=None, **filtros):
         p = f"%{filtros['q']}%"
         consulta = consulta.filter(or_(Cita.motivo.ilike(p), Cita.descripcion.ilike(p)))
 
-    if estado_lista == ESTADOS_PENDIENTES:
-        consulta = consulta.order_by(Cita.fecha.asc(), Cita.horario.asc())
-    else:
-        consulta = consulta.order_by(Cita.fecha.desc(), Cita.horario.asc())
+    # Siempre ordenar por fecha de creación descendente (más reciente primero)
+    consulta = consulta.order_by(Cita.fecha_creacion.desc())
 
     return consulta.all()
