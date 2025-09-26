@@ -1,6 +1,6 @@
 export enum UserRole {
   STUDENT = 'alumno',
   ADMIN = 'admin',
-  SPECIALIST = 'psicologia',
+  PSYCHOLOGIST = 'psicologia',
   SOCIAL = 'social',
 }

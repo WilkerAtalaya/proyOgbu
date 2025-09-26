@@ -55,26 +55,42 @@
                 <v-card class="pa-2" rounded="xl">
                   <v-card-title>{{ appointment.area }}</v-card-title>
                   <v-card-subtitle>{{ appointment.motivo }}</v-card-subtitle>
-                  <v-card-text class="ma-2 pa-2">
-                    <v-row>
-                      <v-col cols="12">
-                        <div>{{ appointment.descripcion }}</div>
-                      </v-col>
-                    </v-row>
+                  <v-card-text class="pl-4">
+                    <div class="mb-3">
+                      <div>{{ appointment.descripcion }}</div>
+                    </div>
 
-                    <v-row>
-                      <v-col cols="12" sm="12" md="12" lg="5">
-                        <v-chip color="primary">{{ dateFormatV2(appointment.fecha) }}</v-chip>
-                      </v-col>
-                      <v-col cols="12" sm="12" md="12" lg="7">
-                        <v-chip color="secondary">{{ appointment.horario }}</v-chip>
-                      </v-col>
-                    </v-row>
+                    <div class="d-flex flex-wrap align-center mb-3">
+                      <span class="mr-2">Fecha de cita: </span>
+                      <v-chip color="primary">{{ dateFormatV2(appointment.fecha) }}</v-chip>
+                    </div>
+
+                    <div class="d-flex flex-wrap align-center">
+                      <span class="mr-2">Horario de cita:</span>
+                      <v-chip color="secondary">{{ appointment.horario }}</v-chip>
+                    </div>
                   </v-card-text>
                   <v-card-actions class="justify-center">
-                    <v-chip variant="flat" :color="getStatusColor(appointment.estado)" size="large">{{
-                      appointment.estado
-                    }}</v-chip>
+                    <v-chip
+                      variant="flat"
+                      :color="getStatusColor(appointment.estado)"
+                      size="large"
+                      >{{ appointment.estado }}</v-chip
+                    >
+                    <v-btn
+                      v-if="
+                        appointment.estado == AppointmentStatus.APROBADO ||
+                        appointment.estado == AppointmentStatus.REPROGRAMADO
+                      "
+                      @click="openModalReschedule(appointment.id)"
+                      icon
+                      size="small"
+                      variant="outlined"
+                      class="action-btn view"
+                      title="Reprogramar cita"
+                    >
+                      <v-icon size="18">mdi-calendar-arrow-right</v-icon>
+                    </v-btn>
                   </v-card-actions>
                 </v-card>
               </v-col>
@@ -137,7 +153,7 @@
                   :items="listAreas"
                   item-title="area"
                   item-value="id_area"
-                  placeholder="Filtrar por Área"
+                  placeholder="Filtrar por Especialidad"
                   variant="solo"
                   density="compact"
                   clearable
@@ -177,7 +193,7 @@
         </v-tabs-window>
       </template>
 
-      <!-- Vista para Admin -->
+      <!-- Vista para Admin, Psicologa o Trabajadora -->
       <template v-else>
         <div>
           <v-tabs v-model="adminTabActive" align-tabs="start" color="#A37801">
@@ -187,36 +203,11 @@
             <v-tab value="completed" class="custom-tab">
               <h4>Culminadas</h4>
             </v-tab>
+            <v-spacer></v-spacer>
+            <v-btn variant="outlined" class="mb-6 custom-button" @click="openModalNewSession">
+              <span>Solicitar una cita</span>
+            </v-btn>
           </v-tabs>
-
-          <!-- <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px">
-            <n-input
-              v-model:value="filters.area"
-              placeholder="Área"
-              style="flex: 1; min-width: 150px"
-            />
-            <n-input
-              v-model:value="filters.nombre"
-              placeholder="Nombre"
-              style="flex: 1; min-width: 150px"
-            />
-            <n-input
-              v-model:value="filters.id_numero"
-              placeholder="ID número"
-              style="flex: 1; min-width: 150px"
-            />
-            <n-date-picker
-              v-model:value="filters.fecha"
-              type="date"
-              placeholder="Fecha"
-              format="dd/MM/yyyy"
-              value-format="yyyy-MM-dd"
-            />
-            <n-button @click="loadAppointments" type="primary" style="min-width: 100px"
-              >Buscar</n-button
-            >
-            <n-button @click="clearFilters" secondary style="min-width: 100px">Limpiar</n-button>
-          </div> -->
 
           <v-tabs-window v-model="adminTabActive">
             <v-tabs-window-item value="pending">
@@ -336,7 +327,8 @@
                       <tr>
                         <th>ID</th>
                         <th>Nombre</th>
-                        <th>Especialista</th>
+                        <!-- <th>Especialista</th> -->
+                        <th>Motivo</th>
                         <th>Fecha</th>
                         <th>Horario</th>
                         <th>Estado</th>
@@ -356,12 +348,13 @@
                           <div class="appointment-info">
                             <div class="appointment-details">
                               <div class="appointment-bold">{{ appointment.nombre || '' }}</div>
-                              <div class="appointment-reason">{{ appointment.motivo || '' }}</div>
+                              <!-- <div class="appointment-reason">{{ appointment.motivo || '' }}</div> -->
                             </div>
                           </div>
                         </td>
                         <td>
-                          <div class="duration">{{ appointment.area }}</div>
+                          <!-- <div class="duration">{{ appointment.area }}</div> -->
+                          <div class="duration">{{ appointment.motivo }}</div>
                         </td>
                         <td>
                           <div class="appointment-bold">{{ dateFormatV2(appointment.fecha) }}</div>
@@ -502,6 +495,7 @@
                   <table class="appointment-table">
                     <thead>
                       <tr>
+                        <th>ID</th>
                         <th>Nombre</th>
                         <th>Especialista</th>
                         <th>Fecha</th>
@@ -516,6 +510,9 @@
                         :key="appointment.id"
                         class="table-row"
                       >
+                        <td>
+                          <div class="appointment-id">{{ appointment.id }}</div>
+                        </td>
                         <td>
                           <div class="appointment-info">
                             <div class="appointment-details">
@@ -588,25 +585,6 @@
               </div>
             </v-tabs-window-item>
           </v-tabs-window>
-
-          <!-- <n-tabs v-model:value="adminTabActive" type="line">
-            <n-tab-pane name="pendientes" tab="Pendientes">
-              <n-data-table
-                ref="tablaPendientes"
-                :columns="columnsAdmin"
-                :data="dataPendiente"
-                :pagination="pagination"
-              />
-            </n-tab-pane>
-            <n-tab-pane name="culminadas" tab="Culminadas">
-              <n-data-table
-                ref="tablaCulminadas"
-                :columns="columnsAdmin"
-                :data="dataCulminada"
-                :pagination="pagination"
-              />
-            </n-tab-pane>
-          </n-tabs> -->
         </div>
       </template>
     </div>
@@ -624,23 +602,24 @@
   <RescheduleAppointmentModal
     v-model="showModalReschedule"
     :appointment-id="selectedAppointmentId"
+    @saved="loadAppointments"
+    @update-status="updateAppointmentStatus"
   />
-
 </template>
 
 <script setup lang="ts">
 import './list-sessions.scss'
+import { AppointmentStatus } from '@/shared/enums/appointment-status.enum'
+import { dateFormatV2 } from '@/shared/util/functions'
 import { useSessionList } from './list-sessions'
+import ContainerView from '@/components/layout/ContainerView.vue'
 import CreateAppointmentModal from '../modal/Citas/CreateAppointmentModal/CreateAppointmentModal.vue'
 import RescheduleAppointmentModal from '../modal/Citas/RescheduleAppointmentModal/RescheduleAppointmentModal.vue'
 import DetailAppointmentModal from '../modal/Citas/DetailAppointmentModal/DetailAppointmentModal.vue'
-import ContainerView from '@/components/layout/ContainerView.vue'
-import { AppointmentStatus } from '@/shared/enums/appointment-status.enum'
 
 const {
-  isAdmin,
-  isStudent,
   user,
+  isStudent,
   listAreas,
   listReasons,
   studentTabActive,
@@ -659,21 +638,16 @@ const {
   statusFilterByTab,
   clearFilters,
   form,
-  submitCita,
-  showModal,
-  selectedSlot,
-  dateFormatV2,
   dataTableInst,
   handleDetail,
   showModalDetail,
   appointmentToView,
   selectedAppointmentId,
-  showModalNewSession,
   openModalNewSession,
-  showModalReschedule,
+  showModalNewSession,
   openModalReschedule,
-  getStatusColor,
+  showModalReschedule,
   updateAppointmentStatus,
-  snackbar,
+  getStatusColor,
 } = useSessionList()
 </script>

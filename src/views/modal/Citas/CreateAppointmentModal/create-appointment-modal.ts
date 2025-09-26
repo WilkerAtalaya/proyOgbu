@@ -5,6 +5,9 @@ import { NotificationType } from '@/shared/enums/notification.enum'
 import CitasService from '@/services/CitasService'
 import LoginService from '@/services/LoginService'
 import '@vuepic/vue-datepicker/dist/main.css'
+import { debounce } from 'lodash'
+import ReconocimientosService from '@/services/ReconocimientosService'
+import type { Alumno } from '@/models/Reconocimiento'
 
 type EmitFn = {
   (e: 'update:modelValue', v: boolean): void
@@ -21,21 +24,22 @@ export function useCreateAppointmentModal(emit: EmitFn) {
   // const selectedFile = ref(null)
 
   const form = reactive<any>({
+    student_id: null,
     reason_id: null,
-    specialist: '',
+    specialist_id: null,
     description: '',
     date: '',
-    startTime: '',
-    endTime: '',
-    // numero: '',
-    // tipo: '',
-    // titulo: '',
-    // estado: '',
+    startTime: null,
+    endTime: null,
   })
 
   const rules = {
     required: (v: any) => !!v || 'Este campo es obligatorio',
   }
+
+  const students = ref<Alumno[]>([])
+  const searchStudent = ref('')
+  const loadingSearchStudent = ref(false)
 
   const reasonList = ref()
 
@@ -55,7 +59,7 @@ export function useCreateAppointmentModal(emit: EmitFn) {
   ]
 
   const resetEndTime = () => {
-    if (form.endTime) {
+    if (form.startTime && form.endTime) {
       const startIndex = hoursList.indexOf(form.startTime)
       const endIndex = hoursList.indexOf(form.endTime)
       if (endIndex <= startIndex) form.endTime = ''
@@ -63,6 +67,7 @@ export function useCreateAppointmentModal(emit: EmitFn) {
   }
 
   const endHoursList = computed(() => {
+    if (!form.startTime) return
     const startIndex = hoursList.indexOf(form.startTime)
     return startIndex === -1 ? [] : hoursList.slice(startIndex + 1)
   })
@@ -80,16 +85,18 @@ export function useCreateAppointmentModal(emit: EmitFn) {
 
   const resetForm = () => {
     form.reason_id = null
-    form.specialist = ''
+    form.specialist_id = null
     form.description = ''
     form.date = ''
-    form.startTime = ''
-    form.endTime = ''
-
+    form.startTime = null
+    form.endTime = null
     formRef.value?.reset()
   }
 
-  const closeDialog = () => emit('update:modelValue', false)
+  const closeDialog = () => {
+    resetForm()
+    emit('update:modelValue', false)
+  }
 
   async function handleSubmit() {
     try {
@@ -98,7 +105,7 @@ export function useCreateAppointmentModal(emit: EmitFn) {
 
       const appointmentForm: any = {
         id_usuario: user.value.id,
-        area: form.specialist,
+        area: form.specialist_id,
         horario: `${form.startTime} - ${form.endTime}`,
         motivo: reasonList.value.find((r: any) => r.id == form.reason_id)?.motivo,
         descripcion: form.description,
@@ -112,19 +119,17 @@ export function useCreateAppointmentModal(emit: EmitFn) {
           const anio = form.date.getFullYear()
           fechaStr = `${dia}/${mes}/${anio}`
         }
-        appointmentForm.fecha = dateFormatDB(fechaStr)
+        appointmentForm.fecha = dateFormatDB(fechaStr.toString())
       } else {
         appointmentForm.fecha = dateFormatDB(currentDate())
       }
 
       const response = await CitasService.crearCita(appointmentForm)
-
       emit('saved')
       closeDialog()
-      resetForm()
       notify('Cita creada correctamente.', NotificationType.SUCCESS)
-    } catch (err) {
-      notify(err, NotificationType.ERROR)
+    } catch (err: any) {
+      notify(err?.response?.data?.error ?? 'Error al crear la cita', NotificationType.ERROR)
     }
   }
 
@@ -136,11 +141,19 @@ export function useCreateAppointmentModal(emit: EmitFn) {
     }
   }
 
+  const searchDebouncedUsers = debounce(async (search) => {
+    if (!search || search.length < 3) return
+
+    loadingSearchStudent.value = true
+    students.value = await ReconocimientosService.buscarAlumnos(search)
+    loadingSearchStudent.value = false
+  }, 500)
+
   watch(
     () => form.reason_id,
     (newVal) => {
       const specialistId = reasonList.value.find((r: any) => r.id === newVal)?.area
-      form.specialist = specialistId ?? ''
+      form.specialist_id = specialistId
     },
   )
 
@@ -149,13 +162,19 @@ export function useCreateAppointmentModal(emit: EmitFn) {
   })
 
   return {
+    user,
     form,
     formRef,
+    students,
+    searchStudent,
+    searchDebouncedUsers,
+    loadingSearchStudent,
     reasonList,
     hoursList,
     endHoursList,
     rules,
     resetEndTime,
     handleSubmit,
+    closeDialog,
   }
 }

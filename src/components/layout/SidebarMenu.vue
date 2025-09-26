@@ -2,34 +2,27 @@
   <div class="sidebar-menu-wrapper">
     <div class="card-sidemenu">
       <div class="menu-items-container">
-        <div 
-          v-for="option in menuOptions" 
-          :key="option.key"
-          class="menu-item" 
-          :class="{ active: route.path === option.key }"
-          @click="navigate(option.key)"
-        >
-          <div 
-            class="icon-container circular-icon"
+        <div v-for="option in menuOptions" :key="option.key">
+          <div
+            v-if="!option.roles || option.roles.includes(role)"
+            class="menu-item"
+            :class="{ active: route.path === option.key }"
+            @click="navigate(option.key)"
           >
-            <img :src="option.iconSrc" :alt="option.label" class="menu-icon-img" />
+            <div class="icon-container circular-icon">
+              <img :src="option.iconSrc" :alt="option.label" class="menu-icon-img" />
+            </div>
+            <span class="menu-label">{{ option.label }}</span>
           </div>
-          <span class="menu-label">{{ option.label }}</span>
         </div>
       </div>
     </div>
-    
+
     <div v-if="route.path === '/anuncios' && isAdmin" class="action-buttons">
-      <button 
-        class="action-button"
-        @click="modalActions.showModalPublicacion()"
-      >
+      <button class="action-button" @click="modalActions.showModalPublicacion()">
         Realizar una publicación
       </button>
-      <button 
-        class="action-button"
-        @click="modalActions.showModalReconocimiento()"
-      >
+      <button class="action-button" @click="modalActions.showModalReconocimiento()">
         Realizar un Reconocimiento
       </button>
     </div>
@@ -46,10 +39,12 @@ import actividadIcon from '@/assets/icons/actividad.png'
 import permisoIcon from '@/assets/icons/permiso.png'
 import citaIcon from '@/assets/icons/cita.png'
 import asistenciaIcon from '@/assets/icons/asistencia.png'
+import { UserRole } from '@/shared/enums/role.enum'
 
 const router = useRouter()
 const route = useRoute()
 const isAdmin = LoginService.isAdmin()
+const role = LoginService.getUserRole() ?? ''
 
 const menuOptions = [
   {
@@ -61,21 +56,25 @@ const menuOptions = [
     label: 'Quejas',
     key: '/quejas',
     iconSrc: quejaIcon,
+    roles: [UserRole.STUDENT, UserRole.ADMIN],
   },
   {
     label: 'Actividades',
     key: '/actividades',
     iconSrc: actividadIcon,
+    roles: [UserRole.STUDENT, UserRole.ADMIN],
   },
   {
     label: 'Permisos',
     key: '/permisos',
     iconSrc: permisoIcon,
+    roles: [UserRole.STUDENT, UserRole.ADMIN],
   },
   {
     label: 'Citas',
     key: '/citas',
     iconSrc: citaIcon,
+    roles: [UserRole.STUDENT, UserRole.PSYCHOLOGIST, UserRole.SOCIAL],
   },
   // {
   //   label: 'Asistencia',
@@ -98,7 +97,7 @@ function navigate(key) {
 }
 
 .card-sidemenu {
-  background: #7E271BF2;
+  background: #7e271bf2;
   width: 100%;
   padding: 32px 24px;
   border-radius: 25px;
@@ -140,7 +139,7 @@ function navigate(key) {
 }
 
 .menu-item.active {
-  background-color: #DCC1C1;
+  background-color: #dcc1c1;
 }
 
 .circular-icon {
@@ -182,7 +181,7 @@ function navigate(key) {
 }
 
 .action-button {
-  background-color: #EAE6C9;
+  background-color: #eae6c9;
   color: black;
   border-radius: 25px;
   padding: 16px 12px;

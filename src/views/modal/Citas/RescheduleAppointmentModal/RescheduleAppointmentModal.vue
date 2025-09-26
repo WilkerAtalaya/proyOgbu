@@ -3,10 +3,10 @@
     <v-card class="pa-4 rounded-xl">
       <v-card-title class="d-flex justify-space-between align-center pa-0 mb-4">
         <h2 class="text-h5 font-weight-bold text-pink">Reprogramar Cita</h2>
-        <v-btn icon="fa-solid fa-xmark" variant="text" color="primary" @click="dialog = false" />
+        <v-btn icon="fa-solid fa-xmark" variant="text" color="primary" @click="closeDialog" />
       </v-card-title>
 
-      <v-form ref="formRef" @submit.prevent="submitComplaint">
+      <v-form ref="formRef" @submit.prevent="handleSubmit">
         <v-row class="mb-4" dense>
           <v-col cols="12" md="12">
             <label class="text-body-2 font-weight-medium mb-2 d-block">Fecha</label>
@@ -29,8 +29,8 @@
             <v-select
               v-model="form.startTime"
               :items="hoursList"
-              placeholder="Seleccionar hora"
               :rules="[rules.required]"
+              placeholder="Seleccionar hora inicio"
               variant="outlined"
               density="compact"
               class="custom-input"
@@ -44,6 +44,7 @@
               v-model="form.endTime"
               :items="endHoursList"
               :rules="[rules.required]"
+              placeholder="Seleccionar hora fin"
               variant="outlined"
               density="compact"
               class="custom-input"
@@ -69,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, computed, toRef } from 'vue'
+import { computed, toRef } from 'vue'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import { useRescheduleAppointmentModal } from './reschedule-appointment-modal'
@@ -80,7 +81,11 @@ const props = defineProps<{
   appointmentId: number | null
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'update-status', status: string): void
+  (e: 'saved'): void
+}>()
 
 const dialog = computed({
   get: () => props.modelValue,
@@ -89,7 +94,6 @@ const dialog = computed({
 
 const idRef = toRef(props, 'appointmentId')
 
-const { form, formRef, hoursList, endHoursList, rules, resetEndTime, submitComplaint } =
+const { form, formRef, hoursList, endHoursList, rules, resetEndTime, handleSubmit, closeDialog } =
   useRescheduleAppointmentModal(idRef, emit)
-
 </script>

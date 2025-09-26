@@ -1,16 +1,4 @@
 <template>
-  <!-- <n-modal v-model:show="props.modelValue" preset="dialog" title="Detalle de Cita">
-    <template #default>
-      <div style="background-color: white; padding: 16px; border-radius: 6px">
-        <p><strong>Fecha:</strong> {{ dateFormatV2(appointment?.fecha) }}</p>
-        <p><strong>Horario:</strong> {{ appointment?.horario }}</p>
-        <p><strong>Área:</strong> {{ appointment?.area }}</p>
-        <p><strong>Nombre:</strong> {{ appointment?.nombre }}</p>
-        <p><strong>Estado:</strong> {{ appointment?.estado }}</p>
-      </div>
-    </template>
-  </n-modal> -->
-
   <ContainerModal
     v-model="dialog"
     :title="`Detalle de Cita #${appointment?.id || 'N/A'}`"
@@ -59,20 +47,11 @@
         </v-list-item>
 
         <v-list-item>
-          <v-list-item-title class="font-weight-bold text-subtitle-1">Hora</v-list-item-title>
+          <v-list-item-title class="font-weight-bold text-subtitle-1">Horario</v-list-item-title>
           <v-list-item-subtitle class="mt-2 mb-4 text-body-2">{{
             appointment?.horario || '-'
           }}</v-list-item-subtitle>
         </v-list-item>
-
-        <!-- <v-btn
-          class="text-none"
-          color="primary"
-          rounded="xl"
-          text="Send"
-          variant="flat"
-          @click="dialog = false"
-        ></v-btn> -->
       </v-list>
     </v-card-text>
 
@@ -125,13 +104,14 @@
     </v-card-actions>
   </ContainerModal>
 </template>
+
 <script setup lang="ts">
-import { watch, computed } from 'vue'
-import type { Cita } from '@/models/Cita'
 import './DetailAppointmentModal.scss'
+import { watch, computed } from 'vue'
 import { dateFormatV2 } from '@/shared/util/functions'
 import ContainerModal from '@/components/layout/ContainerModal.vue'
 import { AppointmentStatus } from '@/shared/enums/appointment-status.enum'
+import type { Cita } from '@/models/Cita'
 
 const props = defineProps<{
   modelValue: boolean

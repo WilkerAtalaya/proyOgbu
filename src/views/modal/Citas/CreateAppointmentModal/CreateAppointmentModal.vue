@@ -3,10 +3,37 @@
     <v-card class="pa-4 rounded-xl">
       <v-card-title class="d-flex justify-space-between align-center pa-0 mb-4">
         <h2 class="text-h5 font-weight-bold text-pink">Agendar Cita</h2>
-        <v-btn icon="fa-solid fa-xmark" variant="text" color="primary" @click="dialog = false" />
+        <v-btn icon="fa-solid fa-xmark" variant="text" color="primary" @click="closeDialog" />
       </v-card-title>
 
       <v-form ref="formRef" @submit.prevent="handleSubmit">
+        <div class="mb-4" v-if="user.rol == UserRole.PSYCHOLOGIST || user.rol == UserRole.SOCIAL">
+          <label class="text-body-2 font-weight-medium mb-2 d-block">Alumno</label>
+          <v-autocomplete
+            v-model="form.student_id"
+            v-model:search="searchStudent"
+            @update:search="searchDebouncedUsers"
+            :items="students"
+            item-title="nombre"
+            item-value="id"
+            variant="outlined"
+            hide-details
+            class="custom-input"
+            placeholder="Buscar alumno por nombre..."
+            return-object
+            clearable
+            :loading="loadingSearchStudent"
+            density="compact"
+          >
+            <template v-slot:item="{ props, item }">
+              <v-list-item
+                v-bind="props"
+                :title="item.raw.nombre"
+                :subtitle="item.raw.correo"
+              ></v-list-item>
+            </template>
+          </v-autocomplete>
+        </div>
         <div class="mb-4">
           <label class="text-body-2 font-weight-medium mb-2 d-block">Motivo</label>
           <v-select
@@ -14,17 +41,22 @@
             :items="reasonList"
             item-title="motivo"
             item-value="id"
-            :rules="[rules.required]"
+            placeholder="Seleccione un motivo (opcional)"
             variant="outlined"
             density="compact"
             class="custom-input"
+            clearable
+            hide-details
           />
         </div>
 
         <div class="mb-4">
           <label class="text-body-2 font-weight-medium mb-2 d-block">Especialista</label>
-          <v-text-field
-            v-model="form.specialist"
+          <v-select
+            v-model="form.specialist_id"
+            :items="reasonList"
+            item-title="area"
+            item-value="id_area"
             variant="outlined"
             density="compact"
             class="custom-input"
@@ -37,6 +69,7 @@
           <label class="text-body-2 font-weight-medium mb-2 d-block"> Descripción</label>
           <v-textarea
             v-model="form.description"
+            placeholder="Ingrese una descripción (opcional)"
             variant="outlined"
             rows="4"
             density="compact"
@@ -68,9 +101,11 @@
               v-model="form.startTime"
               :items="hoursList"
               :rules="[rules.required]"
+              placeholder="Seleccionar hora inicio"
               variant="outlined"
               density="compact"
               class="custom-input"
+              clearable
               @update:model-value="resetEndTime"
             />
           </v-col>
@@ -81,9 +116,11 @@
               v-model="form.endTime"
               :items="endHoursList"
               :rules="[rules.required]"
+              placeholder="Seleccionar hora fin"
               variant="outlined"
               density="compact"
               class="custom-input"
+              clearable
               :disabled="!form.startTime"
             />
           </v-col>
@@ -97,7 +134,7 @@
             style="border-radius: 20px; text-transform: none; font-weight: 500"
             min-width="120px"
           >
-            Enviar
+            Registrar
           </v-btn>
         </div>
       </v-form>
@@ -111,6 +148,7 @@ import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import { useCreateAppointmentModal } from './create-appointment-modal'
 import './CreateAppointmentModal.scss'
+import { UserRole } from '@/shared/enums/role.enum'
 
 const props = defineProps<{
   modelValue: boolean
@@ -126,6 +164,20 @@ const dialog = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
-const { form, formRef, reasonList, hoursList, endHoursList, rules, resetEndTime, handleSubmit } =
-  useCreateAppointmentModal(emit)
+const {
+  user,
+  form,
+  formRef,
+  students,
+  searchStudent,
+  searchDebouncedUsers,
+  loadingSearchStudent,
+  reasonList,
+  hoursList,
+  endHoursList,
+  rules,
+  resetEndTime,
+  handleSubmit,
+  closeDialog,
+} = useCreateAppointmentModal(emit)
 </script>

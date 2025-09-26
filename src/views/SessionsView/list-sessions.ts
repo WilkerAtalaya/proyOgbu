@@ -8,8 +8,7 @@ import {
   watch,
   computed,
 } from 'vue'
-import { dateFormatV2 } from '@/shared/util/functions'
-import { NButton, NModal, NInput, NSelect, NDataTable } from 'naive-ui'
+
 import { notify } from '@/shared/composables/useNotifier'
 import { NotificationType } from '@/shared/enums/notification.enum'
 import CitasService from '@/services/CitasService'
@@ -18,23 +17,18 @@ import type { Cita } from '@/models/Cita'
 import { UserRole } from '@/shared/enums/role.enum'
 
 export function useSessionList() {
-  const isAdmin = LoginService.isAdmin()
-  const isStudent = LoginService.getUserRole() == UserRole.STUDENT
   const user = ref(LoginService.getCurrentUser())
+  const isStudent = LoginService.getUserRole() == UserRole.STUDENT
 
   /* ************ Pestañas ************ */
   const studentTabActive = ref('appointment-list')
   const adminTabActive = ref<'pending' | 'completed'>('pending')
 
   const showModalNewSession = ref(false)
-  const snackbar = reactive({ show: false, message: '', color: 'success' })
 
   const appointments = ref<any[]>([])
 
   /* ************ STUDENT PROFILE ************ */
-
-  const showModal = ref(false)
-  const selectedSlot = ref<any>(null)
 
   const listReasons = ref()
 
@@ -79,44 +73,6 @@ export function useSessionList() {
     { tab: 'completed', value: 'ausentes', label: 'Ausentes' },
   ]
 
-  // const columnsAlumno = [
-  //   { title: 'Número', key: 'index' },
-  //   { title: 'Fecha', key: 'fecha' },
-  //   { title: 'Horario', key: 'horario' },
-  //   { title: 'Motivo', key: 'motivo' },
-  //   { title: 'Area', key: 'area' },
-  //   {
-  //     title: 'Estado',
-  //     key: 'estado',
-  //     render(row: any) {
-  //       if (row.estado === 'Solicitado') {
-  //         return h(
-  //           NButton,
-  //           {
-  //             size: 'small',
-  //             class: 'btn-disponible',
-  //             onClick: () => {
-  //               selectedSlot.value = row
-  //               showModal.value = true
-  //             },
-  //           },
-  //           { default: () => 'Solicitado' },
-  //         )
-  //       } else {
-  //         return h(
-  //           NButton,
-  //           {
-  //             size: 'small',
-  //             class: 'btn-no-disponible',
-  //             disabled: true,
-  //           },
-  //           { default: () => 'Aprobado' },
-  //         )
-  //       }
-  //     },
-  //   },
-  // ]
-
   const loadAppointments = async () => {
     try {
       if (isStudent) {
@@ -155,15 +111,20 @@ export function useSessionList() {
     }
   }
 
+  function openModalNewSession() {
+    showModalNewSession.value = true
+  }
+
+  async function loadCita(appointmentId: number) {
+    const params = { id_usuario: user.value.id }
+    const items = await CitasService.obtenerCitaPorId(appointmentId, params)
+    return items
+  }
+
   async function handleDetail(appointmentId: number) {
     const data = await loadCita(appointmentId)
     appointmentToView.value = data
     showModalDetail.value = true
-  }
-
-  async function openModalReschedule(appointmentId: number) {
-    selectedAppointmentId.value = appointmentId
-    showModalReschedule.value = true
   }
 
   async function updateAppointmentStatus(status: string) {
@@ -181,24 +142,19 @@ export function useSessionList() {
 
       notify('Estado de cita actualizado correctamente.', NotificationType.SUCCESS)
       loadAppointments()
-    } catch (error) {
-      notify('Error al actualizar estado de la cita.', NotificationType.ERROR)
+    } catch (err: any) {
+      notify(err?.response?.data?.error ?? 'Error al actualizar estado de la cita', NotificationType.ERROR)
     }
   }
 
-  const submitCita = () => {
-    console.log('Formulario enviado:', form.value, selectedSlot.value)
-    showModal.value = false
-  }
-
-  async function loadCita(appointmentId: number) {
-    const params = { id_usuario: user.value.id }
-    const items = await CitasService.obtenerCitaPorId(appointmentId, params)
-    return items
+  async function openModalReschedule(appointmentId: number) {
+    selectedAppointmentId.value = appointmentId
+    showModalReschedule.value = true
   }
 
   function getFilters() {
     const params: Record<string, any> = {}
+    params.id_usuario = user.value.id
     if (filters.value.area_id) params.area = filters.value.area_id
     if (filters.value.fecha) {
       const fechaObj = new Date(filters.value.fecha)
@@ -209,10 +165,6 @@ export function useSessionList() {
 
   function clearFilters() {
     filters.value = { area_id: null, fecha: null, search: '', status: 'todos' }
-  }
-
-  function openModalNewSession() {
-    showModalNewSession.value = true
   }
 
   const getStatusColor = (status: string) => {
@@ -281,7 +233,7 @@ export function useSessionList() {
   })
 
   watch(adminTabActive, () => {
-    clearFilters() // 🔥 limpia filtros al cambiar de pestaña
+    clearFilters()
     loadAppointments()
   })
 
@@ -313,9 +265,8 @@ export function useSessionList() {
   })
 
   return {
-    isAdmin,
-    isStudent,
     user,
+    isStudent,
     listAreas,
     listReasons,
     studentTabActive,
@@ -334,21 +285,16 @@ export function useSessionList() {
     statusFilterByTab,
     clearFilters,
     form,
-    submitCita,
-    showModal,
-    selectedSlot,
-    dateFormatV2,
     dataTableInst: ref(null),
     handleDetail,
     showModalDetail,
     appointmentToView,
     selectedAppointmentId,
-    showModalNewSession,
     openModalNewSession,
-    showModalReschedule,
+    showModalNewSession,
     openModalReschedule,
-    getStatusColor,
+    showModalReschedule,
     updateAppointmentStatus,
-    snackbar,
+    getStatusColor,
   }
 }

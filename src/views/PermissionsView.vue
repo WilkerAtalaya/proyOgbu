@@ -1931,7 +1931,6 @@ function downloadFile(fileName) {
   grid-template-columns: 1fr 1fr;
   gap: 32px;
   margin: 0 auto;
-  padding: 24px;
   align-items: flex-start;
 }
 

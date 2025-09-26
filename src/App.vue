@@ -62,6 +62,19 @@ import UserCard from './components/layout/UserCard.vue'
 import ButtonAction from './components/layout/ButtonAction.vue'
 import LoginService from './services/LoginService'
 
+const iconByType = computed(() => {
+  switch (color.value) {
+    case 'success':
+      return 'mdi-check-circle';
+    case 'error':
+      return 'mdi-alert-circle';
+    case 'warning':
+      return 'mdi-alert';
+    default:
+      return 'mdi-information';
+  }
+});
+
 const router = useRouter()
 const route = useRoute()
 const showModal = ref(false)
