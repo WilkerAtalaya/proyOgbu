@@ -156,9 +156,6 @@ def actualizar_usuario_admin(id_usuario: int, payload: dict) -> Tuple[Optional[U
                 return None, "El correo ya está registrado por otro usuario."
             u.correo = correo
 
-    if contraseña:
-        u.contraseña = generate_password_hash(contraseña, method='pbkdf2:sha256')
-
     if rol is not None:
         if not _validar_rol(rol):
             return None, f"Rol inválido. Permitidos: {', '.join(ROLES_PERMITIDOS)}."
