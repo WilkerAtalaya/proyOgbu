@@ -67,7 +67,7 @@
           @click="handleUpdateStatus(AppointmentStatus.APROBADO)"
           >Aprobar</v-btn
         >
-        <v-btn
+        <!-- <v-btn
           color="error"
           rounded="xl"
           size="large"
@@ -76,6 +76,16 @@
           variant="flat"
           @click="handleUpdateStatus(AppointmentStatus.RECHAZADO)"
           >Rechazar</v-btn
+        > -->
+        <v-btn
+          color="grey"
+          rounded="xl"
+          size="large"
+          min-width="130"
+          elevation="2"
+          variant="flat"
+          @click="dialog = false"
+          >Cancelar</v-btn
         >
       </template>
 

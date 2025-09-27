@@ -1,20 +1,11 @@
-import {
-  defineComponent,
-  ref,
-  h,
-  onMounted,
-  reactive,
-  resolveComponent,
-  watch,
-  computed,
-} from 'vue'
-
+import { ref, onMounted, watch, computed } from 'vue'
 import { notify } from '@/shared/composables/useNotifier'
 import { NotificationType } from '@/shared/enums/notification.enum'
 import CitasService from '@/services/CitasService'
 import LoginService from '@/services/LoginService'
 import type { Cita } from '@/models/Cita'
 import { UserRole } from '@/shared/enums/role.enum'
+import { AppointmentStatus } from '@/shared/enums/appointment-status.enum'
 
 export function useSessionList() {
   const user = ref(LoginService.getCurrentUser())
@@ -29,8 +20,6 @@ export function useSessionList() {
   const appointments = ref<any[]>([])
 
   /* ************ STUDENT PROFILE ************ */
-
-  const listReasons = ref()
 
   // Busy Schedules
   const listAreas = ref()
@@ -50,9 +39,8 @@ export function useSessionList() {
   /* ************ ADMIN PROFILE ************ */
   const showModalDetail = ref(false)
   const showModalReschedule = ref(false)
-  const appointmentToView = ref<Cita | null>(null)
+  const selectedAppointment = ref<Cita | null>(null)
   const form = ref({ motivo: '', descripcion: '', area: '' })
-  const selectedAppointmentId = ref<number | null>(null)
 
   const currentPage = ref(1)
   const itemsPerPage = ref(10)
@@ -94,7 +82,7 @@ export function useSessionList() {
         area:
           listAreas.value?.find((a: any) => a.id_area == filtersBusySchedulesStudent.value.area_id)
             ?.area ?? undefined,
-        date: filtersBusySchedulesStudent.value.date ?? undefined,
+        fecha: filtersBusySchedulesStudent.value.date ?? undefined,
       }
 
       listBusySchedules.value = await CitasService.getBusySchedules(params)
@@ -123,32 +111,37 @@ export function useSessionList() {
 
   async function handleDetail(appointmentId: number) {
     const data = await loadCita(appointmentId)
-    appointmentToView.value = data
+    selectedAppointment.value = data
     showModalDetail.value = true
   }
 
   async function updateAppointmentStatus(status: string) {
     try {
-      if (!appointmentToView.value) return true
+      if (!selectedAppointment.value) return true
 
       const params = { id_usuario: user.value.id }
       const newStatus = { estado: status }
       const response = await CitasService.updateStatus(
-        appointmentToView.value.id,
+        selectedAppointment.value.id,
         newStatus,
         params,
       )
       console.log(response)
 
-      notify('Estado de cita actualizado correctamente.', NotificationType.SUCCESS)
+      if (status !== AppointmentStatus.REPROGRAMADO)
+        notify('Estado de cita actualizado correctamente.', NotificationType.SUCCESS)
+
       loadAppointments()
     } catch (err: any) {
-      notify(err?.response?.data?.error ?? 'Error al actualizar estado de la cita', NotificationType.ERROR)
+      notify(
+        err?.response?.data?.error ?? 'Error al actualizar estado de la cita',
+        NotificationType.ERROR,
+      )
     }
   }
 
-  async function openModalReschedule(appointmentId: number) {
-    selectedAppointmentId.value = appointmentId
+  async function openModalReschedule(appointment: Cita) {
+    selectedAppointment.value = appointment
     showModalReschedule.value = true
   }
 
@@ -165,6 +158,10 @@ export function useSessionList() {
 
   function clearFilters() {
     filters.value = { area_id: null, fecha: null, search: '', status: 'todos' }
+  }
+
+  function clearFiltersStudent() {
+    filtersBusySchedulesStudent.value = { area_id: null, date: null }
   }
 
   const getStatusColor = (status: string) => {
@@ -232,13 +229,18 @@ export function useSessionList() {
     return Math.ceil(totalFilteredItems.value / itemsPerPage.value)
   })
 
+  watch(studentTabActive, () => {
+    clearFiltersStudent()
+    loadBusySchedules()
+  })
+
   watch(adminTabActive, () => {
     clearFilters()
     loadAppointments()
   })
 
   watch(
-    () => filtersBusySchedulesStudent.value.area_id,
+    () => [filtersBusySchedulesStudent.value.area_id, filtersBusySchedulesStudent.value.date],
     () => {
       loadBusySchedules()
     },
@@ -265,10 +267,8 @@ export function useSessionList() {
   })
 
   return {
-    user,
     isStudent,
     listAreas,
-    listReasons,
     studentTabActive,
     columnsBusySchedulesStudent,
     filtersBusySchedulesStudent,
@@ -284,12 +284,9 @@ export function useSessionList() {
     filters,
     statusFilterByTab,
     clearFilters,
-    form,
-    dataTableInst: ref(null),
     handleDetail,
     showModalDetail,
-    appointmentToView,
-    selectedAppointmentId,
+    selectedAppointment,
     openModalNewSession,
     showModalNewSession,
     openModalReschedule,

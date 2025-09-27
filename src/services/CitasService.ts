@@ -81,8 +81,8 @@ export class CitasService {
     return axios.get<any[]>(`${this.urlGetAreas}`).then((res) => res.data)
   }
 
-  async getReasons(): Promise<any[]> {
-    return axios.get<any[]>(`${this.urlGetReasons}`).then((res) => res.data)
+  async getReasons(params: any): Promise<any[]> {
+    return axios.get<any[]>(this.urlGetReasons, { params }).then((res) => res.data)
   }
 }
 

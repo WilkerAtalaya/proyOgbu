@@ -23,8 +23,16 @@ export function useCreateAppointmentModal(emit: EmitFn) {
   // const fileInput = ref(null)
   // const selectedFile = ref(null)
 
-  const form = reactive<any>({
-    student_id: null,
+  const form = reactive<{
+    student: Alumno | null
+    reason_id: number | null
+    specialist_id: number | null
+    description: string
+    date: Date | string
+    startTime: string | null
+    endTime: string | null
+  }>({
+    student: null,
     reason_id: null,
     specialist_id: null,
     description: '',
@@ -84,6 +92,8 @@ export function useCreateAppointmentModal(emit: EmitFn) {
   // }
 
   const resetForm = () => {
+    form.student = null
+    students.value = []
     form.reason_id = null
     form.specialist_id = null
     form.description = ''
@@ -104,6 +114,7 @@ export function useCreateAppointmentModal(emit: EmitFn) {
       if (!valid) return
 
       const appointmentForm: any = {
+        id_alumno: form.student?.id ?? undefined,
         id_usuario: user.value.id,
         area: form.specialist_id,
         horario: `${form.startTime} - ${form.endTime}`,
@@ -135,7 +146,8 @@ export function useCreateAppointmentModal(emit: EmitFn) {
 
   const loadReasons = async () => {
     try {
-      reasonList.value = await CitasService.getReasons()
+      const params = { id_usuario: user.value.id }
+      reasonList.value = await CitasService.getReasons(params)
     } catch (error) {
       console.log(error)
     }

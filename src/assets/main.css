@@ -111,3 +111,12 @@ a,
 .v-btn__content {
   gap: 8px;
 }
+
+.v-field.v-field--disabled {
+  background-color: #e0e0e0 !important; /* fondo más oscuro */
+  color: black !important;            /* texto más oscuro */
+}
+
+.v-field.v-field--disabled input {
+  color: black !important;            /* asegura que el texto también se vea oscuro */
+}

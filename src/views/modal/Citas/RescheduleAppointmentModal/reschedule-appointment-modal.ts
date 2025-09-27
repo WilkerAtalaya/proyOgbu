@@ -1,11 +1,11 @@
-import { ref, reactive, computed, type Ref } from 'vue'
+import { ref, reactive, computed, nextTick } from 'vue'
 import { dateFormatDB, currentDate } from '@/shared/util/functions'
 import { notify } from '@/shared/composables/useNotifier'
 import { NotificationType } from '@/shared/enums/notification.enum'
+import { AppointmentStatus } from '@/shared/enums/appointment-status.enum'
+import type { Cita } from '@/models/Cita'
 import CitasService from '@/services/CitasService'
 import LoginService from '@/services/LoginService'
-import '@vuepic/vue-datepicker/dist/main.css'
-import { AppointmentStatus } from '@/shared/enums/appointment-status.enum'
 
 type EmitFn = {
   (e: 'update:modelValue', v: boolean): void
@@ -13,10 +13,13 @@ type EmitFn = {
   (e: 'saved'): void
 }
 
-export function useRescheduleAppointmentModal(appointmentId: Ref<number | null>, emit: EmitFn) {
+export function useRescheduleAppointmentModal(emit: EmitFn) {
   const user = ref(LoginService.getCurrentUser())
 
   const formRef = ref()
+  const isEditing = ref(false)
+  const editingId = ref<number | null>(null)
+
   const form = reactive<{ date: string | Date; startTime: string | null; endTime: string | null }>({
     date: '',
     startTime: null,
@@ -56,24 +59,41 @@ export function useRescheduleAppointmentModal(appointmentId: Ref<number | null>,
     return startIndex === -1 ? [] : hoursList.slice(startIndex + 1)
   })
 
+  const setFormForEdit = async (appointment: Cita) => {
+    await nextTick()
+    editingId.value = appointment.id
+    isEditing.value = true
+
+    if (appointment.estado == AppointmentStatus.REPROGRAMADO) {
+      const horario = appointment.reprog?.horario || ''
+      const [startTime, endTime] = horario
+        ? horario.split('-').map((h: string) => h.trim())
+        : ['', '']
+
+      form.startTime = startTime ?? ''
+      form.endTime = endTime ?? ''
+      form.date = appointment.reprog?.fecha ?? ''
+    }
+  }
+
   const resetForm = () => {
     form.date = ''
     form.startTime = null
     form.endTime = null
+    editingId.value = null
+    isEditing.value = false
+
     formRef.value?.reset()
   }
 
-  const closeDialog = () => {
-    resetForm()
-    emit('update:modelValue', false)
-  }
+  const closeDialog = () => emit('update:modelValue', false)
 
   async function handleSubmit() {
     try {
       const { valid } = await (formRef.value?.validate() ?? { valid: false })
       if (!valid) return
 
-      if (!appointmentId.value) return
+      if (!editingId.value) return
 
       const rescheduleForm: any = {
         horario: `${form.startTime} - ${form.endTime}`,
@@ -94,14 +114,11 @@ export function useRescheduleAppointmentModal(appointmentId: Ref<number | null>,
 
       const params = { id_usuario: user.value.id }
 
-      const response = await CitasService.rescheduleAppointment(
-        appointmentId.value,
-        rescheduleForm,
-        params,
-      )
+      await CitasService.rescheduleAppointment(editingId.value, rescheduleForm, params)
 
       emit('update-status', AppointmentStatus.REPROGRAMADO)
       emit('saved')
+      resetForm()
       closeDialog()
       notify('Cita reprogramada correctamente.', NotificationType.SUCCESS)
     } catch (err: any) {
@@ -109,7 +126,15 @@ export function useRescheduleAppointmentModal(appointmentId: Ref<number | null>,
     }
   }
 
+  const handleUpdateStatus = (status: string) => {
+    emit('update-status', status)
+    emit('saved')
+    resetForm()
+    closeDialog()
+  }
+
   return {
+    user,
     form,
     formRef,
     hoursList,
@@ -118,5 +143,8 @@ export function useRescheduleAppointmentModal(appointmentId: Ref<number | null>,
     resetEndTime,
     handleSubmit,
     closeDialog,
+    setFormForEdit,
+    isEditing,
+    handleUpdateStatus,
   }
 }

@@ -10,7 +10,7 @@
         <div class="mb-4" v-if="user.rol == UserRole.PSYCHOLOGIST || user.rol == UserRole.SOCIAL">
           <label class="text-body-2 font-weight-medium mb-2 d-block">Alumno</label>
           <v-autocomplete
-            v-model="form.student_id"
+            v-model="form.student"
             v-model:search="searchStudent"
             @update:search="searchDebouncedUsers"
             :items="students"
