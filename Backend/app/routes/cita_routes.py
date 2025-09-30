@@ -145,10 +145,20 @@ def cambiar_estado(id_cita):
 
     data = request.get_json() or {}
 
-    # Soportar body o querystring para 'reprog' y 'accion'
     reprog = data.get('reprog', request.args.get('reprog'))
-    if isinstance(reprog, str):
-        reprog = reprog.lower() in ('1', 'true', 't', 'yes', 'y')
+    reschedule = data.get('reschedule', request.args.get('reschedule'))
+
+    def _to_bool(v):
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            return v.lower() in ('1', 'true', 't', 'yes', 'y', 'si', 'sí')
+        return False
+
+    if reprog is None and reschedule is not None:
+        reprog = _to_bool(reschedule)
+    else:
+        reprog = _to_bool(reprog)
 
     return actualizar_cita_unificado(
         id_cita=id_cita,
