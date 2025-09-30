@@ -183,39 +183,8 @@ def ver_detalle_cita(id_cita):
         return jsonify(_cita_json(c, incluir_nombre=True))
     return jsonify({'error': 'No encontrada o sin permisos'}), 404
 
-# Reprogramación por staff (crea propuesta al Alumno)
-@cita_bp.route('/citas/<int:id_cita>/reprogramar', methods=['PUT'])
-def reprogramar(id_cita):
-    acceso_denegado = _verificar_acceso_admin()
-    if acceso_denegado:
-        return acceso_denegado
-
-    user = _usuario_actual()
-    if not user:
-        return jsonify({'error': 'Usuario no identificado'}), 401
-
-    data = request.get_json() or {}
-    try:
-        nueva_fecha = datetime.strptime(data['fecha'], '%Y-%m-%d').date()
-    except Exception:
-        return jsonify({'error': 'fecha inválida (YYYY-MM-DD)'}), 400
-
-    nuevo_horario = data.get('horario')
-    if not nuevo_horario:
-        return jsonify({'error': 'horario es requerido'}), 400
-
-    # Delegar al unificado (equivalente a "solicitar" por staff)
-    return actualizar_cita_unificado(
-        id_cita=id_cita,
-        reprog=True,
-        accion='solicitar',
-        fecha=nueva_fecha,
-        horario=nuevo_horario,
-        user=user
-    )
-
 # Handshake: alumno/staff solicitan reprogramación (el alumno puede añadir motivo)
-@cita_bp.route('/citas/<int:id_cita>/reprogramacion/solicitar', methods=['PUT'])
+@cita_bp.route('/citas/<int:id_cita>/reprogramar', methods=['PUT'])
 def solicitar_reprog(id_cita):
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
