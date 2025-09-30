@@ -2,11 +2,12 @@ from flask import Blueprint, request, jsonify, g
 from datetime import datetime
 from app.models.usuarios import Usuario
 from app.controllers.cita_controller import (
-    crear_cita, actualizar_estado_cita, obtener_cita, 
+    crear_cita, actualizar_estado_cita, obtener_cita,
     obtener_citas_por_alumno, filtrar_citas, reprogramar_cita,
-    solicitar_reprogramacion, confirmar_reprogramacion, 
+    solicitar_reprogramacion, confirmar_reprogramacion,
     agenda_publica, ESTADOS_PENDIENTES, ESTADOS_CULMINADAS,
-    adjuntar_evidencia_reprog, _es_admin, _actualizar_citas_vencidas
+    adjuntar_evidencia_reprog, _es_admin, _actualizar_citas_vencidas,
+    actualizar_cita_unificado  # <-- NUEVO: import del unificado
 )
 from app.files.service import file_url
 
@@ -44,11 +45,11 @@ def _cita_json(c, *, incluir_nombre=False):
 
 @cita_bp.before_request
 def antes_de_cada_peticion():
-    """Se ejecuta automáticamente antes de cada request a las rutas de citas"""
+    """Se ejecuta automáticamente antes de cada request a las rutas de citas."""
     _actualizar_citas_vencidas()
 
 def _verificar_acceso_admin():
-    """Verifica si el usuario es admin y deniega acceso"""
+    """Verifica si el usuario es admin y deniega acceso."""
     user = _usuario_actual()
     if user and _es_admin(user):
         return jsonify({'error': 'El rol admin ya no tiene acceso al módulo de citas'}), 403
@@ -70,33 +71,32 @@ def _usuario_actual():
 
 def _extraer_filtros():
     f = {
-        'id_alumno' : request.args.get('id_alumno', type=int),
-        'nombre' : request.args.get('nombre'),
-        'area' : request.args.get('area'),
-        'area_id' : request.args.get('area_id', type=int),
-        'fecha' : request.args.get('fecha', type=lambda d: datetime.strptime(d, '%Y-%m-%d').date() if d else None),
-        'desde' : request.args.get('desde', type=lambda d: datetime.strptime(d, '%Y-%m-%d').date() if d else None),
-        'hasta' : request.args.get('hasta', type=lambda d: datetime.strptime(d, '%Y-%m-%d').date() if d else None),
-        'q' : request.args.get('q')
+        'id_alumno': request.args.get('id_alumno', type=int),
+        'nombre': request.args.get('nombre'),
+        'area': request.args.get('area'),
+        'area_id': request.args.get('area_id', type=int),
+        'fecha': request.args.get('fecha', type=lambda d: datetime.strptime(d, '%Y-%m-%d').date() if d else None),
+        'desde': request.args.get('desde', type=lambda d: datetime.strptime(d, '%Y-%m-%d').date() if d else None),
+        'hasta': request.args.get('hasta', type=lambda d: datetime.strptime(d, '%Y-%m-%d').date() if d else None),
+        'q': request.args.get('q')
     }
     return {k: v for k, v in f.items() if v is not None}
 
 # -------------------- rutas --------------------
 @cita_bp.route('/citas', methods=['POST'])
 def registrar_cita():
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     data = (request.get_json() or {}).copy()
     user = _usuario_actual()
     if user and 'id_usuario' not in data:
         data['id_usuario'] = user.id_usuario
-        
+
     if user and getattr(user, 'rol', None) == 'alumno' and 'id_alumno' not in data:
         data['id_alumno'] = user.id_usuario
-        
+
     return crear_cita(data)
 
 @cita_bp.route('/citas/alumno/<int:id_alumno>', methods=['GET'])
@@ -121,7 +121,6 @@ def ver_pendientes():
     citas = filtrar_citas(ESTADOS_PENDIENTES, user=_usuario_actual(), **_extraer_filtros())
     return jsonify([_cita_json(c, incluir_nombre=True) for c in citas])
 
-
 @cita_bp.route('/citas/culminadas', methods=['GET'])
 def ver_culminadas():
     acceso_denegado = _verificar_acceso_admin()
@@ -131,20 +130,37 @@ def ver_culminadas():
     citas = filtrar_citas(ESTADOS_CULMINADAS, user=_usuario_actual(), **_extraer_filtros())
     return jsonify([_cita_json(c, incluir_nombre=True) for c in citas])
 
-
+# ===========================
+#   ENDPOINT UNIFICADO
+# ===========================
 @cita_bp.route('/citas/<int:id_cita>/estado', methods=['PUT'])
 def cambiar_estado(id_cita):
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     user = _usuario_actual()
     if not user:
         return jsonify({'error': 'Usuario no identificado'}), 401
-        
+
     data = request.get_json() or {}
-    return actualizar_estado_cita(id_cita, data.get('estado'), user=user)
+
+    # Soportar body o querystring para 'reprog' y 'accion'
+    reprog = data.get('reprog', request.args.get('reprog'))
+    if isinstance(reprog, str):
+        reprog = reprog.lower() in ('1', 'true', 't', 'yes', 'y')
+
+    return actualizar_cita_unificado(
+        id_cita=id_cita,
+        estado=data.get('estado'),
+        reprog=reprog,
+        accion=data.get('accion', request.args.get('accion')),
+        fecha=data.get('fecha'),
+        horario=data.get('horario'),
+        aceptar=data.get('aceptar'),
+        motivo=data.get('m otivo'),  # tolerante si lo mandan en body
+        user=user
+    )
 
 @cita_bp.route('/citas/<int:id_cita>', methods=['GET'])
 def ver_detalle_cita(id_cita):
@@ -157,83 +173,104 @@ def ver_detalle_cita(id_cita):
         return jsonify(_cita_json(c, incluir_nombre=True))
     return jsonify({'error': 'No encontrada o sin permisos'}), 404
 
-
 # Reprogramación por staff (crea propuesta al Alumno)
 @cita_bp.route('/citas/<int:id_cita>/reprogramar', methods=['PUT'])
 def reprogramar(id_cita):
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     user = _usuario_actual()
     if not user:
         return jsonify({'error': 'Usuario no identificado'}), 401
-        
+
     data = request.get_json() or {}
     try:
         nueva_fecha = datetime.strptime(data['fecha'], '%Y-%m-%d').date()
     except Exception:
         return jsonify({'error': 'fecha inválida (YYYY-MM-DD)'}), 400
-        
+
     nuevo_horario = data.get('horario')
     if not nuevo_horario:
         return jsonify({'error': 'horario es requerido'}), 400
-        
-    return reprogramar_cita(id_cita, nueva_fecha, nuevo_horario, user=user)
+
+    # Delegar al unificado (equivalente a "solicitar" por staff)
+    return actualizar_cita_unificado(
+        id_cita=id_cita,
+        reprog=True,
+        accion='solicitar',
+        fecha=nueva_fecha,
+        horario=nuevo_horario,
+        user=user
+    )
 
 # Handshake: alumno/staff solicitan reprogramación (el alumno puede añadir motivo)
 @cita_bp.route('/citas/<int:id_cita>/reprogramacion/solicitar', methods=['PUT'])
 def solicitar_reprog(id_cita):
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     user = _usuario_actual()
     if not user:
         return jsonify({'error': 'Usuario no identificado'}), 401
-        
+
     data = request.get_json() or {}
     try:
         nueva_fecha = datetime.strptime(data['fecha'], '%Y-%m-%d').date()
     except Exception:
         return jsonify({'error': 'fecha inválida (YYYY-MM-DD)'}), 400
-        
+
     nuevo_horario = data.get('horario')
     if not nuevo_horario:
         return jsonify({'error': 'horario es requerido'}), 400
-        
+
     motivo_txt = (data.get('motivo') or '').strip() if getattr(user, 'rol', None) == 'alumno' else None
-    return solicitar_reprogramacion(id_cita, nueva_fecha, nuevo_horario, user=user, motivo_txt=motivo_txt)
+
+    # Delegar al unificado
+    return actualizar_cita_unificado(
+        id_cita=id_cita,
+        reprog=True,
+        accion='solicitar',
+        fecha=nueva_fecha,
+        horario=nuevo_horario,
+        motivo=motivo_txt,
+        user=user
+    )
 
 @cita_bp.route('/citas/<int:id_cita>/reprogramacion/confirmar', methods=['PUT'])
 def confirmar_reprog(id_cita):
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     user = _usuario_actual()
     if not user:
         return jsonify({'error': 'Usuario no identificado'}), 401
-        
+
     data = request.get_json() or {}
     aceptar = bool(data.get('aceptar', True))
-    return confirmar_reprogramacion(id_cita, aceptar, user=user)
+
+    # Delegar al unificado
+    return actualizar_cita_unificado(
+        id_cita=id_cita,
+        reprog=True,
+        accion='confirmar',
+        aceptar=aceptar,
+        user=user
+    )
 
 # Solo ALUMNO: subir evidencia (archivo) para la reprogramación
 @cita_bp.route('/citas/<int:id_cita>/reprogramacion/evidencia', methods=['POST'])
 def subir_evidencia_reprog_route(id_cita):
-    # Verificar acceso para admin
     acceso_denegado = _verificar_acceso_admin()
     if acceso_denegado:
         return acceso_denegado
-        
+
     user = _usuario_actual()
     if not user:
         return jsonify({'error': 'Usuario no identificado'}), 401
-        
+
     file = request.files.get('file')
     return adjuntar_evidencia_reprog(id_cita, file, user=user)
 

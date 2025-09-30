@@ -16,7 +16,6 @@ BUCKET = 'citas'
 ESTADOS_PENDIENTES = ['Solicitado', 'Aprobado', 'Reprogramado']
 ESTADOS_CULMINADAS = ['Atendido', 'Ausente']
 
-
 # Área y motivo por defecto
 AREA_POR_DEFECTO = 'Psicología'
 MOTIVO_POR_DEFECTO = 'Salud Mental'
@@ -40,7 +39,7 @@ def _area_valida_por_id(id_area: int) -> bool:
     return db.session.query(Area.id_area).filter(Area.id_area == id_area).first() is not None
 
 def _area_id_por_motivo(motivo: str):
-    """ Busca el id_area a partir del motivo en la tabla motivo_cita. """
+    """Busca el id_area a partir del motivo en la tabla motivo_cita."""
     if not motivo:
         return None
     row = (
@@ -51,7 +50,7 @@ def _area_id_por_motivo(motivo: str):
     return row[0] if row else None
 
 def _obtener_area_y_motivo_por_defecto():
-    """Retorna (area_id, motivo) por defecto (Psicología, Salud Mental)"""
+    """Retorna (area_id, motivo) por defecto (Psicología, Salud Mental)."""
     area_id = _area_id_por_nombre(AREA_POR_DEFECTO)
     return area_id, MOTIVO_POR_DEFECTO
 
@@ -79,7 +78,7 @@ def _aplicar_scope_por_rol(query, user):
     # Admin ya no tiene acceso a citas
     if _es_admin(user):
         return query.filter(Cita.id_cita == -1)  # Retorna consulta vacía
-    
+
     if _es_staff_area(user):
         area_id = _area_id_del_staff(user)
         if area_id:
@@ -89,55 +88,54 @@ def _aplicar_scope_por_rol(query, user):
 def _validar_area_creacion(user, area_id_solicitada: int):
     if not _area_valida_por_id(area_id_solicitada):
         return False, 'Área inválida. Use un area_id existente'
-    
+
     # Admin ya no puede crear citas
     if _es_admin(user):
         return False, 'El rol admin ya no tiene permisos para crear citas'
-    
+
     if _es_staff_area(user):
         area_permitida_id = _area_id_del_staff(user)
         if area_permitida_id and area_id_solicitada != area_permitida_id:
             area_permitida = _area_nombre_por_id(area_permitida_id)
             return False, f'Como {user.rol} solo puede crear citas del área {area_permitida}'
-    
+
     return True, None
 
 def _puede_ver_cita(user, cita: Cita):
     # Admin ya no puede ver citas
     if _es_admin(user):
         return False
-        
+
     if _es_staff_area(user):
         return cita.area_id == _area_id_del_staff(user)
-        
+
     if _es_alumno(user):
         return cita.id_alumno == user.id_usuario
-        
+
     return False
 
 def _puede_modificar_cita(user, cita: Cita):
     if _es_admin(user):
         return False
-        
+
     if _es_staff_area(user):
         return cita.area_id == _area_id_del_staff(user)
-        
+
     return False  # alumnos NO modifican directo
 
 def _actualizar_citas_vencidas():
-    """Actualiza automáticamente citas aprobadas/reprogramadas cuya fecha ya pasó a estado 'Ausente'"""
+    """Actualiza automáticamente citas aprobadas/reprogramadas cuya fecha ya pasó a estado 'Ausente'."""
     hoy = date.today()
     citas_vencidas = Cita.query.filter(
         Cita.estado.in_(['Aprobado', 'Reprogramado']),
         Cita.fecha < hoy
     ).all()
-    
+
     if citas_vencidas:
         for cita in citas_vencidas:
             cita.estado = 'Ausente'
         db.session.commit()
         print(f"Actualizadas {len(citas_vencidas)} citas a estado 'Ausente'")
-
 
 # ------------- Casos de uso ----------------
 def crear_cita(data):
@@ -151,7 +149,7 @@ def crear_cita(data):
         fecha = datetime.strptime(data['fecha'], '%Y-%m-%d').date()
     except ValueError:
         return jsonify({'error': 'Formato de fecha inválido. Use YYYY-MM-DD'}), 400
-        
+
     horario = data['horario']
 
     # alumno obligatorio
@@ -166,24 +164,20 @@ def crear_cita(data):
         return jsonify({'error': 'Usuario creador no identificado'}), 401
 
     # Determinar motivo y área con valores por defecto si es necesario
-    motivo = data.get('motivo', '').strip()
-    descripcion = data.get('descripcion', '').strip()
+    motivo = (data.get('motivo') or '').strip()
+    descripcion = (data.get('descripcion') or '').strip()
     area_id_solicitada = data.get('area_id')
-    
+
     # Lógica para determinar área y motivo
     if not area_id_solicitada and not motivo:
-        # Si no se proporciona área ni motivo, usar valores por defecto
         area_id, motivo = _obtener_area_y_motivo_por_defecto()
     elif area_id_solicitada and not motivo:
-        # Si se proporciona área pero no motivo, mantener área y usar motivo por defecto
         area_id = area_id_solicitada
         motivo = MOTIVO_POR_DEFECTO
     elif not area_id_solicitada and motivo:
-        # Si se proporciona motivo pero no área, determinar área por motivo o usar por defecto
         area_id_por_motivo = _area_id_por_motivo(motivo)
         area_id = area_id_por_motivo if area_id_por_motivo else _area_id_por_nombre(AREA_POR_DEFECTO)
     else:
-        # Si se proporcionan ambos, usar los proporcionados
         area_id = area_id_solicitada
 
     # Validar que el área sea válida
@@ -196,22 +190,19 @@ def crear_cita(data):
         return jsonify({'error': msg}), 403
 
     # Disponibilidad (única por área_id + fecha + horario)
-    # Permitir citas en mismo horario pero diferentes áreas
     ya_reservado = Cita.query.filter_by(
-        fecha=fecha, 
-        horario=horario, 
+        fecha=fecha,
+        horario=horario,
         area_id=area_id
     ).first()
-    
     if ya_reservado:
         return jsonify({'error': 'Ese horario ya está reservado en esa área'}), 400
 
     # Un alumno solo una cita por día
     cita_duplicada = Cita.query.filter_by(
-        id_alumno=id_alumno, 
+        id_alumno=id_alumno,
         fecha=fecha
     ).first()
-    
     if cita_duplicada:
         return jsonify({'error': 'El alumno ya tiene una cita ese día'}), 400
 
@@ -227,45 +218,37 @@ def crear_cita(data):
 
     db.session.add(nueva)
     db.session.commit()
-    
+
     return jsonify({
-        'mensaje': 'Cita registrada exitosamente', 
+        'mensaje': 'Cita registrada exitosamente',
         'id_cita': nueva.id_cita,
         'area_asignada': _area_nombre_por_id(area_id),
         'motivo_asignado': motivo
     }), 201
 
 def obtener_citas_por_alumno(id_alumno, user=None):
-    # Actualizar citas vencidas antes de consultar
     _actualizar_citas_vencidas()
-    
     user = user or _get_user()
     q = Cita.query.filter_by(id_alumno=id_alumno).order_by(Cita.fecha_creacion.desc())
     q = _aplicar_scope_por_rol(q, user)
     return q.all()
 
 def obtener_citas_pendientes(user=None):
-    # Actualizar citas vencidas antes de consultar
     _actualizar_citas_vencidas()
-    
     user = user or _get_user()
     q = Cita.query.filter(Cita.estado.in_(ESTADOS_PENDIENTES))
     q = _aplicar_scope_por_rol(q, user)
     return q.order_by(Cita.fecha_creacion.desc()).all()
 
 def obtener_citas_culminadas(user=None):
-    # Actualizar citas vencidas antes de consultar
     _actualizar_citas_vencidas()
-    
     user = user or _get_user()
     q = Cita.query.filter(Cita.estado.in_(ESTADOS_CULMINADAS))
     q = _aplicar_scope_por_rol(q, user)
     return q.order_by(Cita.fecha_creacion.desc()).all()
 
 def obtener_cita(id_cita, user=None):
-    # Actualizar citas vencidas antes de consultar
     _actualizar_citas_vencidas()
-    
     user = user or _get_user()
     c = Cita.query.get(id_cita)
     if c and _puede_ver_cita(user, c):
@@ -285,6 +268,7 @@ def actualizar_estado_cita(id_cita, nuevo_estado, user=None):
 
 # ---------------- Reprogramación ----------------
 def reprogramar_cita(id_cita, nueva_fecha, nuevo_horario, user=None):
+    """Propuesta iniciada por staff -> queda pendiente para el Alumno."""
     user = user or _get_user()
     cita = Cita.query.get(id_cita)
     if not cita:
@@ -314,6 +298,7 @@ def reprogramar_cita(id_cita, nueva_fecha, nuevo_horario, user=None):
     return jsonify({'mensaje': 'Reprogramación propuesta; pendiente de confirmación del alumno'}), 200
 
 def solicitar_reprogramacion(id_cita, nueva_fecha, nuevo_horario, user=None, motivo_txt=None):
+    """Alumno o Staff solicitan reprogramación."""
     user = user or _get_user()
     cita = Cita.query.get(id_cita)
     if not cita:
@@ -370,11 +355,14 @@ def confirmar_reprogramacion(id_cita, aceptar: bool, user=None):
         cita.fecha = cita.reprog_fecha
         cita.horario = cita.reprog_horario
         cita.estado = 'Aprobado'
-        cita.reprog_estado = 'Aprobado'
+        cita.reprog_estado = 'Aceptada'   # <-- consistente con comentario del modelo
     else:
         cita.reprog_estado = 'Rechazada'
+        # Salir del estado operativo "Reprogramado"
+        # Fallback recomendado: Aprobado (o 'Solicitado' si tu flujo lo requiere)
         cita.estado = 'Aprobado'
 
+    # Limpiar campos de reprog
     cita.reprog_fecha = None
     cita.reprog_horario = None
     cita.reprog_solicitada_por = None
@@ -382,6 +370,7 @@ def confirmar_reprogramacion(id_cita, aceptar: bool, user=None):
     cita.reprog_motivo = None
     cita.reprog_evid_bucket = None
     cita.reprog_evid_name = None
+
     db.session.commit()
     return jsonify({'mensaje': 'Reprogramación confirmada' if aceptar else 'Solicitud rechazada'}), 200
 
@@ -400,7 +389,7 @@ def adjuntar_evidencia_reprog(id_cita, file_storage, user=None):
     if not file_storage or not file_storage.filename:
         return jsonify({'error': 'Archivo requerido (campo "file")'}), 400
 
-    meta, err = save_upload(file_storage, BUCKET, modes=('images','docs'))
+    meta, err = save_upload(file_storage, BUCKET, modes=('images', 'docs'))
     if err == "INVALID_EXT":
         return jsonify({'error': 'Extensión no permitida'}), 400
     if err == "TOO_LARGE":
@@ -415,7 +404,6 @@ def adjuntar_evidencia_reprog(id_cita, file_storage, user=None):
 
 # --------- Agenda pública (anonimizada) ----------
 def agenda_publica(area=None, fecha=None, area_id=None):
-
     # Normalizar área -> obtener _area_id
     _area_id = None
     if area_id:
@@ -458,9 +446,7 @@ def agenda_publica(area=None, fecha=None, area_id=None):
     return jsonify(data), 200
 
 def filtrar_citas(estado_lista, user=None, **filtros):
-    # Actualizar citas vencidas antes de consultar
     _actualizar_citas_vencidas()
-    
     user = user or _get_user()
     consulta = Cita.query.join(Cita.alumno).join(Cita.area_rel).filter(Cita.estado.in_(estado_lista))
 
@@ -495,3 +481,50 @@ def filtrar_citas(estado_lista, user=None, **filtros):
     consulta = consulta.order_by(Cita.fecha_creacion.desc())
 
     return consulta.all()
+
+#   ENDPOINT UNIFICADO
+def actualizar_cita_unificado(
+    id_cita,
+    *,
+    estado=None,
+    reprog: bool | None = None,
+    accion: str | None = None,       # "solicitar" | "confirmar"
+    fecha=None,
+    horario=None,
+    aceptar: bool | None = None,
+    motivo: str | None = None,
+    user=None
+):
+   
+    user = user or _get_user()
+    if not user:
+        return jsonify({'error': 'Usuario no identificado'}), 401
+
+    if reprog:
+        if accion == 'solicitar':
+            if not fecha or not horario:
+                return jsonify({'error': 'fecha y horario son requeridos para solicitar reprogramación'}), 400
+            # Normaliza fecha si vino como string
+            if isinstance(fecha, str):
+                try:
+                    fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
+                except Exception:
+                    return jsonify({'error': 'fecha inválida (YYYY-MM-DD)'}), 400
+            return solicitar_reprogramacion(
+                id_cita=id_cita,
+                nueva_fecha=fecha,
+                nuevo_horario=horario,
+                user=user,
+                motivo_txt=motivo
+            )
+
+        if accion == 'confirmar':
+            aceptar = bool(True if aceptar is None else aceptar)
+            return confirmar_reprogramacion(id_cita, aceptar, user=user)
+
+        return jsonify({'error': 'acción de reprogramación no válida (use "solicitar" o "confirmar")'}), 400
+
+    # Rama de actualización simple (solo staff del área)
+    if not estado:
+        return jsonify({'error': 'Debe enviar "estado" o usar reprog=true con su acción'}), 400
+    return actualizar_estado_cita(id_cita, estado, user=user)
