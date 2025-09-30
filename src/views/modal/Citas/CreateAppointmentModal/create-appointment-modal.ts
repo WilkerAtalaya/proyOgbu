@@ -8,6 +8,7 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import { debounce } from 'lodash'
 import ReconocimientosService from '@/services/ReconocimientosService'
 import type { Alumno } from '@/models/Reconocimiento'
+import { UserRole } from '@/shared/enums/role.enum'
 
 type EmitFn = {
   (e: 'update:modelValue', v: boolean): void
@@ -17,8 +18,7 @@ type EmitFn = {
 export function useCreateAppointmentModal(emit: EmitFn) {
   const formRef = ref()
 
-  const user = ref(LoginService.getCurrentUser())
-  const isAdmin = LoginService.isAdmin()
+  const user: any = ref(LoginService.getCurrentUser())
 
   // const fileInput = ref(null)
   // const selectedFile = ref(null)
@@ -43,6 +43,12 @@ export function useCreateAppointmentModal(emit: EmitFn) {
 
   const rules = {
     required: (v: any) => !!v || 'Este campo es obligatorio',
+    requiredByRole: (v: any) => {
+      if (user.value.rol == UserRole.PSYCHOLOGIST || user.value.rol == UserRole.SOCIAL) {
+        return !!v || 'Este campo es obligatorio'
+      }
+      return true
+    },
   }
 
   const students = ref<Alumno[]>([])
