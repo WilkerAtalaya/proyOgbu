@@ -13,7 +13,6 @@ export class CitasService {
   private urlGetReasons: string
   private urlUpdateStatus: string
   private urlReschedule: string
-  private urlAcceptReschedule: string
 
   constructor() {
     this.urlObtenerSolicitadasPorUsuario = `${environment.baseUrlApi}${environment.endPoint.citas.obtenerSolicitadasPorUsuario}`
@@ -26,7 +25,6 @@ export class CitasService {
     this.urlGetReasons = `${environment.baseUrlApi}${environment.endPoint.reasons.getReasons}`
     this.urlUpdateStatus = `${environment.baseUrlApi}${environment.endPoint.citas.updateStatus}`
     this.urlReschedule = `${environment.baseUrlApi}${environment.endPoint.citas.reschedule}`
-    this.urlAcceptReschedule = `${environment.baseUrlApi}${environment.endPoint.citas.acceptReschedule}`
   }
 
   async obtenerCitasSolicitadasPorUsuario(usuarioId: number): Promise<Cita[]> {
@@ -71,13 +69,7 @@ export class CitasService {
 
   async rescheduleAppointment(id: number, body: Partial<Cita>, params: any): Promise<any> {
     return axios
-      .put<Cita>(`${this.urlReschedule}/${id}/reprogramacion/solicitar`, body, { params })
-      .then((res) => res.data)
-  }
-
-  async acceptReschedule(id: number, body: any, params: any) {
-    return axios
-      .put<Cita>(`${this.urlAcceptReschedule}/${id}/reprogramacion/confirmar`, body, { params })
+      .put<Cita>(`${this.urlReschedule}/${id}/reprogramar`, body, { params })
       .then((res) => res.data)
   }
 
