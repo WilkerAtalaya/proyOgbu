@@ -140,6 +140,30 @@ export function useSessionList() {
     }
   }
 
+  async function acceptReschedule() {
+    try {
+      if (!selectedAppointment.value) return true
+
+      const params = { id_usuario: user.value.id }
+      const body = { aceptar: true }
+
+      const response = await CitasService.acceptReschedule(
+        selectedAppointment.value.id,
+        body,
+        params,
+      )
+      console.log(response)
+
+      notify('Cita aceptada correctamente.', NotificationType.SUCCESS)
+      loadAppointments()
+    } catch (err: any) {
+      notify(
+        err?.response?.data?.error ?? 'Error al aceptar la reprogramación de la cita',
+        NotificationType.ERROR,
+      )
+    }
+  }
+
   async function openModalReschedule(appointment: Cita) {
     selectedAppointment.value = appointment
     showModalReschedule.value = true
@@ -292,6 +316,7 @@ export function useSessionList() {
     openModalReschedule,
     showModalReschedule,
     updateAppointmentStatus,
+    acceptReschedule,
     getStatusColor,
   }
 }

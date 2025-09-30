@@ -21,7 +21,7 @@
               :enable-time-picker="false"
               placeholder="Selecciona la fecha"
               density="compact"
-              model-type="yyyy-MM-dd" 
+              model-type="yyyy-MM-dd"
               :disabled="appointment?.reprog?.solicitada_por !== null"
             />
           </v-col>
@@ -70,7 +70,7 @@
               min-width="130"
               elevation="2"
               variant="flat"
-              @click="handleUpdateStatus(AppointmentStatus.APROBADO)"
+              @click="emit('accept')"
             >
               Aceptar
             </v-btn>
@@ -109,6 +109,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'update-status', status: string): void
+  (e: 'accept'): void
   (e: 'saved'): void
 }>()
 

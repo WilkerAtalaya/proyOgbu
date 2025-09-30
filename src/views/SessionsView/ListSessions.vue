@@ -487,6 +487,7 @@
     :appointment="selectedAppointment"
     @saved="loadAppointments"
     @update-status="updateAppointmentStatus"
+    @accept="acceptReschedule"
   />
 </template>
 
@@ -530,6 +531,7 @@ const {
   openModalReschedule,
   showModalReschedule,
   updateAppointmentStatus,
+  acceptReschedule,
   getStatusColor,
 } = useSessionList()
 </script>

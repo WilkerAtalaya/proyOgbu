@@ -52,6 +52,7 @@ export const environment = {
       getBusySchedules: '/citas/agenda-publica',
       updateStatus: '/citas',
       reschedule: '/citas',
+      acceptReschedule: '/citas',
     },
     area: {
       getAreas: '/areas',

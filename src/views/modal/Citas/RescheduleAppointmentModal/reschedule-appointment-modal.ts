@@ -1,5 +1,4 @@
 import { ref, reactive, computed, nextTick } from 'vue'
-import { dateFormatDB, currentDate } from '@/shared/util/functions'
 import { notify } from '@/shared/composables/useNotifier'
 import { NotificationType } from '@/shared/enums/notification.enum'
 import { AppointmentStatus } from '@/shared/enums/appointment-status.enum'
