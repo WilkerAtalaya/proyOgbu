@@ -16,6 +16,7 @@
             :items="students"
             item-title="nombre"
             item-value="id"
+            :rules="[rules.requiredByRole]"
             variant="outlined"
             hide-details
             class="custom-input"
@@ -41,12 +42,13 @@
             :items="reasonList"
             item-title="motivo"
             item-value="id"
-            placeholder="Seleccione un motivo (opcional)"
+            :rules="[rules.requiredByRole]"
+            placeholder="Seleccione un motivo"
             variant="outlined"
             density="compact"
             class="custom-input"
-            clearable
             hide-details
+            clearable
           />
         </div>
 
@@ -57,6 +59,7 @@
             :items="reasonList"
             item-title="area"
             item-value="id_area"
+            :rules="[rules.requiredByRole]"
             variant="outlined"
             density="compact"
             class="custom-input"
@@ -90,6 +93,7 @@
               :enable-time-picker="false"
               placeholder="Selecciona la fecha"
               density="compact"
+              hide-details
             />
           </v-col>
         </v-row>
@@ -107,6 +111,7 @@
               class="custom-input"
               clearable
               @update:model-value="resetEndTime"
+              hide-details
             />
           </v-col>
 
@@ -121,6 +126,7 @@
               density="compact"
               class="custom-input"
               clearable
+              hide-details
               :disabled="!form.startTime"
             />
           </v-col>
