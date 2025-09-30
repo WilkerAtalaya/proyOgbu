@@ -309,6 +309,7 @@ def reprogramar_cita(id_cita, nueva_fecha, nuevo_horario, user=None):
     cita.reprog_solicitada_por = user.id_usuario
     cita.reprog_estado = 'Pendiente'
     cita.reprog_pendiente_para = 'Alumno'
+    cita.estado = 'Reprogramado'
     db.session.commit()
     return jsonify({'mensaje': 'Reprogramación propuesta; pendiente de confirmación del alumno'}), 200
 
@@ -334,6 +335,7 @@ def solicitar_reprogramacion(id_cita, nueva_fecha, nuevo_horario, user=None, mot
     cita.reprog_horario = nuevo_horario
     cita.reprog_solicitada_por = user.id_usuario
     cita.reprog_estado = 'Pendiente'
+    cita.estado = 'Reprogramado'
     if _es_alumno(user):
         cita.reprog_pendiente_para = 'Staff'
         cita.reprog_motivo = (motivo_txt or '').strip() or None
@@ -371,6 +373,7 @@ def confirmar_reprogramacion(id_cita, aceptar: bool, user=None):
         cita.reprog_estado = 'Aprobado'
     else:
         cita.reprog_estado = 'Rechazada'
+        cita.estado = 'Aprobado'
 
     cita.reprog_fecha = None
     cita.reprog_horario = None
