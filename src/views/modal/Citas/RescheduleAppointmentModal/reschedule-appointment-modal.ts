@@ -96,20 +96,8 @@ export function useRescheduleAppointmentModal(emit: EmitFn) {
       if (!editingId.value) return
 
       const rescheduleForm: any = {
+        fecha: form.date,
         horario: `${form.startTime} - ${form.endTime}`,
-      }
-
-      if (form.date) {
-        let fechaStr = form.date
-        if (form.date instanceof Date) {
-          const dia = form.date.getDate().toString().padStart(2, '0')
-          const mes = (form.date.getMonth() + 1).toString().padStart(2, '0')
-          const anio = form.date.getFullYear()
-          fechaStr = `${dia}/${mes}/${anio}`
-        }
-        rescheduleForm.fecha = dateFormatDB(fechaStr.toString())
-      } else {
-        rescheduleForm.fecha = dateFormatDB(currentDate())
       }
 
       const params = { id_usuario: user.value.id }
