@@ -258,7 +258,8 @@
                             <v-btn
                               v-if="
                                 appointment.estado == AppointmentStatus.SOLICITADO ||
-                                appointment.estado == AppointmentStatus.APROBADO
+                                appointment.estado == AppointmentStatus.APROBADO ||
+                                !!appointment.reprog.solicitada_por
                               "
                               @click="openModalReschedule(appointment)"
                               icon
@@ -487,7 +488,6 @@
     :appointment="selectedAppointment"
     @saved="loadAppointments"
     @update-status="updateAppointmentStatus"
-    @accept="acceptReschedule"
   />
 </template>
 
@@ -531,7 +531,6 @@ const {
   openModalReschedule,
   showModalReschedule,
   updateAppointmentStatus,
-  acceptReschedule,
   getStatusColor,
 } = useSessionList()
 </script>

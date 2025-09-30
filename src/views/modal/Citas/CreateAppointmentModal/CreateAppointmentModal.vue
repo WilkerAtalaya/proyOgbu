@@ -87,6 +87,8 @@
             <VueDatePicker
               v-model="form.date"
               :rules="[rules.required]"
+              :min-date="new Date()"
+              :disabled-dates="disableWeekends"
               locale="es"
               format="dd/MM/yyyy"
               :ui="{ input: 'custom-input' }"
@@ -179,6 +181,7 @@ const {
   searchDebouncedUsers,
   loadingSearchStudent,
   reasonList,
+  disableWeekends,
   hoursList,
   endHoursList,
   rules,

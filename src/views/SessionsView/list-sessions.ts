@@ -115,11 +115,11 @@ export function useSessionList() {
     showModalDetail.value = true
   }
 
-  async function updateAppointmentStatus(status: string) {
+  async function updateAppointmentStatus(status: string, reschedule?: boolean) {
     try {
       if (!selectedAppointment.value) return true
 
-      const params = { id_usuario: user.value.id }
+      const params = { id_usuario: user.value.id, reschedule }
       const newStatus = { estado: status }
       const response = await CitasService.updateStatus(
         selectedAppointment.value.id,
@@ -135,30 +135,6 @@ export function useSessionList() {
     } catch (err: any) {
       notify(
         err?.response?.data?.error ?? 'Error al actualizar estado de la cita',
-        NotificationType.ERROR,
-      )
-    }
-  }
-
-  async function acceptReschedule() {
-    try {
-      if (!selectedAppointment.value) return true
-
-      const params = { id_usuario: user.value.id }
-      const body = { aceptar: true }
-
-      const response = await CitasService.acceptReschedule(
-        selectedAppointment.value.id,
-        body,
-        params,
-      )
-      console.log(response)
-
-      notify('Cita aceptada correctamente.', NotificationType.SUCCESS)
-      loadAppointments()
-    } catch (err: any) {
-      notify(
-        err?.response?.data?.error ?? 'Error al aceptar la reprogramación de la cita',
         NotificationType.ERROR,
       )
     }
@@ -316,7 +292,6 @@ export function useSessionList() {
     openModalReschedule,
     showModalReschedule,
     updateAppointmentStatus,
-    acceptReschedule,
     getStatusColor,
   }
 }

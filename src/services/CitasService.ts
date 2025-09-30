@@ -71,7 +71,7 @@ export class CitasService {
 
   async rescheduleAppointment(id: number, body: Partial<Cita>, params: any): Promise<any> {
     return axios
-      .put<Cita>(`${this.urlReschedule}/${id}/reprogramar`, body, { params })
+      .put<Cita>(`${this.urlReschedule}/${id}/reprogramacion/solicitar`, body, { params })
       .then((res) => res.data)
   }
 

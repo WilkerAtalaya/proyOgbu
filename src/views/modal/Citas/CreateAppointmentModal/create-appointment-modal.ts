@@ -167,6 +167,11 @@ export function useCreateAppointmentModal(emit: EmitFn) {
     loadingSearchStudent.value = false
   }, 500)
 
+  const disableWeekends = (date: Date) => {
+    const day = date.getDay()
+    return day === 0 || day === 6
+  }
+
   watch(
     () => form.reason_id,
     (newVal) => {
@@ -188,6 +193,7 @@ export function useCreateAppointmentModal(emit: EmitFn) {
     searchDebouncedUsers,
     loadingSearchStudent,
     reasonList,
+    disableWeekends,
     hoursList,
     endHoursList,
     rules,

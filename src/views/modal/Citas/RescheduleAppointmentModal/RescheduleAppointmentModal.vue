@@ -15,6 +15,8 @@
             <VueDatePicker
               v-model="form.date"
               :rules="[rules.required]"
+              :min-date="new Date()"
+              :disabled-dates="disableWeekends"
               locale="es"
               format="dd/MM/yyyy"
               :ui="{ input: 'custom-input' }"
@@ -61,7 +63,12 @@
         </v-row>
 
         <div class="d-flex justify-center">
-          <template v-if="!!appointment?.reprog?.solicitada_por">
+          <template
+            v-if="
+              !!appointment?.reprog?.solicitada_por &&
+              user.id !== appointment?.reprog?.solicitada_por
+            "
+          >
             <v-btn
               type="button"
               color="success"
@@ -70,12 +77,12 @@
               min-width="130"
               elevation="2"
               variant="flat"
-              @click="emit('accept')"
+              @click="handleUpdateStatus(AppointmentStatus.APROBADO, true)"
             >
               Aceptar
             </v-btn>
           </template>
-          <template v-else>
+          <template v-if="appointment?.reprog?.solicitada_por == null">
             <v-btn
               type="submit"
               color="#e91e63"
@@ -108,8 +115,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
-  (e: 'update-status', status: string): void
-  (e: 'accept'): void
+  (e: 'update-status', status: string, reschedule?: boolean): void
   (e: 'saved'): void
 }>()
 
@@ -131,6 +137,7 @@ const {
   user,
   form,
   formRef,
+  disableWeekends,
   hoursList,
   endHoursList,
   rules,

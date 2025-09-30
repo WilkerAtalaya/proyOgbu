@@ -8,7 +8,7 @@ import LoginService from '@/services/LoginService'
 
 type EmitFn = {
   (e: 'update:modelValue', v: boolean): void
-  (e: 'update-status', status: string): void
+  (e: 'update-status', status: string, reschedule?: boolean): void
   (e: 'saved'): void
 }
 
@@ -27,6 +27,11 @@ export function useRescheduleAppointmentModal(emit: EmitFn) {
 
   const rules = {
     required: (v: any) => !!v || 'Este campo es obligatorio',
+  }
+
+  const disableWeekends = (date: Date) => {
+    const day = date.getDay()
+    return day === 0 || day === 6
   }
 
   const hoursList = [
@@ -103,7 +108,6 @@ export function useRescheduleAppointmentModal(emit: EmitFn) {
 
       await CitasService.rescheduleAppointment(editingId.value, rescheduleForm, params)
 
-      emit('update-status', AppointmentStatus.REPROGRAMADO)
       emit('saved')
       resetForm()
       closeDialog()
@@ -113,8 +117,8 @@ export function useRescheduleAppointmentModal(emit: EmitFn) {
     }
   }
 
-  const handleUpdateStatus = (status: string) => {
-    emit('update-status', status)
+  const handleUpdateStatus = (status: string, reschedule: boolean) => {
+    emit('update-status', status, reschedule)
     emit('saved')
     resetForm()
     closeDialog()
@@ -124,6 +128,7 @@ export function useRescheduleAppointmentModal(emit: EmitFn) {
     user,
     form,
     formRef,
+    disableWeekends,
     hoursList,
     endHoursList,
     rules,
