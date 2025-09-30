@@ -368,7 +368,7 @@ def confirmar_reprogramacion(id_cita, aceptar: bool, user=None):
         cita.fecha = cita.reprog_fecha
         cita.horario = cita.reprog_horario
         cita.estado = 'Aprobado'
-        cita.reprog_estado = 'Aceptada'
+        cita.reprog_estado = 'Aprobado'
     else:
         cita.reprog_estado = 'Rechazada'
 
