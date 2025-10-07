@@ -3,7 +3,7 @@
     <v-tabs v-model="tab" align-tabs="start" color="#A37801">
       <h3 class="mb-4 text-title">{{ isAdmin ? 'Reportes' : 'Mis reportes' }}</h3>
       <v-spacer></v-spacer>
-      <v-btn v-if="!isAdmin" variant="outlined" class="mb-6 custom-button" @click="openModalNuevo">
+      <v-btn v-if="!isAdmin" variant="outlined" class="mb-6 custom-button desktop-only" @click="openModalNuevo">
         <span>🚨 Realizar una Queja</span>
       </v-btn>
     </v-tabs>
@@ -80,7 +80,7 @@
         </div>
       </div>
 
-      <div class="permisos-table-container">
+      <div class="permisos-table-container desktop-table">
         <div class="table-wrapper">
           <table class="permisos-table">
             <thead>
@@ -141,6 +141,44 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div class="mobile-reports-container mobile-only">
+        <div v-for="reporte in reportesPaginados" :key="reporte.id" class="mobile-report-card">
+          <div class="mobile-card-header">
+            <div class="numero-badge">{{ reporte.numero }}</div>
+            <span :class="['status-badge', getStatusClassReporte(reporte.estado)]">
+              <i :class="getStatusIconReporte(reporte.estado)"></i>
+              {{ reporte.estado }}
+            </span>
+          </div>
+          
+          <div class="mobile-card-content">
+            <h4 class="mobile-asunto">{{ reporte.asunto }}</h4>
+            <div class="mobile-info-row">
+              <div class="mobile-motivo">
+                <i class="fas fa-tag"></i>
+                <span>{{ reporte.motivo }}</span>
+              </div>
+              <div class="mobile-fecha">
+                <i class="fas fa-calendar"></i>
+                <span>{{ formatBackendDate(reporte.fecha, true) }}</span>
+              </div>
+            </div>
+            <p class="mobile-descripcion">{{ reporte.descripcion?.substring(0, 80) }}{{ reporte.descripcion?.length > 80 ? '...' : '' }}</p>
+          </div>
+          
+          <div class="mobile-card-actions">
+            <button v-if="reporte.prueba" @click="downloadFile(reporte.prueba)" class="mobile-action-btn download">
+              <i class="fas fa-download"></i>
+              <span>Descargar</span>
+            </button>
+            <button @click="openModal(reporte)" class="mobile-action-btn view">
+              <i class="fas fa-eye"></i>
+              <span>Ver detalles</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -261,6 +299,17 @@
       :is-admin="isAdmin" 
       @estado-actualizado="onEstadoActualizadoDetalle" 
     />
+    
+    <div v-if="!isAdmin" class="floating-button-container mobile-only">
+      <v-btn 
+        @click="openModalNuevo" 
+        class="floating-button"
+        color="#A37801"
+        size="large"
+      >
+        <i class="fas fa-exclamation-triangle"></i>
+      </v-btn>
+    </div>
     
     <v-snackbar 
       v-model="snackbar.show" 
@@ -980,8 +1029,45 @@ function onMostrarNotificacion({ mensaje, tipo }) {
 }
 
 @media (max-width: 768px) {
+  .text-title {
+    font-size: 22px !important;
+    text-align: center;
+  }
+  
+  .custom-button {
+    width: 100%;
+    margin-bottom: 20px !important;
+  }
+  
   .dashboard-cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  
+  .stat-card {
+    padding: 8px;
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+    min-height: auto;
+  }
+  
+  .stat-icon {
+    margin-right: 0;
+    width: 24px;
+    height: 24px;
+    align-self: center;
+  }
+  
+  .stat-label {
+    font-size: 9px !important;
+    line-height: 1.2;
+  }
+  
+  .stat-value {
+    font-size: 14px;
+    line-height: 1;
   }
 
   .search-filter-section {
@@ -990,16 +1076,58 @@ function onMostrarNotificacion({ mensaje, tipo }) {
 
   .filter-tabs {
     flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .filter-tab {
+    font-size: 12px;
+    padding: 8px 12px;
   }
 
   .pagination-container {
     flex-direction: column;
     gap: 16px;
+    padding: 12px 16px;
+  }
+  
+  .pagination-info {
+    justify-content: center;
+  }
+  
+  .pagination-controls {
+    justify-content: center;
+  }
+
+  .permisos-table-container {
+    overflow-x: auto;
+  }
+  
+  .permisos-table {
+    min-width: 600px;
   }
 
   .permisos-table th,
   .permisos-table td {
-    padding: 12px 16px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .reporte-asunto {
+    font-size: 13px;
+  }
+  
+  .reporte-descripcion {
+    font-size: 11px;
+  }
+  
+  .numero-badge {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  .status-badge {
+    padding: 3px 8px;
+    font-size: 10px;
   }
 }
 
@@ -1331,7 +1459,57 @@ function onMostrarNotificacion({ mensaje, tipo }) {
 
   .actividad-card {
     height: auto;
-    min-height: 420px;
+    min-height: 380px;
+  }
+  
+  .card-header {
+    height: 120px;
+  }
+  
+  .card-content {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .titulo-actividad {
+    font-size: 16px;
+  }
+  
+  .info-container {
+    flex-direction: row;
+    gap: 8px;
+  }
+  
+  .numero-card, .fecha-card {
+    padding: 10px;
+  }
+  
+  .numero-icon, .fecha-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .numero-codigo {
+    font-size: 11px;
+  }
+  
+  .fecha-dia {
+    font-size: 14px;
+  }
+  
+  .descripcion-actividad {
+    font-size: 13px;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  
+  .card-footer {
+    padding: 12px 16px 16px;
+  }
+  
+  .btn-ver-detalle {
+    height: 40px !important;
+    font-size: 14px !important;
   }
 }
 
@@ -1341,9 +1519,161 @@ function onMostrarNotificacion({ mensaje, tipo }) {
   }
 }
 
+
+
 @media (min-width: 1025px) {
   .actividades-grid {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
+}
+
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: block;
+  }
+
+  .desktop-table {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-reports-container {
+    display: none !important;
+  }
+}
+
+.floating-button-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+}
+
+.floating-button {
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 4px 12px rgba(163, 120, 1, 0.3) !important;
+  min-width: auto !important;
+}
+
+.floating-button i {
+  font-size: 24px;
+  color: white;
+}
+
+.mobile-reports-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.mobile-report-card {
+  background: #FFFBED;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mobile-card-content {
+  margin-bottom: 16px;
+}
+
+.mobile-asunto {
+  font-size: 16px;
+  font-weight: 600;
+  color: #163053;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.mobile-info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.mobile-motivo,
+.mobile-fecha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+  flex: 1;
+}
+
+.mobile-motivo i {
+  color: #53696D;
+}
+
+.mobile-fecha i {
+  color: #A37801;
+}
+
+.mobile-descripcion {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.mobile-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.mobile-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-action-btn.view {
+  background: #A37801;
+  color: white;
+}
+
+.mobile-action-btn.download {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.mobile-action-btn:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
 }
 </style>

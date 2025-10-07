@@ -335,4 +335,61 @@ async function updateEstado() {
   margin-top: 4px;
   display: block;
 }
+
+@media (max-width: 768px) {
+  .upload-area {
+    min-height: 80px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .current-image {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+  }
+  
+  .current-image-container {
+    margin-bottom: 12px !important;
+  }
+  
+  .custom-input {
+    font-size: 14px;
+  }
+  
+  .custom-input .v-field {
+    font-size: 14px !important;
+  }
+  
+  .v-btn {
+    font-size: 14px !important;
+    min-height: 40px !important;
+  }
+  
+  .mb-4 {
+    margin-bottom: 16px !important;
+  }
+  
+  .mb-6 {
+    margin-bottom: 16px !important;
+  }
+  
+  label {
+    font-size: 16px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .status-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .status-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .status-buttons .v-btn {
+    width: 100%;
+  }
+}
 </style>

@@ -42,4 +42,20 @@ const props = defineProps({
 .second-row {
   flex: 1;
 }
+
+@media (max-width: 768px) {
+  .main-container {
+    padding: 16px;
+    gap: 0px;
+  }
+  
+  .first-row {
+    display: none;
+  }
+  
+  .second-row > div {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+  }
+}
 </style>

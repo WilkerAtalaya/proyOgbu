@@ -130,4 +130,46 @@ function handleCancel() {
 .confirm-btn {
   font-weight: 500;
 }
+
+@media (max-width: 768px) {
+  .confirmation-modal {
+    margin: 20px !important;
+    max-width: calc(100vw - 40px) !important;
+    min-width: 280px;
+  }
+  
+  .modal-header {
+    padding: 16px;
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .modal-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+  
+  .modal-content {
+    padding: 12px 16px;
+  }
+  
+  .modal-message {
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.4;
+    margin: 0;
+  }
+  
+  .modal-actions {
+    padding: 12px 16px 16px;
+    gap: 8px;
+  }
+  
+  .modal-actions .v-btn {
+    font-size: 14px;
+    padding: 10px 16px;
+    min-height: 40px;
+  }
+}
 </style>

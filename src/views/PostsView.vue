@@ -1,5 +1,17 @@
 <template>
   <div class="main-container">
+    <div class="mobile-tabs">
+      <button 
+        v-for="tab in tabs" 
+        :key="tab.id"
+        :class="['tab-button', { active: activeTab === tab.id }]"
+        @click="activeTab = tab.id"
+      >
+        <i :class="tab.icon"></i>
+        {{ tab.name }}
+      </button>
+    </div>
+
     <div class="left-column">
       <ModalPublicacion
         v-model="modalStore.mostrarModalPublicacion"
@@ -21,7 +33,7 @@
         @confirm="confirmarEliminacion"
         @cancel="cancelarEliminacion"
       />
-      <div class="posts-container">
+      <div v-show="activeTab === 'posts'" class="posts-container">
         <div class="post-card" v-for="post in posts" :key="post.id">
           <div class="post-header">
             <div class="post-title-section">
@@ -67,11 +79,68 @@
           </div>
         </div>
       </div>
+
+      <div v-show="activeTab === 'birthdays'" class="mobile-content">
+        <div class="mobile-birthday-section">
+          <div class="mobile-section-header">
+            <i class="fas fa-birthday-cake"></i>
+            <h2>Cumpleaños de Hoy</h2>
+          </div>
+          <div v-if="birthdayData.length > 0" class="birthday-list">
+            <div v-for="birthday in birthdayData" :key="birthday.id" class="birthday-item">
+              <span class="birthday-emoji">🎂</span>
+              <span class="birthday-name">{{ birthday.nombre }}</span>
+            </div>
+          </div>
+          <div v-else class="empty-state">
+            <p>No hay cumpleaños hoy</p>
+          </div>
+        </div>
+      </div>
+
+      <div v-show="activeTab === 'recognitions'" class="mobile-content">
+        <div class="mobile-recognition-section">
+          <div class="mobile-section-header">
+            <i class="fas fa-trophy"></i>
+            <h2>Reconocimientos</h2>
+          </div>
+          <div v-if="recognitionData.length > 0" class="recognition-list">
+            <div v-for="recognition in recognitionData" :key="recognition.id" class="recognition-item">
+              <div class="recognition-trophy">🏆</div>
+              <div class="recognition-info">
+                <div class="recognition-name">{{ recognition.nombre }}</div>
+                <div class="recognition-description">{{ recognition.descripcion }}</div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="empty-state">
+            <p>No hay reconocimientos</p>
+          </div>
+        </div>
+      </div>
     </div>
     
     <div class="right-column">
       <img :src="logo" alt="Logo OGBU" class="logo-image" />
       <CelebrationCard />
+    </div>
+
+    <div v-if="isAdmin && isMobile" class="floating-action-buttons">
+      <button 
+        v-if="activeTab === 'posts'"
+        @click="modalStore.mostrarModalPublicacion = true"
+        class="floating-btn floating-btn-post"
+      >
+        <i class="fas fa-bullhorn"></i>
+      </button>
+      
+      <button 
+        v-if="activeTab === 'recognitions'"
+        @click="modalStore.mostrarModalReconocimiento = true"
+        class="floating-btn floating-btn-recognition"
+      >
+        <i class="fas fa-trophy"></i>
+      </button>
     </div>
   </div>
   
@@ -92,8 +161,9 @@
 
 <script setup>
 import AnunciosService from '@/services/AnunciosService'
+import ReconocimientosService from '@/services/ReconocimientosService'
 import { dateFormatISO } from '@/shared/util/functions.js'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import LoginService from '@/services/LoginService'
 import ModalPublicacion from './modal/ModalPublicacion.vue'
 import logo from '@/assets/OGBU-logo.png'
@@ -106,6 +176,18 @@ const posts = ref([])
 const editingPost = ref(null)
 const showConfirmModal = ref(false)
 const postToDelete = ref(null)
+
+const activeTab = ref('posts')
+const birthdayData = ref([])
+const recognitionData = ref([])
+
+const tabs = [
+  { id: 'posts', name: 'Publicaciones', icon: 'fas fa-bullhorn' },
+  { id: 'birthdays', name: 'Cumpleaños', icon: 'fas fa-birthday-cake' },
+  { id: 'recognitions', name: 'Reconocimientos', icon: 'fas fa-trophy' }
+]
+
+const isMobile = computed(() => window.innerWidth <= 768)
 
 const snackbar = ref({
   show: false,
@@ -169,8 +251,37 @@ function cancelarEliminacion() {
   postToDelete.value = null
 }
 
-onMounted(() => {
-  loadPublicaciones()
+async function loadBirthdayData() {
+  try {
+    const birthdays = await ReconocimientosService.obtenerCumpleanos()
+    birthdayData.value = birthdays.map((birthday) => ({
+      id: birthday.id,
+      nombre: birthday.nombre,
+      fecha_cumpleanos: birthday.fecha_cumpleaños,
+    }))
+  } catch (error) {
+    console.error('Error al cargar cumpleaños:', error)
+  }
+}
+
+async function loadRecognitionData() {
+  try {
+    const recognitions = await ReconocimientosService.obtenerReconocimientos()
+    recognitionData.value = recognitions.map((recognition) => ({
+      id: recognition.id,
+      descripcion: recognition.descripcion,
+      fecha: recognition.fecha,
+      nombre: recognition.nombre_alumno || 'Desconocido',
+    }))
+  } catch (error) {
+    console.error('Error al cargar reconocimientos:', error)
+  }
+}
+
+onMounted(async () => {
+  await loadPublicaciones()
+  await loadBirthdayData()
+  await loadRecognitionData()
 })
 </script>
 
@@ -197,6 +308,103 @@ onMounted(() => {
   gap: 32px;
 }
 
+.mobile-tabs {
+  display: none;
+  background: #BBBDA7;
+  border-bottom: 1px solid #A8AB96;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-button {
+  flex: 1;
+  min-width: 120px;
+  padding: 16px 8px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.tab-button i {
+  font-size: 18px;
+  margin-bottom: 2px;
+}
+
+.tab-button.active {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #FFFFFF;
+  border-radius: 3px 3px 0 0;
+}
+
+.mobile-content {
+  padding: 24px 16px;
+}
+
+.mobile-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  color: #163053;
+}
+
+.mobile-section-header i {
+  font-size: 24px;
+  color: #A80038;
+}
+
+.mobile-section-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+    gap: 0;
+    min-height: auto;
+  }
+  
+  .mobile-tabs {
+    display: flex;
+    order: 0;
+  }
+  
+  .left-column {
+    padding: 0;
+    order: 1;
+  }
+  
+  .right-column {
+    display: none;
+  }
+}
+
 .posts-container {
   padding: 20px;
   display: flex;
@@ -214,6 +422,19 @@ onMounted(() => {
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .posts-container {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .post-card {
+    width: 100%;
+    max-width: none;
+    border-radius: 12px;
+  }
 }
 
 .post-card:hover {
@@ -262,6 +483,29 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
+@media (max-width: 768px) {
+  .post-header {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .post-title {
+    font-size: 1.1rem;
+  }
+  
+  .post-date {
+    font-size: 0.8rem;
+  }
+  
+  .post-actions {
+    gap: 6px;
+  }
+  
+  .action-btn {
+    padding: 6px;
+  }
+}
+
 .action-btn {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -301,6 +545,23 @@ onMounted(() => {
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+@media (max-width: 768px) {
+  .post-content {
+    padding: 16px;
+  }
+  
+  .post-description {
+    padding: 16px;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    border-radius: 8px;
+  }
+  
+  .mobile-content {
+    padding: 20px 16px;
+  }
+}
+
 .post-image-container {
   margin-top: 16px;
   border-radius: 12px;
@@ -332,5 +593,137 @@ onMounted(() => {
   width: 100%;
   height: auto;
   border-radius: 8px;
+}
+
+.birthday-list, .recognition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.birthday-item {
+  background: #EEF1DC;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #A80038;
+}
+
+.birthday-emoji {
+  font-size: 24px;
+}
+
+.birthday-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #163053;
+}
+
+.recognition-item {
+  background: #EEF1DC;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #A80038;
+}
+
+.recognition-trophy {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.recognition-info {
+  flex: 1;
+}
+
+.recognition-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #163053;
+  margin-bottom: 4px;
+}
+
+.recognition-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+.empty-state p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.floating-action-buttons {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+}
+
+.floating-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.floating-btn:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.floating-btn:active {
+  transform: scale(0.95);
+}
+
+.floating-btn-post {
+  background: linear-gradient(135deg, #A80038, #d32f2f);
+}
+
+.floating-btn-post:hover {
+  background: linear-gradient(135deg, #d32f2f, #A80038);
+}
+
+.floating-btn-recognition {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.floating-btn-recognition:hover {
+  background: linear-gradient(135deg, #f57c00, #ff9800);
+}
+
+@media (min-width: 769px) {
+  .floating-action-buttons {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .logo-image {
+    max-width: 200px;
+    margin: 0 auto;
+  }
 }
 </style>

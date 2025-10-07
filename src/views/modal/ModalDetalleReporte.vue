@@ -600,4 +600,102 @@ const actualizarEstado = async (nuevoEstado) => {
     align-items: stretch;
   }
 }
+
+@media (max-width: 768px) {
+  .contenido-modal {
+    padding: 0;
+  }
+  
+  .info-cards-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .info-card {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .card-label {
+    font-size: 11px;
+  }
+  
+  .card-value {
+    font-size: 14px;
+  }
+  
+  .field-label {
+    font-size: 16px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .info-field {
+    font-size: 14px;
+    padding: 12px;
+  }
+  
+  .estado-select {
+    font-size: 14px;
+  }
+  
+  .estado-select .v-field {
+    font-size: 14px !important;
+  }
+  
+  .archivo-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .archivo-preview {
+    max-height: 200px;
+  }
+  
+  .archivo-info {
+    padding: 12px;
+  }
+  
+  .archivo-nombre {
+    font-size: 14px;
+  }
+  
+  .archivo-detalles {
+    font-size: 12px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .v-btn {
+    font-size: 14px !important;
+    min-height: 40px !important;
+    width: 100% !important;
+  }
+  
+  .mb-4 {
+    margin-bottom: 16px !important;
+  }
+  
+  .mb-6 {
+    margin-bottom: 16px !important;
+  }
+  
+  .fechas-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .fecha-item {
+    justify-content: center;
+    text-align: center;
+  }
+}
 </style>
