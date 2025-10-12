@@ -16,7 +16,6 @@
           { label: 'Horario:', value: appointment?.horario || '-' },
         ]"
         :key="i"
-        class="py-1"
       >
         <v-col cols="12" sm="4" md="4" lg="3" class="font-weight-bold text-subtitle-1">
           {{ item.label }}

@@ -14,7 +14,6 @@
             <label class="text-body-2 font-weight-medium mb-2 d-block">Nueva Fecha</label>
             <VueDatePicker
               v-model="form.date"
-              :rules="[rules.required]"
               :min-date="new Date()"
               :disabled-dates="disableWeekends"
               locale="es"
@@ -24,6 +23,7 @@
               placeholder="Selecciona la fecha"
               density="compact"
               model-type="yyyy-MM-dd"
+              auto-apply
               :disabled="appointment?.reprog?.solicitada_por !== null"
             />
           </v-col>

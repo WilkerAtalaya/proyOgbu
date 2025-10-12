@@ -95,6 +95,12 @@ export function useRescheduleAppointmentModal(emit: EmitFn) {
   async function handleSubmit() {
     try {
       const { valid } = await (formRef.value?.validate() ?? { valid: false })
+
+      if (!form.date) {
+        notify('La fecha es obligatoria.', NotificationType.ERROR)
+        return
+      }
+
       if (!valid) return
 
       if (!editingId.value) return

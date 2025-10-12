@@ -1,4 +1,4 @@
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import { notify } from '@/shared/composables/useNotifier'
 import { NotificationType } from '@/shared/enums/notification.enum'
 import CitasService from '@/services/CitasService'
@@ -160,8 +160,10 @@ export function useSessionList() {
     filters.value = { area_id: null, fecha: null, search: '', status: 'todos' }
   }
 
-  function clearFiltersStudent() {
-    filtersBusySchedulesStudent.value = { area_id: null, date: null }
+  async function clearFiltersStudent() {
+    filtersBusySchedulesStudent.value.area_id = null
+    filtersBusySchedulesStudent.value.date = null
+    await nextTick()
   }
 
   const getStatusColor = (status: string) => {
@@ -230,8 +232,7 @@ export function useSessionList() {
   })
 
   watch(studentTabActive, () => {
-    clearFiltersStudent()
-    loadBusySchedules()
+    if (studentTabActive.value == 'busy-schedules') clearFiltersStudent()
   })
 
   watch(adminTabActive, () => {
@@ -261,8 +262,8 @@ export function useSessionList() {
   })
 
   onMounted(async () => {
-    loadAppointments()
-    loadBusySchedules()
+    loadAppointments()    
+    loadBusySchedules()    
     loadAreas()
   })
 
