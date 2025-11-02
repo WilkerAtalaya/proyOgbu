@@ -17,10 +17,10 @@
         ]"
         :key="i"
       >
-        <v-col cols="12" sm="4" md="4" lg="3" class="font-weight-bold text-subtitle-1">
+        <v-col cols="12" sm="4" md="4" lg="3" class="pa-2 font-weight-bold text-subtitle-1">
           {{ item.label }}
         </v-col>
-        <v-col cols="12" sm="8" md="8" lg="9" class="text-body-2">
+        <v-col cols="12" sm="8" md="8" lg="9" class="pa-2 text-body-2">
           {{ item.value }}
         </v-col>
       </v-row>
@@ -108,7 +108,7 @@
 
 <script setup lang="ts">
 import './DetailAppointmentModal.scss'
-import { watch, computed } from 'vue'
+import { computed } from 'vue'
 import { dateFormatV2 } from '@/shared/util/functions'
 import ContainerModal from '@/components/layout/ContainerModal.vue'
 import { AppointmentStatus } from '@/shared/enums/appointment-status.enum'

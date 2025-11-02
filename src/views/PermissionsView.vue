@@ -6,9 +6,7 @@
         <div class="form-card">
           <v-tabs v-model="activeTab" class="mb-4">
             <v-tab value="solicitud" class="custom-tab">
-              <h3 :class="{ 'active-tab-text': activeTab === 'solicitud' }">
-                Salida de vivienda
-              </h3>
+              <h3 :class="{ 'active-tab-text': activeTab === 'solicitud' }">Salida de vivienda</h3>
             </v-tab>
             <v-tab value="area-comun" class="custom-tab">
               <h3 :class="{ 'active-tab-text': activeTab === 'area-comun' }">Uso de área común</h3>
@@ -20,7 +18,9 @@
               <div class="form-content">
                 <div class="form-header">
                   <h2 class="form-title">Nueva solicitud de salida</h2>
-                  <p class="form-subtitle">Registre el rango de días que estaras fuera de la vivienda universitaria:</p>
+                  <p class="form-subtitle">
+                    Registre el rango de días que estaras fuera de la vivienda universitaria:
+                  </p>
                 </div>
 
                 <v-form @submit.prevent="submitSolicitudVivienda" class="form-spacing">
@@ -29,26 +29,26 @@
                     <div class="date-range-container">
                       <div class="date-field">
                         <label class="date-sublabel">Fecha de salida</label>
-                        <VueDatePicker 
-                          v-model="form.fechaSalida" 
-                          locale="es" 
+                        <VueDatePicker
+                          v-model="form.fechaSalida"
+                          locale="es"
                           format="dd/MM/yyyy"
-                          :enable-time-picker="false" 
-                          :min-date="new Date()" 
+                          :enable-time-picker="false"
+                          :min-date="new Date()"
                           placeholder="Selecciona fecha de salida"
-                          class="custom-input" 
+                          class="custom-input"
                         />
                       </div>
                       <div class="date-field">
                         <label class="date-sublabel">Fecha de regreso</label>
-                        <VueDatePicker 
-                          v-model="form.fechaRegreso" 
-                          locale="es" 
+                        <VueDatePicker
+                          v-model="form.fechaRegreso"
+                          locale="es"
                           format="dd/MM/yyyy"
-                          :enable-time-picker="false" 
-                          :min-date="form.fechaSalida || new Date()" 
+                          :enable-time-picker="false"
+                          :min-date="form.fechaSalida || new Date()"
                           placeholder="Selecciona fecha de regreso"
-                          class="custom-input" 
+                          class="custom-input"
                         />
                       </div>
                     </div>
@@ -56,10 +56,10 @@
 
                   <div class="form-group">
                     <label class="form-label">Motivo de la salida</label>
-                    <v-textarea 
-                      v-model="form.motivo" 
-                      variant="outlined" 
-                      rows="4" 
+                    <v-textarea
+                      v-model="form.motivo"
+                      variant="outlined"
+                      rows="4"
                       hide-details
                       placeholder="Describe brevemente el motivo de tu salida..."
                       class="custom-input"
@@ -72,22 +72,26 @@
                     <div class="upload-area" @click="triggerFileInputSalida">
                       <i class="fas fa-file-upload upload-icon"></i>
                       <span class="upload-text">
-                        {{ selectedFileSalida ? selectedFileSalida.name : 'Haz clic para seleccionar un archivo' }}
+                        {{
+                          selectedFileSalida
+                            ? selectedFileSalida.name
+                            : 'Haz clic para seleccionar un archivo'
+                        }}
                       </span>
                       <p class="upload-helper">PDF, JPG o PNG (máx. 5MB)</p>
-                      <input 
-                        ref="fileInputSalida" 
-                        type="file" 
-                        accept=".pdf,.jpg,.jpeg,.png" 
-                        style="display: none" 
-                        @change="handleFileSelectSalida" 
+                      <input
+                        ref="fileInputSalida"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        style="display: none"
+                        @change="handleFileSelectSalida"
                       />
                     </div>
                   </div>
 
                   <div class="form-submit">
-                    <v-btn 
-                      type="submit" 
+                    <v-btn
+                      type="submit"
                       class="submit-btn primary-btn"
                       :loading="isSubmittingSalida"
                       :disabled="isSubmittingSalida"
@@ -104,28 +108,30 @@
               <div class="form-content">
                 <div class="form-header">
                   <h2 class="form-title">Reserva de área común</h2>
-                  <p class="form-subtitle">Registre el lugar, fecha y horario que quieres reservar</p>
+                  <p class="form-subtitle">
+                    Registre el lugar, fecha y horario que quieres reservar
+                  </p>
                 </div>
 
                 <v-form @submit.prevent="submitAreaComun" class="form-spacing">
                   <div class="form-group">
                     <label class="form-label">Lugar</label>
-                    <v-select 
-                      v-model="form.lugar" 
-                      :items="siteOptions" 
-                      variant="outlined" 
+                    <v-select
+                      v-model="form.lugar"
+                      :items="siteOptions"
+                      variant="outlined"
                       density="comfortable"
-                      hide-details 
+                      hide-details
                       class="custom-input"
                     ></v-select>
                   </div>
 
                   <div class="form-group">
                     <label class="form-label">Motivo de la reserva</label>
-                    <v-textarea 
-                      v-model="form.motivoAreaComun" 
-                      variant="outlined" 
-                      rows="4" 
+                    <v-textarea
+                      v-model="form.motivoAreaComun"
+                      variant="outlined"
+                      rows="4"
                       hide-details
                       placeholder="Describe brevemente el motivo de tu reserva..."
                       class="custom-input"
@@ -135,39 +141,39 @@
 
                   <div class="form-group">
                     <label class="form-label">Fecha</label>
-                    <VueDatePicker 
-                      v-model="form.fechaAreaComun" 
-                      locale="es" 
+                    <VueDatePicker
+                      v-model="form.fechaAreaComun"
+                      locale="es"
                       format="dd/MM/yyyy"
-                      :enable-time-picker="false" 
-                      :min-date="new Date()" 
+                      :enable-time-picker="false"
+                      :min-date="new Date()"
                       placeholder="Selecciona la fecha"
-                      class="custom-input" 
+                      class="custom-input"
                     />
                   </div>
 
                   <div class="time-range-container">
                     <div class="time-field">
                       <label class="form-label">Hora de inicio</label>
-                      <v-select 
-                        v-model="form.horaInicio" 
-                        :items="scheduleOptions" 
+                      <v-select
+                        v-model="form.horaInicio"
+                        :items="scheduleOptions"
                         variant="outlined"
-                        density="comfortable" 
-                        hide-details 
+                        density="comfortable"
+                        hide-details
                         class="custom-input"
                         @update:model-value="resetHoraFin"
                       ></v-select>
                     </div>
                     <div class="time-field">
                       <label class="form-label">Hora de fin</label>
-                      <v-select 
-                        v-model="form.horaFin" 
-                        :items="horasFinDisponibles" 
+                      <v-select
+                        v-model="form.horaFin"
+                        :items="horasFinDisponibles"
                         variant="outlined"
-                        density="comfortable" 
-                        hide-details 
-                        class="custom-input" 
+                        density="comfortable"
+                        hide-details
+                        class="custom-input"
                         :disabled="!form.horaInicio"
                         placeholder="Primero selecciona hora de inicio"
                       ></v-select>
@@ -175,8 +181,8 @@
                   </div>
 
                   <div class="form-submit">
-                    <v-btn 
-                      type="submit" 
+                    <v-btn
+                      type="submit"
                       class="submit-btn primary-btn"
                       :loading="isSubmittingAreaComun"
                       :disabled="isSubmittingAreaComun"
@@ -209,10 +215,7 @@
               />
             </div>
             <div class="select-container">
-              <select
-                v-model="selectedFilterTab"
-                class="filter-select"
-              >
+              <select v-model="selectedFilterTab" class="filter-select">
                 <option value="todos">Todos</option>
                 <option value="Aprobado">Aprobados</option>
                 <option value="En revisión">Pendientes</option>
@@ -227,9 +230,9 @@
               <i class="fas fa-exclamation-circle empty-icon"></i>
               <p class="empty-text">No se encontraron solicitudes</p>
             </div>
-            <div 
+            <div
               v-else
-              v-for="solicitud in filteredSolicitudesDisplay" 
+              v-for="solicitud in filteredSolicitudesDisplay"
               :key="solicitud.id"
               class="solicitud-card"
               @click="viewDetails(solicitud)"
@@ -242,7 +245,9 @@
                       {{ solicitud.estado }}
                     </span>
                   </div>
-                  <p class="solicitud-motivo">{{ solicitud.motivo || 'Sin motivo especificado' }}</p>
+                  <p class="solicitud-motivo">
+                    {{ solicitud.motivo || 'Sin motivo especificado' }}
+                  </p>
                   <div class="solicitud-dates">
                     <span class="date-item">
                       <i class="fas fa-calendar"></i>
@@ -256,8 +261,8 @@
                   </div>
                 </div>
                 <div class="solicitud-actions">
-                  <button 
-                    v-if="solicitud.archivo_url" 
+                  <button
+                    v-if="solicitud.archivo_url"
                     @click.stop="downloadFile(solicitud.archivo_url)"
                     class="action-button download-btn"
                   >
@@ -276,9 +281,9 @@
               <i class="fas fa-exclamation-circle empty-icon"></i>
               <p class="empty-text">No se encontraron reservas</p>
             </div>
-            <div 
+            <div
               v-else
-              v-for="reserva in filteredAreaComunDisplay" 
+              v-for="reserva in filteredAreaComunDisplay"
               :key="reserva.id"
               class="solicitud-card"
               @click="viewDetailsAreaComun(reserva)"
@@ -331,7 +336,7 @@
                 <option :value="20">20</option>
               </select>
             </div>
-            
+
             <div class="pagination-controls">
               <button
                 @click="currentPage = Math.max(currentPage - 1, 1)"
@@ -340,11 +345,9 @@
               >
                 <i class="fas fa-chevron-left"></i>
               </button>
-              
-              <span class="pagination-text">
-                {{ currentPage }} de {{ currentTotalPages }}
-              </span>
-              
+
+              <span class="pagination-text"> {{ currentPage }} de {{ currentTotalPages }} </span>
+
               <button
                 @click="currentPage = Math.min(currentPage + 1, currentTotalPages)"
                 :disabled="currentPage === currentTotalPages"
@@ -396,7 +399,9 @@
             </div>
             <div class="stat-content">
               <p class="stat-label">En Revisión</p>
-              <p class="stat-value">{{solicitudes.filter(p => p.estado === 'En revisión').length}}</p>
+              <p class="stat-value">
+                {{ solicitudes.filter((p) => p.estado === 'En revisión').length }}
+              </p>
             </div>
           </div>
           <div class="stat-card">
@@ -405,7 +410,9 @@
             </div>
             <div class="stat-content">
               <p class="stat-label">Aprobados</p>
-              <p class="stat-value">{{solicitudes.filter(p => p.estado === 'Aprobado').length}}</p>
+              <p class="stat-value">
+                {{ solicitudes.filter((p) => p.estado === 'Aprobado').length }}
+              </p>
             </div>
           </div>
           <div class="stat-card">
@@ -414,7 +421,9 @@
             </div>
             <div class="stat-content">
               <p class="stat-label">Rechazados</p>
-              <p class="stat-value">{{solicitudes.filter(p => p.estado === 'Denegado').length}}</p>
+              <p class="stat-value">
+                {{ solicitudes.filter((p) => p.estado === 'Denegado').length }}
+              </p>
             </div>
           </div>
         </div>
@@ -422,17 +431,68 @@
         <div class="search-filter-section">
           <div class="search-input-container">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" placeholder="Buscar por nombre o motivo..." class="search-input" v-model="searchTerm" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o motivo..."
+              class="search-input"
+              v-model="searchTerm"
+            />
           </div>
           <div class="filter-tabs">
-            <button v-for="tab in filterTabs" :key="tab.value" @click="selectedFilterTab = tab.value"
-              :class="['filter-tab', { 'active': selectedFilterTab === tab.value }]">
+            <button
+              v-for="tab in filterTabs"
+              :key="tab.value"
+              @click="selectedFilterTab = tab.value"
+              :class="['filter-tab', { active: selectedFilterTab === tab.value }]"
+            >
               {{ tab.label }}
             </button>
           </div>
         </div>
 
-        <div class="permisos-table-container">
+        <div v-if="smAndDown" class="mobile-reports-container mobile-only">
+          <div v-for="permiso in filteredSolicitudes" :key="permiso.id" class="mobile-report-card">
+            <div class="mobile-card-header">
+              <div class="numero-badge">ID: {{ permiso.id }}</div>
+              <span :class="['status-badge', getStatusClass(permiso.estado)]">
+                <i :class="getStatusIcon(permiso.estado)"></i>
+                {{ permiso.estado }}
+              </span>
+            </div>
+
+            <div class="mobile-card-content">
+              <h4 class="mobile-motivo">{{ permiso.motivo }}</h4>
+              <div class="mobile-info-row">
+                <div class="mobile-fecha">
+                  <i class="fas fa-calendar"></i>
+                  <span>
+                    {{ extractDate(permiso.fecha_salida) }} -
+                    {{ extractDate(permiso.fecha_regreso) }}</span
+                  >
+                </div>
+                <div class="mobile-horario">
+                  <i class="fas fa-tag"></i>
+                  <span>{{ calculateDays(permiso.fecha_salida, permiso.fecha_regreso) }} días</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mobile-card-actions">
+              <v-btn
+                @click="viewDetails(permiso)"
+                color="primary"
+                size="large"
+                variant="tonal"
+                class="mobile-action-btn"
+                prepend-icon="mdi-eye"
+              >
+                Ver detalles
+              </v-btn>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="permisos-table-container">
           <div class="table-wrapper">
             <table class="permisos-table">
               <thead>
@@ -461,7 +521,8 @@
                   <td>
                     <div class="date-info">
                       <div class="date-range">
-                        {{ extractDate(permiso.fecha_salida) }} - {{ extractDate(permiso.fecha_regreso) }}
+                        {{ extractDate(permiso.fecha_salida) }} -
+                        {{ extractDate(permiso.fecha_regreso) }}
                       </div>
                       <div class="date-requested" v-if="permiso.Fecha_solicitada">
                         Solicitado: {{ dateFormatISO(permiso.Fecha_solicitada) }}
@@ -486,11 +547,19 @@
                   </td>
                   <td>
                     <div class="actions">
-                      <button v-if="permiso.archivo_justificacion" @click="downloadFile(permiso.archivo_justificacion)" 
-                        class="action-btn download" title="Descargar archivo">
+                      <button
+                        v-if="permiso.archivo_justificacion"
+                        @click="downloadFile(permiso.archivo_justificacion)"
+                        class="action-btn download"
+                        title="Descargar archivo"
+                      >
                         <i class="fas fa-download"></i>
                       </button>
-                      <button @click="viewDetails(permiso)" class="action-btn view" title="Ver detalles">
+                      <button
+                        @click="viewDetails(permiso)"
+                        class="action-btn view"
+                        title="Ver detalles"
+                      >
                         <i class="fas fa-eye"></i>
                       </button>
                     </div>
@@ -513,15 +582,19 @@
             <span>de {{ totalFilteredItems }} resultados</span>
           </div>
           <div class="pagination-controls">
-            <button @click="currentPage = Math.max(currentPage - 1, 1)" :disabled="currentPage === 1"
-              class="pagination-btn">
+            <button
+              @click="currentPage = Math.max(currentPage - 1, 1)"
+              :disabled="currentPage === 1"
+              class="pagination-btn"
+            >
               <i class="fas fa-chevron-left"></i>
             </button>
-            <span class="pagination-text">
-              Página {{ currentPage }} de {{ totalPages }}
-            </span>
-            <button @click="currentPage = Math.min(currentPage + 1, totalPages)" :disabled="currentPage === totalPages"
-              class="pagination-btn">
+            <span class="pagination-text"> Página {{ currentPage }} de {{ totalPages }} </span>
+            <button
+              @click="currentPage = Math.min(currentPage + 1, totalPages)"
+              :disabled="currentPage === totalPages"
+              class="pagination-btn"
+            >
               <i class="fas fa-chevron-right"></i>
             </button>
           </div>
@@ -545,7 +618,9 @@
             </div>
             <div class="stat-content">
               <p class="stat-label">En Revisión</p>
-              <p class="stat-value">{{areaComunItems.filter(p => p.estado === 'En revisión').length}}</p>
+              <p class="stat-value">
+                {{ areaComunItems.filter((p) => p.estado === 'En revisión').length }}
+              </p>
             </div>
           </div>
           <div class="stat-card">
@@ -554,7 +629,9 @@
             </div>
             <div class="stat-content">
               <p class="stat-label">Aprobados</p>
-              <p class="stat-value">{{areaComunItems.filter(p => p.estado === 'Aprobado').length}}</p>
+              <p class="stat-value">
+                {{ areaComunItems.filter((p) => p.estado === 'Aprobado').length }}
+              </p>
             </div>
           </div>
           <div class="stat-card">
@@ -563,7 +640,9 @@
             </div>
             <div class="stat-content">
               <p class="stat-label">Rechazados</p>
-              <p class="stat-value">{{areaComunItems.filter(p => p.estado === 'Denegado').length}}</p>
+              <p class="stat-value">
+                {{ areaComunItems.filter((p) => p.estado === 'Denegado').length }}
+              </p>
             </div>
           </div>
         </div>
@@ -571,18 +650,65 @@
         <div class="search-filter-section">
           <div class="search-input-container">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" placeholder="Buscar por nombre o lugar..." class="search-input"
-              v-model="searchTermAreaComun" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o lugar..."
+              class="search-input"
+              v-model="searchTermAreaComun"
+            />
           </div>
           <div class="filter-tabs">
-            <button v-for="tab in filterTabs" :key="tab.value" @click="selectedFilterTabAreaComun = tab.value"
-              :class="['filter-tab', { 'active': selectedFilterTabAreaComun === tab.value }]">
+            <button
+              v-for="tab in filterTabs"
+              :key="tab.value"
+              @click="selectedFilterTabAreaComun = tab.value"
+              :class="['filter-tab', { active: selectedFilterTabAreaComun === tab.value }]"
+            >
               {{ tab.label }}
             </button>
           </div>
         </div>
 
-        <div class="permisos-table-container">
+        <div v-if="smAndDown" class="mobile-reports-container mobile-only">
+          <div v-for="permiso in filteredAreaComun" :key="permiso.id" class="mobile-report-card">
+            <div class="mobile-card-header">
+              <div class="numero-badge">ID: {{ permiso.id }}</div>
+              <span :class="['status-badge', getStatusClass(permiso.estado)]">
+                <i :class="getStatusIcon(permiso.estado)"></i>
+                {{ permiso.estado }}
+              </span>
+            </div>
+
+            <div class="mobile-card-content">
+              <h4 class="mobile-motivo">{{ permiso.motivo }}</h4>
+              <div class="mobile-info-row">
+                <div class="mobile-fecha">
+                  <i class="fas fa-calendar"></i>
+                  <span>{{ dateFormatV2(permiso.fecha) }}</span>
+                </div>
+                <div class="mobile-horario">
+                  <i class="fas fa-tag"></i>
+                  <span>{{ permiso.horario }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mobile-card-actions">
+              <v-btn
+                @click="viewDetailsAreaComun(permiso)"
+                color="primary"
+                size="large"
+                variant="tonal"
+                class="mobile-action-btn"
+                prepend-icon="mdi-eye"
+              >
+                Ver detalles
+              </v-btn>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="permisos-table-container">
           <div class="table-wrapper">
             <table class="permisos-table">
               <thead>
@@ -611,7 +737,10 @@
                   <td>
                     <div class="lugar-info">
                       <div class="lugar-nombre">
-                        <i class="fas fa-map-marker-alt" style="color: #53696D; margin-right: 8px;"></i>
+                        <i
+                          class="fas fa-map-marker-alt"
+                          style="color: #53696d; margin-right: 8px"
+                        ></i>
                         {{ permiso.lugar }}
                       </div>
                       <div class="lugar-fecha">
@@ -624,7 +753,7 @@
                   </td>
                   <td>
                     <div class="horario-info">
-                      <i class="fas fa-clock" style="color: #53696D; margin-right: 8px;"></i>
+                      <i class="fas fa-clock" style="color: #53696d; margin-right: 8px"></i>
                       {{ permiso.horario }}
                     </div>
                   </td>
@@ -641,7 +770,11 @@
                   </td>
                   <td>
                     <div class="actions">
-                      <button @click="viewDetailsAreaComun(permiso)" class="action-btn view" title="Ver detalles">
+                      <button
+                        @click="viewDetailsAreaComun(permiso)"
+                        class="action-btn view"
+                        title="Ver detalles"
+                      >
                         <i class="fas fa-eye"></i>
                       </button>
                     </div>
@@ -664,15 +797,23 @@
             <span>de {{ totalFilteredItemsAreaComun }} resultados</span>
           </div>
           <div class="pagination-controls">
-            <button @click="currentPageAreaComun = Math.max(currentPageAreaComun - 1, 1)"
-              :disabled="currentPageAreaComun === 1" class="pagination-btn">
+            <button
+              @click="currentPageAreaComun = Math.max(currentPageAreaComun - 1, 1)"
+              :disabled="currentPageAreaComun === 1"
+              class="pagination-btn"
+            >
               <i class="fas fa-chevron-left"></i>
             </button>
             <span class="pagination-text">
               Página {{ currentPageAreaComun }} de {{ totalPagesAreaComun }}
             </span>
-            <button @click="currentPageAreaComun = Math.min(currentPageAreaComun + 1, totalPagesAreaComun)"
-              :disabled="currentPageAreaComun === totalPagesAreaComun" class="pagination-btn">
+            <button
+              @click="
+                currentPageAreaComun = Math.min(currentPageAreaComun + 1, totalPagesAreaComun)
+              "
+              :disabled="currentPageAreaComun === totalPagesAreaComun"
+              class="pagination-btn"
+            >
               <i class="fas fa-chevron-right"></i>
             </button>
           </div>
@@ -688,15 +829,29 @@
     </v-snackbar>
   </ContainerView>
 
-  <ModalDetallePermiso v-model="showModalDetalle" :permiso="selectedPermiso" :is-admin="isAdmin"
-    @estado-actualizado="onEstadoActualizado" />
+  <ModalDetallePermiso
+    v-model="showModalDetalle"
+    :permiso="selectedPermiso"
+    :is-admin="isAdmin"
+    @estado-actualizado="onEstadoActualizado"
+  />
 
-  <ModalDetalleAreaComun v-model="showModalDetalleAreaComun" :reserva="selectedPermisoAreaComun" :is-admin="isAdmin"
-    @estado-actualizado="onEstadoActualizadoAreaComun" />
+  <ModalDetalleAreaComun
+    v-model="showModalDetalleAreaComun"
+    :reserva="selectedPermisoAreaComun"
+    :is-admin="isAdmin"
+    @estado-actualizado="onEstadoActualizadoAreaComun"
+  />
 </template>
+
 <script setup>
 import { ref, reactive, onMounted, computed, watch } from 'vue'
-import { dateFormatV2, dateFormatISO, convertLocalDateTimeToUTC, extractDate } from '@/shared/util/functions.js'
+import {
+  dateFormatV2,
+  dateFormatISO,
+  convertLocalDateTimeToUTC,
+  extractDate,
+} from '@/shared/util/functions.js'
 import LoginService from '@/services/LoginService'
 import PermisosService from '@/services/PermisosService'
 import VueDatePicker from '@vuepic/vue-datepicker'
@@ -704,6 +859,9 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import ContainerView from '@/components/layout/ContainerView.vue'
 import ModalDetallePermiso from './modal/ModalDetallePermiso.vue'
 import ModalDetalleAreaComun from './modal/ModalDetalleAreaComun.vue'
+import { useDisplay } from 'vuetify'
+
+const { smAndDown } = useDisplay()
 
 const solicitudes = ref([])
 const areaComunItems = ref([])
@@ -734,7 +892,7 @@ const form = reactive({
   horaFin: '',
   fechaSalida: null,
   fechaRegreso: null,
-  motivoAreaComun: ''
+  motivoAreaComun: '',
 })
 
 const fileInputSalida = ref(null)
@@ -747,14 +905,9 @@ const filterTabs = [
   { value: 'todos', label: 'Todos' },
   { value: 'pendientes', label: 'Pendientes' },
   { value: 'aprobados', label: 'Aprobados' },
-  { value: 'rechazados', label: 'Rechazados' }
+  { value: 'rechazados', label: 'Rechazados' },
 ]
-const siteOptions = [
-  'Hall',
-  'patio',
-  'Lavandería',
-  'Sala de cómputo'
-]
+const siteOptions = ['Hall', 'patio', 'Lavandería', 'Sala de cómputo']
 const scheduleOptions = [
   '9:00 AM',
   '10:00 AM',
@@ -767,7 +920,7 @@ const scheduleOptions = [
   '5:00 PM',
   '6:00 PM',
   '7:00 PM',
-  '8:00 PM'
+  '8:00 PM',
 ]
 
 const horasFinDisponibles = computed(() => {
@@ -775,7 +928,7 @@ const horasFinDisponibles = computed(() => {
     return []
   }
 
-  const indiceInicio = scheduleOptions.findIndex(hora => hora === form.horaInicio)
+  const indiceInicio = scheduleOptions.findIndex((hora) => hora === form.horaInicio)
   if (indiceInicio === -1) {
     return []
   }
@@ -784,11 +937,13 @@ const horasFinDisponibles = computed(() => {
 })
 
 const filteredSolicitudes = computed(() => {
-  const filtered = solicitudes.value.filter(permiso => {
-    const matchesSearch = permiso.nombre_usuario?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+  const filtered = solicitudes.value.filter((permiso) => {
+    const matchesSearch =
+      permiso.nombre_usuario?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
       permiso.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase())
 
-    const matchesTab = selectedFilterTab.value === 'todos' ||
+    const matchesTab =
+      selectedFilterTab.value === 'todos' ||
       (selectedFilterTab.value === 'pendientes' && permiso.estado === 'En revisión') ||
       (selectedFilterTab.value === 'aprobados' && permiso.estado === 'Aprobado') ||
       (selectedFilterTab.value === 'rechazados' && permiso.estado === 'Denegado')
@@ -801,11 +956,13 @@ const filteredSolicitudes = computed(() => {
 })
 
 const totalFilteredItems = computed(() => {
-  return solicitudes.value.filter(permiso => {
-    const matchesSearch = permiso.nombre_usuario?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+  return solicitudes.value.filter((permiso) => {
+    const matchesSearch =
+      permiso.nombre_usuario?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
       permiso.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase())
 
-    const matchesTab = selectedFilterTab.value === 'todos' ||
+    const matchesTab =
+      selectedFilterTab.value === 'todos' ||
       (selectedFilterTab.value === 'pendientes' && permiso.estado === 'En revisión') ||
       (selectedFilterTab.value === 'aprobados' && permiso.estado === 'Aprobado') ||
       (selectedFilterTab.value === 'rechazados' && permiso.estado === 'Denegado')
@@ -819,12 +976,14 @@ const totalPages = computed(() => {
 })
 
 const filteredAreaComun = computed(() => {
-  const filtered = areaComunItems.value.filter(permiso => {
-    const matchesSearch = permiso.nombre_usuario?.toLowerCase().includes(searchTermAreaComun.value.toLowerCase()) ||
+  const filtered = areaComunItems.value.filter((permiso) => {
+    const matchesSearch =
+      permiso.nombre_usuario?.toLowerCase().includes(searchTermAreaComun.value.toLowerCase()) ||
       permiso.lugar?.toLowerCase().includes(searchTermAreaComun.value.toLowerCase()) ||
       permiso.motivo?.toLowerCase().includes(searchTermAreaComun.value.toLowerCase())
 
-    const matchesTab = selectedFilterTabAreaComun.value === 'todos' ||
+    const matchesTab =
+      selectedFilterTabAreaComun.value === 'todos' ||
       (selectedFilterTabAreaComun.value === 'pendientes' && permiso.estado === 'En revisión') ||
       (selectedFilterTabAreaComun.value === 'aprobados' && permiso.estado === 'Aprobado') ||
       (selectedFilterTabAreaComun.value === 'rechazados' && permiso.estado === 'Denegado')
@@ -837,12 +996,14 @@ const filteredAreaComun = computed(() => {
 })
 
 const totalFilteredItemsAreaComun = computed(() => {
-  return areaComunItems.value.filter(permiso => {
-    const matchesSearch = permiso.nombre_usuario?.toLowerCase().includes(searchTermAreaComun.value.toLowerCase()) ||
+  return areaComunItems.value.filter((permiso) => {
+    const matchesSearch =
+      permiso.nombre_usuario?.toLowerCase().includes(searchTermAreaComun.value.toLowerCase()) ||
       permiso.lugar?.toLowerCase().includes(searchTermAreaComun.value.toLowerCase()) ||
       permiso.motivo?.toLowerCase().includes(searchTermAreaComun.value.toLowerCase())
 
-    const matchesTab = selectedFilterTabAreaComun.value === 'todos' ||
+    const matchesTab =
+      selectedFilterTabAreaComun.value === 'todos' ||
       (selectedFilterTabAreaComun.value === 'pendientes' && permiso.estado === 'En revisión') ||
       (selectedFilterTabAreaComun.value === 'aprobados' && permiso.estado === 'Aprobado') ||
       (selectedFilterTabAreaComun.value === 'rechazados' && permiso.estado === 'Denegado')
@@ -856,9 +1017,11 @@ const totalPagesAreaComun = computed(() => {
 })
 
 const filteredSolicitudesDisplay = computed(() => {
-  const filtered = solicitudes.value.filter(item => {
-    const matchesSearch = item.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase()) || false
-    const matchesTab = selectedFilterTab.value === 'todos' || item.estado === selectedFilterTab.value
+  const filtered = solicitudes.value.filter((item) => {
+    const matchesSearch =
+      item.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase()) || false
+    const matchesTab =
+      selectedFilterTab.value === 'todos' || item.estado === selectedFilterTab.value
     return matchesSearch && matchesTab
   })
 
@@ -867,11 +1030,14 @@ const filteredSolicitudesDisplay = computed(() => {
 })
 
 const filteredAreaComunDisplay = computed(() => {
-  const filtered = areaComunItems.value.filter(item => {
-    const matchesSearch = item.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase()) || 
-                         item.lugar?.toLowerCase().includes(searchTerm.value.toLowerCase()) || 
-                         item.nombre_usuario?.toLowerCase().includes(searchTerm.value.toLowerCase()) || false
-    const matchesTab = selectedFilterTab.value === 'todos' || item.estado === selectedFilterTab.value
+  const filtered = areaComunItems.value.filter((item) => {
+    const matchesSearch =
+      item.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      item.lugar?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      item.nombre_usuario?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      false
+    const matchesTab =
+      selectedFilterTab.value === 'todos' || item.estado === selectedFilterTab.value
     return matchesSearch && matchesTab
   })
 
@@ -881,18 +1047,23 @@ const filteredAreaComunDisplay = computed(() => {
 
 const currentTotalPages = computed(() => {
   if (activeTab.value === 'solicitud') {
-    const totalFiltered = solicitudes.value.filter(item => {
-      const matchesSearch = item.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase()) || false
-      const matchesTab = selectedFilterTab.value === 'todos' || item.estado === selectedFilterTab.value
+    const totalFiltered = solicitudes.value.filter((item) => {
+      const matchesSearch =
+        item.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase()) || false
+      const matchesTab =
+        selectedFilterTab.value === 'todos' || item.estado === selectedFilterTab.value
       return matchesSearch && matchesTab
     }).length
     return Math.ceil(totalFiltered / itemsPerPage.value)
   } else {
-    const totalFiltered = areaComunItems.value.filter(item => {
-      const matchesSearch = item.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase()) || 
-                           item.lugar?.toLowerCase().includes(searchTerm.value.toLowerCase()) || 
-                           item.nombre_usuario?.toLowerCase().includes(searchTerm.value.toLowerCase()) || false
-      const matchesTab = selectedFilterTab.value === 'todos' || item.estado === selectedFilterTab.value
+    const totalFiltered = areaComunItems.value.filter((item) => {
+      const matchesSearch =
+        item.motivo?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+        item.lugar?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+        item.nombre_usuario?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+        false
+      const matchesTab =
+        selectedFilterTab.value === 'todos' || item.estado === selectedFilterTab.value
       return matchesSearch && matchesTab
     }).length
     return Math.ceil(totalFiltered / itemsPerPage.value)
@@ -903,7 +1074,7 @@ const currentItemsPerPage = computed({
   get: () => itemsPerPage.value,
   set: (value) => {
     itemsPerPage.value = value
-  }
+  },
 })
 
 watch([itemsPerPage, selectedFilterTab, searchTerm], () => {
@@ -926,15 +1097,18 @@ watch(totalPagesAreaComun, (newTotalPages) => {
   }
 })
 
-watch(() => form.fechaSalida, (newFechaSalida, oldFechaSalida) => {
-  if (newFechaSalida !== oldFechaSalida && form.fechaRegreso) {
-    const fechaSalida = new Date(newFechaSalida)
-    const fechaRegreso = new Date(form.fechaRegreso)
-    if (fechaRegreso <= fechaSalida) {
-      form.fechaRegreso = null
+watch(
+  () => form.fechaSalida,
+  (newFechaSalida, oldFechaSalida) => {
+    if (newFechaSalida !== oldFechaSalida && form.fechaRegreso) {
+      const fechaSalida = new Date(newFechaSalida)
+      const fechaRegreso = new Date(form.fechaRegreso)
+      if (fechaRegreso <= fechaSalida) {
+        form.fechaRegreso = null
+      }
     }
-  }
-})
+  },
+)
 
 watch(activeTab, () => {
   currentPage.value = 1
@@ -944,7 +1118,11 @@ watch(activeTab, () => {
 
 const getInitials = (name) => {
   if (!name) return '??'
-  return name.split(' ').map(n => n[0]).join('').toUpperCase()
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
 }
 
 const getStatusClass = (estado) => {
@@ -1013,8 +1191,8 @@ const onEstadoActualizadoAreaComun = async ({ id, estado }) => {
 
 const resetHoraFin = () => {
   if (form.horaFin) {
-    const indiceInicio = scheduleOptions.findIndex(hora => hora === form.horaInicio)
-    const indiceFin = scheduleOptions.findIndex(hora => hora === form.horaFin)
+    const indiceInicio = scheduleOptions.findIndex((hora) => hora === form.horaInicio)
+    const indiceFin = scheduleOptions.findIndex((hora) => hora === form.horaFin)
 
     if (indiceFin <= indiceInicio) {
       form.horaFin = ''
@@ -1054,10 +1232,10 @@ const getStatusBadgeClass = (estado) => {
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleDateString('es-ES', { 
-    day: '2-digit', 
-    month: 'short', 
-    year: 'numeric' 
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   })
 }
 
@@ -1089,7 +1267,7 @@ const deleteReserva = (id) => {
 async function actualizarEstadoSalida(id, estado) {
   try {
     await PermisosService.actualizarEstadoPermisoSalida(id, estado)
-    const permiso = solicitudes.value.find(p => p.id === id)
+    const permiso = solicitudes.value.find((p) => p.id === id)
     if (permiso) {
       permiso.estado = estado
     }
@@ -1109,7 +1287,7 @@ async function actualizarEstadoSalida(id, estado) {
 async function actualizarEstadoAreaComun(id, estado) {
   try {
     await PermisosService.actualizarEstadoPermisoAreaComun(id, estado)
-    const permiso = areaComunItems.value.find(p => p.id === id)
+    const permiso = areaComunItems.value.find((p) => p.id === id)
     if (permiso) {
       permiso.estado = estado
     }
@@ -1152,12 +1330,12 @@ async function submitSolicitudVivienda() {
 
     await PermisosService.crearPermisoSalida(formData)
     await loadPermisosDeSalidaPorUsuario()
-    
+
     form.fechaSalida = null
     form.fechaRegreso = null
     form.motivo = ''
     selectedFileSalida.value = null
-    
+
     snackbar.message = 'Solicitud enviada exitosamente'
     snackbar.color = 'success'
     snackbar.show = true
@@ -1172,7 +1350,13 @@ async function submitSolicitudVivienda() {
 }
 
 async function submitAreaComun() {
-  if (!form.lugar || !form.fechaAreaComun || !form.horaInicio || !form.horaFin || !form.motivoAreaComun) {
+  if (
+    !form.lugar ||
+    !form.fechaAreaComun ||
+    !form.horaInicio ||
+    !form.horaFin ||
+    !form.motivoAreaComun
+  ) {
     snackbar.message = 'Por favor completa todos los campos'
     snackbar.color = 'error'
     snackbar.show = true
@@ -1182,9 +1366,10 @@ async function submitAreaComun() {
   isSubmittingAreaComun.value = true
 
   try {
-    const fecha = form.fechaAreaComun instanceof Date
-      ? form.fechaAreaComun.toISOString().slice(0, 10)
-      : form.fechaAreaComun
+    const fecha =
+      form.fechaAreaComun instanceof Date
+        ? form.fechaAreaComun.toISOString().slice(0, 10)
+        : form.fechaAreaComun
 
     const horario = `${form.horaInicio} a ${form.horaFin}`
 
@@ -1193,7 +1378,7 @@ async function submitAreaComun() {
       lugar: form.lugar,
       fecha: fecha,
       horario: horario,
-      motivo: form.motivoAreaComun
+      motivo: form.motivoAreaComun,
     }
 
     await PermisosService.crearPermisoAreaComun(params)
@@ -1324,20 +1509,21 @@ function getIconStyle(accion, estadoActual) {
 
 function downloadFile(fileName) {
   if (!fileName) return
-  
+
   const baseUrl = 'http://localhost:5000/uploads/justificacion/'
   const fileUrl = baseUrl + fileName
-  
+
   const link = document.createElement('a')
   link.href = fileUrl
   link.download = fileName
   link.target = '_blank'
-  
+
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
 }
 </script>
+
 <style scoped>
 .custom-table-admin {
   margin-top: 32px;
@@ -1375,7 +1561,7 @@ function downloadFile(fileName) {
 }
 
 .v-divider {
-  border: 1px solid #D9D9D9 !important;
+  border: 1px solid #d9d9d9 !important;
 }
 
 .v-data-table-footer {
@@ -1405,7 +1591,7 @@ function downloadFile(fileName) {
 }
 
 .active-tab-text {
-  color: #A37801;
+  color: #a37801;
   font-weight: 600;
   padding-bottom: 4px;
 }
@@ -1435,11 +1621,11 @@ function downloadFile(fileName) {
 }
 
 :deep(.v-tab--selected) {
-  color: #A37801;
+  color: #a37801;
 }
 
 :deep(.dp__theme_light) {
-  --dp-primary-color: #A80038;
+  --dp-primary-color: #a80038;
   --dp-primary-text-color: #fff;
 }
 
@@ -1507,7 +1693,7 @@ function downloadFile(fileName) {
   background: transparent;
   padding: 24px;
   border-radius: 12px;
-  border: 1px solid #A37801;
+  border: 1px solid #a37801;
   display: flex;
   align-items: center;
 }
@@ -1563,7 +1749,7 @@ function downloadFile(fileName) {
 .search-filter-section {
   background: transparent;
   border-radius: 12px;
-  border: 1px solid #A37801;
+  border: 1px solid #a37801;
   padding: 24px;
   margin-bottom: 24px;
 }
@@ -1591,7 +1777,7 @@ function downloadFile(fileName) {
   padding: 10px 16px;
   border-radius: 8px;
   border: 1px solid transparent;
-  background: #FFFBED;
+  background: #fffbed;
   color: #6b7280;
   font-size: 14px;
   font-weight: 500;
@@ -1600,19 +1786,19 @@ function downloadFile(fileName) {
 }
 
 .filter-tab:hover {
-  background: #A37801;
+  background: #a37801;
   color: white;
 }
 
 .filter-tab.active {
-  background: #A37801;
+  background: #a37801;
   color: white;
 }
 
 .permisos-table-container {
   background: transparent;
   border-radius: 12px;
-  border: 1px solid #A37801;
+  border: 1px solid #a37801;
   overflow: hidden;
   margin-bottom: 24px;
 }
@@ -1627,7 +1813,7 @@ function downloadFile(fileName) {
 }
 
 .permisos-table thead {
-  background: #FFFBED;
+  background: #fffbed;
 }
 
 .permisos-table th {
@@ -1638,7 +1824,7 @@ function downloadFile(fileName) {
   color: #525252;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #A37801;
+  border-bottom: 1px solid #a37801;
 }
 
 .permisos-table th:last-child {
@@ -1646,12 +1832,12 @@ function downloadFile(fileName) {
 }
 
 .permisos-table tbody tr {
-  border-bottom: 1px solid #A37801;
+  border-bottom: 1px solid #a37801;
   transition: background-color 0.2s ease;
 }
 
 .permisos-table tbody tr:hover {
-  background: #FFFBED;
+  background: #fffbed;
 }
 
 .permisos-table td {
@@ -1667,7 +1853,7 @@ function downloadFile(fileName) {
 .avatar {
   width: 40px;
   height: 40px;
-  background: #A37801;
+  background: #a37801;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1821,7 +2007,7 @@ function downloadFile(fileName) {
   padding: 16px 24px;
   background: transparent;
   border-radius: 12px;
-  border: 1px solid #A37801;
+  border: 1px solid #a37801;
 }
 
 .pagination-info {
@@ -1834,7 +2020,7 @@ function downloadFile(fileName) {
 
 .items-select {
   padding: 4px 8px;
-  border: 1px solid #A37801;
+  border: 1px solid #a37801;
   border-radius: 4px;
   font-size: 14px;
 }
@@ -1849,7 +2035,7 @@ function downloadFile(fileName) {
   width: 32px;
   height: 32px;
   border: none;
-  background: #FFFBED;
+  background: #fffbed;
   color: #6b7280;
   border-radius: 4px;
   display: flex;
@@ -1927,15 +2113,15 @@ function downloadFile(fileName) {
 }
 
 .student-permissions-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* display: grid;
+  grid-template-columns: 1fr 1fr; */
   gap: 32px;
   margin: 0 auto;
   align-items: flex-start;
 }
 
 .form-column {
-  background: #B8BAA3F2;
+  background: #b8baa3f2;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
@@ -1945,7 +2131,7 @@ function downloadFile(fileName) {
 }
 
 .form-content {
-  background: #EDEEE2F2;
+  background: #edeee2f2;
   border-radius: 16px;
   padding: 32px;
   margin-top: 16px;
@@ -2019,7 +2205,7 @@ function downloadFile(fileName) {
 
 .duration-info {
   background: #f0daa4;
-  color: #A37801;
+  color: #a37801;
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 14px;
@@ -2030,7 +2216,7 @@ function downloadFile(fileName) {
 }
 
 .duration-icon {
-  color: #A37801;
+  color: #a37801;
 }
 
 .helper-text {
@@ -2050,7 +2236,7 @@ function downloadFile(fileName) {
 }
 
 .upload-area:hover {
-  border-color: #A37801;
+  border-color: #a37801;
   background: #ebddb9;
 }
 
@@ -2091,7 +2277,7 @@ function downloadFile(fileName) {
 }
 
 .primary-btn {
-  background: #7E271BF2 !important;
+  background: #7e271bf2 !important;
   color: white !important;
 }
 
@@ -2100,7 +2286,7 @@ function downloadFile(fileName) {
 }
 
 .table-column {
-  background: #B8BAA3F2;
+  background: #b8baa3f2;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -2163,7 +2349,7 @@ function downloadFile(fileName) {
 
 .search-input:focus {
   outline: none;
-  border-color: #A37801;
+  border-color: #a37801;
   background: white;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
@@ -2234,12 +2420,12 @@ function downloadFile(fileName) {
   padding: 20px;
   transition: all 0.2s ease;
   cursor: pointer;
-  background: #EDEEE2F2;
+  background: #edeee2f2;
 }
 
 .solicitud-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #A37801;
+  border-color: #a37801;
   transform: translateY(-1px);
 }
 
@@ -2430,13 +2616,13 @@ function downloadFile(fileName) {
     gap: 24px;
     padding: 16px;
   }
-  
+
   .date-range-container,
   .time-range-container {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .search-filter-container {
     flex-direction: column;
     gap: 12px;
@@ -2448,21 +2634,21 @@ function downloadFile(fileName) {
   .table-card {
     padding: 20px;
   }
-  
+
   .form-title,
   .table-title {
     font-size: 24px;
   }
-  
+
   .upload-area {
     padding: 24px;
   }
-  
+
   .solicitud-header {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .solicitud-actions {
     align-self: flex-end;
   }
@@ -2476,7 +2662,7 @@ function downloadFile(fileName) {
 
 .custom-input :deep(.v-field--focused) {
   background-color: white;
-  border-color: #A37801;
+  border-color: #a37801;
 }
 
 .custom-input :deep(.dp__input) {
@@ -2489,12 +2675,12 @@ function downloadFile(fileName) {
 
 .custom-input :deep(.dp__input:focus) {
   background-color: white;
-  border-color: #A37801;
+  border-color: #a37801;
 }
 
 .duration-icon {
   margin-right: 8px;
-  color: #A37801;
+  color: #a37801;
   font-size: 14px;
 }
 
@@ -2585,5 +2771,115 @@ function downloadFile(fileName) {
 .secondary-btn i {
   margin-right: 8px;
   font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px 16px;
+  }
+
+  .pagination-info {
+    justify-content: center;
+  }
+
+  .pagination-controls {
+    justify-content: center;
+  }
+}
+
+.numero-badge {
+  background: #a37801;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.mobile-reports-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.mobile-report-card {
+  background: #fffbed;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mobile-card-content {
+  margin-bottom: 16px;
+}
+
+.mobile-motivo {
+  font-size: 16px;
+  font-weight: 600;
+  color: #163053;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.mobile-info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.mobile-fecha,
+.mobile-horario {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+  flex: 1;
+}
+
+.mobile-card-actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.mobile-action-btn {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: clamp(11px, 2.5vw, 13px);
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.mobile-action-btn .v-btn__content {
+  white-space: normal !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.mobile-action-btn:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
 }
 </style>
