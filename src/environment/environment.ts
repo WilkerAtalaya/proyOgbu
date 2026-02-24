@@ -43,6 +43,13 @@ export const environment = {
       actualizarEstadoSalida: '/api/permisos/salida',
       actualizarEstadoAreaComun: '/api/permisos/area-comun',
     },
+    administrarUsuarios: {
+      crear: '/admin/usuarios',
+      listar: '/admin/usuarios',
+      obtenerPorId: '/admin/usuarios',          
+      actualizar: '/admin/usuarios',            
+      cambiarEstado: '/admin/usuarios',       
+    },
     citas: {
       obtenerSolicitadasPorUsuario: '/citas/alumno',
       obtenerPendientes: '/citas/pendientes',

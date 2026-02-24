@@ -32,6 +32,22 @@ const router = createRouter({
       component: () => import('../views/PermissionsView.vue'),
     },
     {
+      path: '/alumnos',
+      name: 'alumnos',
+      component: () => import('../views/StudentsView/StudentsList.vue'),
+    },
+    {
+      path: '/alumnos/nuevo',
+      name: 'alumnos-nuevo',
+      component: () => import('../views/StudentsView/StudentsForm.vue'),
+    },
+    {
+      path: '/alumnos/:id/editar',
+      name: 'alumnos-editar',
+      component: () => import('../views/StudentsView/StudentsForm.vue'),
+      props: true,
+   },
+    {
       path: '/quejas',
       name: 'quejas',
       component: () => import('../views/ReportsView.vue'),

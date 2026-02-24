@@ -38,6 +38,7 @@ import quejaIcon from '@/assets/icons/queja.png'
 import actividadIcon from '@/assets/icons/actividad.png'
 import permisoIcon from '@/assets/icons/permiso.png'
 import citaIcon from '@/assets/icons/cita.png'
+import alumnosIcon from '@/assets/icons/alumnos.png'
 import asistenciaIcon from '@/assets/icons/asistencia.png'
 import { UserRole } from '@/shared/enums/role.enum'
 
@@ -69,6 +70,12 @@ const menuOptions = [
     key: '/permisos',
     iconSrc: permisoIcon,
     roles: [UserRole.STUDENT, UserRole.ADMIN],
+  },
+  {
+  label: 'Alumnos',
+  key: '/alumnos',
+  iconSrc: alumnosIcon,
+  roles: [UserRole.ADMIN],
   },
   {
     label: 'Citas',

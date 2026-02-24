@@ -53,7 +53,7 @@ def create_app():
     app.register_blueprint(cita_bp)
     app.register_blueprint(asistencia_bp)
     app.register_blueprint(files_bp)
-    app.register_blueprint(administrar_bp)
+    app.register_blueprint(administrar_bp, url_prefix="/admin")
     app.register_blueprint(area_bp)
     app.register_blueprint(motivo_cita_bp)
     app.register_blueprint(motivo_bp)
