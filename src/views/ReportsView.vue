@@ -215,8 +215,7 @@
         <div class="actividades-grid">
           <div v-for="(reporte, index) in filteredData" :key="index" class="actividad-card reporte-card">
             <div class="card-header">
-              <div v-if="reporte.prueba" class="card-image" @click="downloadFile(reporte.prueba)"
-                style="cursor: pointer;">
+              <div v-if="reporte.prueba" class="card-image">
                 <n-image v-if="isImageFile(reporte.prueba)" :src="getImageUrl(reporte.prueba)"
                   :alt="reporte.asunto" object-fit="cover"
                   :style="{ width: '100%', height: '160px', borderRadius: '0' }" :preview-disabled="false" />

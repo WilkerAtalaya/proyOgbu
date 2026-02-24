@@ -2290,6 +2290,7 @@ function downloadFile(fileName) {
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  margin-top: 20px;
 }
 
 .table-card {

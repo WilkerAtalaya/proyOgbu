@@ -5,6 +5,7 @@ from app import db
 from datetime import datetime, date, time, timezone
 from flask import request, jsonify
 from app.files.service import save_upload
+from app.models.rol import Rol
 
 MAX_STOCK = 500
 BUCKET = 'actividades'
@@ -74,7 +75,12 @@ def listar_por_usuario(id_usuario):
     return Actividad.query.filter_by(id_usuario=id_usuario).order_by(Actividad.fecha_solicitud.desc()).all()
 
 def listar_todas():
-    return db.session.query(Actividad).join(Actividad.usuario).filter(Usuario.rol == 'alumno').order_by(Actividad.fecha_solicitud.desc()).all()
+    return (db.session.query(Actividad)
+        .join(Actividad.usuario)
+        .join(Rol, Rol.id_rol == Usuario.rol_id)
+        .filter(Rol.slug == 'alumno')
+        .order_by(Actividad.fecha_solicitud.desc())
+        .all())
 
 def cambiar_estado(id_actividad, nuevo_estado, motivo=None):
     a = Actividad.query.get(id_actividad)
